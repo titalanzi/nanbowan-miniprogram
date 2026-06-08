@@ -1,0 +1,238 @@
+.register-section {
+  padding-top: 60rpx;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.register-icon {
+  font-size: 120rpx;
+  display: block;
+  margin-bottom: 24rpx;
+  opacity: 0.6;
+}
+
+.register-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #101828;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.register-subtitle {
+  font-size: 26rpx;
+  color: #667085;
+  display: block;
+}
+
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.avatar-preview {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: #F9FAFB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2rpx dashed #D0D5DD;
+}
+
+.avatar-placeholder {
+  font-size: 52rpx;
+  color: #98A2B3;
+  font-weight: 300;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-size: cover;
+  background-position: center;
+}
+
+.avatar-tip {
+  font-size: 26rpx;
+  color: #667085;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12rpx;
+  margin-top: 20rpx;
+  padding: 8rpx;
+}
+
+.avatar-option {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3rpx solid transparent;
+  transition: all 0.2s ease;
+  background-color: #F2F4F7;
+}
+
+.avatar-option.selected {
+  border-color: #FF6B35;
+}
+
+.option-img {
+  width: 100%;
+  height: 100%;
+}
+
+.user-card {
+  margin-bottom: 20rpx;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.edit-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #F9FAFB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid #F2F4F7;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:active {
+  background: #F2F4F7;
+}
+
+.edit-icon {
+  font-size: 28rpx;
+}
+
+.user-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: #F9FAFB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  border: 3rpx solid #FF6B35;
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.user-avatar-placeholder {
+  font-size: 60rpx;
+}
+
+.user-detail {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #101828;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.user-id {
+  font-size: 24rpx;
+  color: #98A2B3;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.user-role {
+  margin-top: 8rpx;
+}
+
+.role-tag {
+  display: inline-block;
+  padding: 8rpx 18rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.role-tag.normal {
+  background: #F2F4F7;
+  color: #667085;
+}
+
+.role-tag.assistant {
+  background: #FEF3F2;
+  color: #B42318;
+}
+
+.action-card {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 24rpx;
+  transition: all 0.2s ease;
+}
+
+.action-card:active {
+  background: #F9FAFB;
+}
+
+.action-icon {
+  font-size: 44rpx;
+  margin-right: 20rpx;
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F9FAFB;
+  border-radius: 16rpx;
+}
+
+.action-text {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #101828;
+}
+
+.action-arrow {
+  font-size: 32rpx;
+  color: #D0D5DD;
+}
+
+.register-hint {
+  background: #FFF6ED;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  border: 1rpx solid #FFECD5;
+}
+
+.hint-text {
+  font-size: 26rpx;
+  color: #C4320A;
+  text-align: center;
+  display: block;
+  font-weight: 500;
+}

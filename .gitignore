@@ -1,0 +1,38 @@
+# 微信小程序敏感文件
+Miniprogram/
+miniprogram_npm/
+node_modules/
+
+# 微信开发者工具配置
+project.config.json
+project.private.config.json
+.sourcemap/
+
+# 日志文件
+*.log
+logs/
+
+# 编译产物
+*.wxss.js
+*.wxml.js
+*.wxss.wxml
+
+# 本地配置文件
+.env
+.env.local
+
+# IDE配置
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 云开发本地文件
+/cloudbaserc.json

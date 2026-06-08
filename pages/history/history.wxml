@@ -1,0 +1,37 @@
+<view class="container">
+  <view wx:if="{{historyMatches.length === 0}}" class="empty-state">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">暂无比赛记录</text>
+  </view>
+
+  <view wx:else>
+    <view wx:for="{{historyMatches}}" wx:key="id" class="card" bindtap="goToDetail" data-id="{{item.id}}">
+      <view class="match-header">
+        <view class="match-title">{{item.name}}</view>
+        <view class="tag tag-finished">已结束</view>
+      </view>
+      <view class="match-creator">
+        <image wx:if="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+        <view wx:else class="creator-avatar placeholder">
+          <text class="avatar-text">{{item.creatorName ? item.creatorName.charAt(0) : '?'}}</text>
+        </view>
+        <view class="creator-info">
+          <text class="creator-name">发起人：{{item.creatorName || '未知'}}</text>
+          <image wx:if="{{user.role === 'assistant'}}" class="vip-icon" src="/images/VIP.png" mode="aspectFit"></image>
+        </view>
+      </view>
+      <view class="match-info">
+        <text class="info-item">📍 {{item.location || '未知地点'}}</text>
+        <text class="info-item">📅 {{item.date}}</text>
+      </view>
+      <view class="match-groups">
+        <view wx:for="{{item.groups}}" wx:key="id" wx:for-item="group" class="group-tag" style="background-color: {{group.color}}">
+          {{group.name}}
+        </view>
+      </view>
+      <view class="match-enter">
+        查看详情 >
+      </view>
+    </view>
+  </view>
+</view>

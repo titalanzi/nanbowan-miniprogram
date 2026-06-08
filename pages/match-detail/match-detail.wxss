@@ -1,0 +1,272 @@
+.header-card {
+  text-align: center;
+}
+
+.match-name {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16rpx;
+}
+
+.match-meta {
+  display: flex;
+  justify-content: center;
+  gap: 36rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+}
+
+.score-card {
+  padding: 36rpx 24rpx;
+  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
+}
+
+.score-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40rpx;
+}
+
+.team-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.team-label {
+  padding: 12rpx 32rpx;
+  border-radius: 28rpx;
+  color: white;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.15);
+}
+
+.score-number {
+  font-size: 80rpx;
+  font-weight: 800;
+  color: #111827;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.score-total {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.total-label {
+  font-size: 24rpx;
+  color: #6B7280;
+  text-align: center;
+  font-weight: 500;
+}
+
+.tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
+  overflow-x: auto;
+  padding-bottom: 8rpx;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  background: #F3F4F6;
+  border-radius: 20rpx;
+  min-width: 120rpx;
+  gap: 8rpx;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+}
+
+.tab-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #6B7280;
+}
+
+.tab.active .tab-name {
+  color: white;
+  font-weight: 700;
+}
+
+.tab-indicator {
+  width: 48rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: white;
+  opacity: 0;
+}
+
+.tab.active .tab-indicator {
+  opacity: 1;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 24rpx;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 0;
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.ranking-item:hover {
+  background: #F9FAFB;
+}
+
+.rank-number {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.rank-icon {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.rank-with-icon {
+  background: transparent !important;
+  box-shadow: none;
+}
+
+.ranking-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.ranking-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ranking-group {
+  font-size: 24rpx;
+}
+
+.ranking-count {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #111827;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.records-scroll {
+  max-height: 480rpx;
+}
+
+.record-item {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #F3F4F6;
+  transition: all 0.3s ease;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.record-item:hover {
+  background: #F9FAFB;
+}
+
+.record-time {
+  font-size: 26rpx;
+  color: #9CA3AF;
+  min-width: 96rpx;
+  font-weight: 500;
+}
+
+.record-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 30rpx;
+}
+
+.record-group {
+  font-weight: 700;
+}
+
+.record-stat {
+  padding: 8rpx 16rpx;
+  border-radius: 16rpx;
+  color: white;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #9CA3AF;
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.footer-wrapper {
+  padding: 28rpx 0 48rpx;
+  display: flex;
+  gap: 24rpx;
+  flex-direction: column;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: white;
+  border: none;
+  border-radius: 24rpx;
+  padding: 24rpx 48rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(239, 68, 68, 0.35);
+}
+
+.btn-danger:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(239, 68, 68, 0.25);
+}

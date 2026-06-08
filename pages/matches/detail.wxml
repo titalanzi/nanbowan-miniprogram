@@ -1,0 +1,77 @@
+<view class="container">
+  <view class="match-header">
+    <text class="back-btn" bindtap="goBack">‹ 返回</text>
+    <text class="match-title">比赛详情</text>
+    <view class="placeholder"></view>
+  </view>
+
+  <view class="card match-info-card">
+    <view class="match-result">
+      <view class="team-section">
+        <view class="team-header">
+          <view class="team-color" style="background-color: {{groupA.color}}"></view>
+          <text class="team-name">{{groupA.name || '未知'}}</text>
+        </view>
+        <text class="team-score">{{match.groupAScore}}</text>
+        <view class="team-stats">
+          <view wx:for="{{Object.keys(groupAStats)}}" wx:key="*this" class="stat-badge">
+            {{groupAStats[item]}} {{item}}
+          </view>
+        </view>
+      </view>
+      <text class="vs">VS</text>
+      <view class="team-section">
+        <view class="team-header">
+          <view class="team-color" style="background-color: {{groupB.color}}"></view>
+          <text class="team-name">{{groupB.name || '未知'}}</text>
+        </view>
+        <text class="team-score">{{match.groupBScore}}</text>
+        <view class="team-stats">
+          <view wx:for="{{Object.keys(groupBStats)}}" wx:key="*this" class="stat-badge">
+            {{groupBStats[item]}} {{item}}
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="match-meta">
+      <text class="meta-item">📅 {{match.date}}</text>
+      <text class="meta-item">📍 {{match.location}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="card-title">比赛记录</text>
+    <scroll-view class="records-scroll" scroll-y>
+      <view wx:if="{{records.length === 0}}" class="empty-state small">
+        <text class="empty-icon">📝</text>
+        <text class="empty-text">暂无记录</text>
+      </view>
+      <view class="records-container">
+        <view class="team-records">
+          <view class="team-label" style="color: {{groupA.color}}">{{groupA.name}}</view>
+          <view 
+            wx:for="{{groupARecords}}" 
+            wx:key="id" 
+            class="record-row"
+          >
+            <text class="record-time">{{item.time}}</text>
+            <text class="record-member">{{item.memberName}}</text>
+            <text class="record-stat">{{item.typeName}}</text>
+          </view>
+        </view>
+        <view class="team-records">
+          <view class="team-label" style="color: {{groupB.color}}">{{groupB.name}}</view>
+          <view 
+            wx:for="{{groupBRecords}}" 
+            wx:key="id" 
+            class="record-row"
+          >
+            <text class="record-time">{{item.time}}</text>
+            <text class="record-member">{{item.memberName}}</text>
+            <text class="record-stat">{{item.typeName}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

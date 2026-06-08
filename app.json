@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/active/active",
+    "pages/history/history",
+    "pages/mine/mine",
+    "pages/my-matches/my-matches",
+    "pages/create-match/create-match",
+    "pages/match-detail/match-detail",
+    "pages/match-record/match-record",
+    "pages/edit-groups/edit-groups"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "navigationBarTitleText": "福保南波万飞盘",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#98A2B3",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/active/active",
+        "text": "活动",
+        "iconPath": "images/active.png",
+        "selectedIconPath": "images/active-active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "赛程记录",
+        "iconPath": "images/history.png",
+        "selectedIconPath": "images/history-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "images/mine.png",
+        "selectedIconPath": "images/mine-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,114 @@
+<view class="container">
+  <view class="page-header">
+    <text class="page-title">🏆 榜单排名</text>
+  </view>
+
+  <view class="tabs">
+    <view 
+      class="tab-item {{activeTab === 'member' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="member"
+    >
+      个人排名
+    </view>
+    <view 
+      class="tab-item {{activeTab === 'group' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="group"
+    >
+      分组排名
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'member'}}">
+    <view class="stat-filter">
+      <text class="filter-label">按</text>
+      <view class="filter-options">
+        <view 
+          wx:for="{{statOptions}}" 
+          wx:key="id"
+          class="filter-option {{statType === item.id ? 'selected' : ''}}"
+          bindtap="selectStat"
+          data-stat="{{item.id}}"
+        >
+          {{item.name}}
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{sortMemberRankings().length === 0}}" class="empty-state">
+      <text class="empty-icon">👤</text>
+      <text class="empty-text">暂无排名数据</text>
+      <text class="empty-hint">完成比赛后将显示排名</text>
+    </view>
+
+    <view wx:else class="ranking-list">
+      <view 
+        wx:for="{{sortMemberRankings()}}" 
+        wx:key="id" 
+        class="ranking-item"
+      >
+        <view class="rank-badge">
+          <image wx:if="{{index === 0}}" class="rank-image" src="/images/冠军.png" mode="aspectFit"></image>
+          <image wx:elif="{{index === 1}}" class="rank-image" src="/images/亚军.png" mode="aspectFit"></image>
+          <image wx:elif="{{index === 2}}" class="rank-image" src="/images/季军.png" mode="aspectFit"></image>
+          <text wx:else>{{getRankBadge(index)}}</text>
+        </view>
+        <view class="member-info">
+          <text class="member-name">{{item.name}}</text>
+          <text class="member-group">{{getGroupName(item.groupId)}}</text>
+        </view>
+        <view class="member-stats">
+          <view class="main-stat">
+            <text class="stat-value">{{getStatValue(item, statType)}}</text>
+            <text class="stat-label">{{getStatName(statType)}}</text>
+          </view>
+          <view class="other-stats">
+            <text class="other-stat">{{item.score || 0}} 分</text>
+            <text class="other-stat">{{item.assist || 0}} 助</text>
+            <text class="other-stat">{{item.d_disc || 0}} D</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'group'}}">
+    <view wx:if="{{sortGroupRankings().length === 0}}" class="empty-state">
+      <text class="empty-icon">👥</text>
+      <text class="empty-text">暂无分组排名</text>
+      <text class="empty-hint">完成比赛后将显示排名</text>
+    </view>
+
+    <view wx:else class="ranking-list">
+      <view 
+        wx:for="{{sortGroupRankings()}}" 
+        wx:key="id" 
+        class="ranking-item group-item"
+      >
+        <view class="rank-badge">
+          <image wx:if="{{index === 0}}" class="rank-image" src="/images/冠军.png" mode="aspectFit"></image>
+          <image wx:elif="{{index === 1}}" class="rank-image" src="/images/亚军.png" mode="aspectFit"></image>
+          <image wx:elif="{{index === 2}}" class="rank-image" src="/images/季军.png" mode="aspectFit"></image>
+          <text wx:else>{{getRankBadge(index)}}</text>
+        </view>
+        <view class="group-info">
+          <view class="group-header">
+            <view class="group-color" style="background-color: {{item.color}}"></view>
+            <text class="group-name">{{item.name}}</text>
+          </view>
+          <view class="group-record">
+            <text class="record-item">{{item.won}}胜</text>
+            <text class="record-item">{{item.lost}}负</text>
+            <text class="record-item">{{item.drawn}}平</text>
+            <text class="record-item">胜率{{item.winRate}}%</text>
+          </view>
+        </view>
+        <view class="group-score">
+          <text class="score-value">{{item.score}}</text>
+          <text class="score-label">总得分</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,81 @@
+<view class="container">
+  <view class="card header-card">
+    <view class="match-name">{{match.name}}</view>
+    <view class="match-meta">
+      <text>📍 {{match.location || '未知地点'}}</text>
+      <text>📅 {{match.date}}</text>
+    </view>
+  </view>
+
+  <!-- 最终比分 -->
+  <view class="card score-card">
+    <view class="score-wrapper">
+      <view wx:for="{{groupStats}}" wx:key="groupId" class="team-score">
+        <view class="team-label" style="background-color: {{item.color}}">
+          {{item.groupName}}
+        </view>
+        <view class="score-number">{{item.score}}</view>
+        <view class="score-total">
+          <text class="total-label">助攻: {{item.assist}}</text>
+          <text class="total-label">D盘: {{item.dDisc}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Tab切换 -->
+  <view class="card">
+    <view class="tabs">
+      <view wx:for="{{match.statTypes}}" wx:key="id" 
+        class="tab {{activeTab === item.id ? 'active' : ''}}"
+        bindtap="switchTab" data-tab="{{item.id}}">
+        <text class="tab-name">{{item.name}}</text>
+        <text class="tab-indicator" wx:if="{{activeTab === item.id}}" style="background-color: {{item.color}}"></text>
+      </view>
+    </view>
+
+    <!-- 榜单 -->
+    <view wx:if="{{rankings.length > 0}}" class="ranking-list">
+      <view wx:for="{{rankings}}" wx:key="memberId" class="ranking-item">
+        <view class="rank-number {{index < 3 ? 'rank-with-icon' : ''}}" style="{{index >= 3 ? 'background-color: #9CA3AF' : ''}}">
+          <image wx:if="{{index === 0}}" class="rank-icon" src="/images/冠军.png" mode="aspectFit"></image>
+          <image wx:elif="{{index === 1}}" class="rank-icon" src="/images/亚军.png" mode="aspectFit"></image>
+          <image wx:elif="{{index === 2}}" class="rank-icon" src="/images/季军.png" mode="aspectFit"></image>
+          <text wx:else>{{index + 1}}</text>
+        </view>
+        <view class="ranking-info">
+          <text class="ranking-name">{{item.memberName}}</text>
+          <text class="ranking-group" style="color: {{item.groupColor}}">{{item.groupName}}</text>
+        </view>
+        <view class="ranking-count">{{item.count}}</view>
+      </view>
+    </view>
+    <view wx:else class="empty-tip">
+      暂无数据
+    </view>
+  </view>
+
+  <!-- 完整记录 -->
+  <view class="card">
+    <view class="section-title">完整记录</view>
+    <scroll-view wx:if="{{match.records && match.records.length > 0}}" class="records-scroll" scroll-y>
+      <view wx:for="{{match.records}}" wx:key="id" wx:for-item="record" class="record-item">
+        <view class="record-time">{{record.time}}</view>
+        <view class="record-content">
+          <view class="record-group" style="color: {{record.groupColor}}">{{record.groupName}}</view>
+          <text>{{record.memberName}}</text>
+          <view class="record-stat" style="background-color: {{record.statColor}}">{{record.statName}}</view>
+        </view>
+      </view>
+    </scroll-view>
+    <view wx:else class="empty-tip">
+      暂无记录
+    </view>
+  </view>
+
+  <!-- 按钮区域 -->
+  <view wx:if="{{canEdit || isAssistant}}" class="footer-wrapper">
+    <button wx:if="{{canEdit}}" class="btn-primary" bindtap="unfinishMatch">取消结束比赛</button>
+    <button wx:if="{{isAssistant}}" class="btn-danger" bindtap="showDeleteConfirm">删除比赛</button>
+  </view>
+</view>

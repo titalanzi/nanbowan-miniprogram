@@ -1,0 +1,31 @@
+<view class="container">
+  <view class="page-header">
+    <text class="page-title">我创建的比赛</text>
+    <text class="create-btn" bindtap="goToCreate">+ 创建</text>
+  </view>
+
+  <view wx:if="{{myMatches.length === 0}}" class="empty-state">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">暂无创建的比赛</text>
+    <text class="empty-text">点击右上角按钮创建比赛</text>
+  </view>
+
+  <view wx:else>
+    <view wx:for="{{myMatches}}" wx:key="id" class="card match-card" bindtap="goToMatch" data-id="{{item.id}}">
+      <view class="match-header">
+        <view class="match-title">{{item.name}}</view>
+        <view class="match-status {{item.status}}">
+          {{item.status === 'active' ? '进行中' : '已结束'}}
+        </view>
+      </view>
+      <view class="match-info">
+        <text class="info-item">📅 {{item.date}}</text>
+        <text class="info-item">📍 {{item.location || '未知地点'}}</text>
+      </view>
+      <view class="match-stats">
+        <text class="stat-text">👥 {{item.groups.length}}支队伍</text>
+        <text class="stat-text">📝 {{item.records.length}}条记录</text>
+      </view>
+    </view>
+  </view>
+</view>

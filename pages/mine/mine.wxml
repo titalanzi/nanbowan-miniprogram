@@ -1,0 +1,135 @@
+<view class="container">
+  <!-- 未注册状态 -->
+  <view wx:if="{{!user.registered}}" class="register-section">
+    <view class="card">
+      <view class="register-header">
+        <text class="register-icon">👤</text>
+        <text class="register-title">欢迎来到福保南波万飞盘</text>
+        <text class="register-subtitle">完善信息，开始你的运动之旅</text>
+      </view>
+      <view class="form-item">
+        <text class="form-label">昵称</text>
+        <input class="form-input" placeholder="请输入你的昵称" value="{{inputName}}" bindinput="onNameInput" />
+      </view>
+      <view class="form-item">
+        <text class="form-label">头像</text>
+        <view class="avatar-section">
+          <view class="avatar-preview">
+            <image wx:if="{{inputAvatar}}" class="avatar-img" src="{{inputAvatar}}" mode="aspectFill"></image>
+            <text wx:else class="avatar-placeholder">+</text>
+          </view>
+          <text class="avatar-tip">选择你的头像</text>
+        </view>
+        <view class="avatar-grid">
+          <view wx:for="{{avatarList}}" wx:key="*this" 
+                class="avatar-option {{inputAvatar === item ? 'selected' : ''}}"
+                bindtap="selectAvatar" data-avatar="{{item}}">
+            <image src="{{item}}" class="option-img" mode="aspectFill"></image>
+          </view>
+        </view>
+      </view>
+      <button class="btn-primary" bindtap="register">完成注册</button>
+    </view>
+  </view>
+
+  <!-- 已注册状态 -->
+  <view wx:else>
+    <view class="card user-card">
+      <view class="user-info">
+        <view class="user-avatar">
+          <image wx:if="{{user.avatar}}" class="user-avatar-img" src="{{user.avatar}}" mode="aspectFill"></image>
+          <text wx:else class="user-avatar-placeholder">👤</text>
+        </view>
+        <view class="user-detail">
+          <text class="user-name">{{user.name}}</text>
+          <text class="user-id">ID: {{user.id}}</text>
+          <view class="user-role">
+            <text class="role-tag {{user.role}}">{{user.role === 'assistant' ? '主理人助理' : '普通用户'}}</text>
+          </view>
+        </view>
+        <view class="edit-btn" bindtap="showEditModal">
+          <text class="edit-icon">✏️</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card action-card" bindtap="createMatch">
+      <view class="action-icon">➕</view>
+      <view class="action-text">创建新比赛</view>
+      <view class="action-arrow">></view>
+    </view>
+
+    <view class="card action-card" bindtap="showMyMatches">
+      <view class="action-icon">📋</view>
+      <view class="action-text">我创建的比赛</view>
+      <view class="action-arrow">></view>
+    </view>
+
+    <view wx:if="{{user.role !== 'assistant'}}" class="card action-card" bindtap="showRegisterModal">
+      <view class="action-icon">🎖️</view>
+      <view class="action-text">成为主理人助理</view>
+      <view class="action-arrow">></view>
+    </view>
+  </view>
+
+  <!-- 注册码弹窗 -->
+  <view wx:if="{{showRegisterModal}}" class="modal-overlay" bindtap="closeRegisterModal">
+    <view class="modal-content register-modal" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">成为主理人助理</text>
+        <text class="modal-close" bindtap="closeRegisterModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="register-hint">
+        <text class="hint-text">想要成为主理人助理请联系29获取注册码</text>
+      </view>
+      <view class="form-item">
+        <text class="form-label">注册码</text>
+        <input class="form-input" placeholder="请输入注册码" value="{{registerCode}}" bindinput="onCodeInput" />
+      </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeRegisterModal">取消</button>
+        <button class="btn-primary" bindtap="submitRegisterCode">确认</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑用户信息弹窗 -->
+  <view wx:if="{{showEditModal}}" class="modal-overlay" bindtap="closeEditModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">编辑个人信息</text>
+        <text class="modal-close" bindtap="closeEditModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">昵称</text>
+          <input class="form-input" placeholder="请输入昵称" value="{{editName}}" bindinput="onEditNameInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">头像</text>
+          <view class="avatar-section">
+            <view class="avatar-preview">
+              <image wx:if="{{editAvatar}}" class="avatar-img" src="{{editAvatar}}" mode="aspectFill"></image>
+              <image wx:elif="{{user.avatar}}" class="avatar-img" src="{{user.avatar}}" mode="aspectFill"></image>
+              <text wx:else class="avatar-placeholder">+</text>
+            </view>
+            <text class="avatar-tip">选择你的头像</text>
+          </view>
+          <view class="avatar-grid">
+            <view wx:for="{{avatarList}}" wx:key="*this" 
+                  class="avatar-option {{(editAvatar === item || (!editAvatar && user.avatar === item)) ? 'selected' : ''}}"
+                  bindtap="selectEditAvatar" data-avatar="{{item}}">
+              <image src="{{item}}" class="option-img" mode="aspectFill"></image>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeEditModal">取消</button>
+        <button class="btn-primary" bindtap="saveUserInfo">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,42 @@
+<view class="container">
+  <view class="banner">
+    <image src="{{bannerImage}}" mode="aspectFill" class="banner-image"></image>
+  </view>
+  
+  <view wx:if="{{activeMatches.length === 0}}" class="empty-state">
+    <text class="empty-icon">🥏</text>
+    <text class="empty-text">暂无正在进行的活动</text>
+    <text class="empty-hint">去"我的"页面创建比赛吧</text>
+  </view>
+
+  <view wx:else>
+    <view wx:for="{{activeMatches}}" wx:key="id" class="card" bindtap="goToMatch" data-id="{{item.id}}">
+      <view class="match-header">
+        <view class="match-title">{{item.name}}</view>
+        <view class="tag tag-active">进行中</view>
+      </view>
+      <view class="match-creator">
+        <image wx:if="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+        <view wx:else class="creator-avatar placeholder">
+          <text class="avatar-text">{{item.creatorName ? item.creatorName.charAt(0) : '?'}}</text>
+        </view>
+        <view class="creator-info">
+          <text class="creator-name">{{item.creatorName || '未知'}}</text>
+          <image wx:if="{{user.role === 'assistant'}}" class="vip-icon" src="/images/VIP.png" mode="aspectFit"></image>
+        </view>
+      </view>
+      <view class="match-info">
+        <text class="info-item">{{item.location || '未知地点'}}</text>
+        <text class="info-item">{{item.date}}</text>
+      </view>
+      <view class="match-groups">
+        <view wx:for="{{item.groups}}" wx:key="id" wx:for-item="group" class="group-tag" style="background-color: {{group.color}}">
+          {{group.name}} ({{group.members.length}}人)
+        </view>
+      </view>
+      <view class="match-enter">
+        进入记录
+      </view>
+    </view>
+  </view>
+</view>

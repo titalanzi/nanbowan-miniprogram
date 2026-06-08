@@ -1,0 +1,195 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">比赛基本信息</view>
+    <view class="form-item">
+      <text class="form-label">比赛名称 *</text>
+      <input class="form-input" placeholder="请输入比赛名称" value="{{matchName}}" bindinput="onNameInput" />
+    </view>
+    <view class="form-item">
+      <text class="form-label">比赛地点</text>
+      <input class="form-input" placeholder="请输入比赛地点" value="{{matchLocation}}" bindinput="onLocationInput" />
+    </view>
+    <view class="form-item">
+      <text class="form-label">比赛日期</text>
+      <picker mode="date" value="{{matchDate}}" bindchange="onDateChange">
+        <view class="picker">{{matchDate || '请选择日期'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <view class="section-title">分组设置</view>
+      <text class="add-btn" bindtap="showAddGroupModal">+ 添加分组</text>
+    </view>
+    <view wx:if="{{groups.length === 0}}" class="empty-tip">
+      请至少添加2个分组
+    </view>
+    <view wx:else class="group-list">
+      <view wx:for="{{groups}}" wx:key="id" class="group-item">
+        <view class="group-info">
+          <view class="group-color" style="background-color: {{item.color}}"></view>
+          <view class="group-detail">
+            <text class="group-name">{{item.name}}</text>
+            <text class="group-count">{{item.members.length}}人</text>
+          </view>
+        </view>
+        <view class="group-actions">
+          <text class="action-text" bindtap="editGroup" data-index="{{index}}">编辑</text>
+          <text class="action-text delete" bindtap="deleteGroup" data-index="{{index}}">删除</text>
+          <text class="action-text" bindtap="openMemberModal" data-index="{{index}}">成员</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-header">
+      <view class="section-title">统计类型</view>
+      <text class="add-btn" bindtap="showAddStatModal">+ 添加统计</text>
+    </view>
+    <view class="stat-list">
+      <view wx:for="{{statTypes}}" wx:key="id" class="stat-item">
+        <view class="stat-color" style="background-color: {{item.color}}"></view>
+        <view class="stat-detail">
+          <text class="stat-name">{{item.name}}</text>
+        </view>
+        <view wx:if="{{index > 2}}" class="delete-stat" bindtap="deleteStat" data-index="{{index}}">×</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="create-btn-wrapper">
+    <button class="btn-primary create-btn" bindtap="createMatch">创建比赛</button>
+  </view>
+
+  <!-- 添加/编辑分组弹窗 -->
+  <view wx:if="{{showGroupModal}}" class="modal-overlay" bindtap="closeGroupModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{editingGroupIndex !== null ? '编辑分组' : '添加分组'}}</text>
+        <text class="modal-close" bindtap="closeGroupModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">分组名称</text>
+          <input class="form-input" placeholder="请输入分组名称" value="{{inputGroupName}}" bindinput="onGroupNameInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">分组颜色</text>
+          <view class="color-options">
+            <view wx:for="{{colorOptions}}" wx:key="*this" 
+              class="color-option {{inputGroupColor === item ? 'selected' : ''}}"
+              style="background-color: {{item}}"
+              bindtap="selectGroupColor"
+              data-color="{{item}}">
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeGroupModal">取消</button>
+        <button class="btn-primary" bindtap="saveGroup">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 成员管理弹窗 -->
+  <view wx:if="{{showMemberModal}}" class="modal-overlay" bindtap="closeMemberModal">
+    <view class="modal-content member-modal" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{groups[currentGroupIndex].name}} - 成员管理</text>
+        <text class="modal-close" bindtap="closeMemberModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="add-member-btn" bindtap="showAddMemberModal">
+          + 添加成员
+        </view>
+        <view class="member-list">
+          <view wx:if="{{currentGroupMembers.length === 0}}" class="empty-tip">
+            暂无成员，请添加
+          </view>
+          <view wx:else>
+            <view wx:for="{{currentGroupMembers}}" wx:key="id" class="member-item">
+              <view class="member-info">
+                <text class="member-name">{{item.name}}</text>
+                <image class="member-gender-icon" src="{{item.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
+              </view>
+              <text class="delete-text" bindtap="deleteMember" data-index="{{index}}">删除</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeMemberModal">取消</button>
+        <button class="btn-primary" bindtap="confirmMembers">确认保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加成员弹窗 -->
+  <view wx:if="{{showAddMemberModal}}" class="modal-overlay" bindtap="closeAddMemberModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">添加成员</text>
+        <text class="modal-close" bindtap="closeAddMemberModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">成员姓名</text>
+          <input class="form-input" placeholder="请输入姓名" value="{{inputMemberName}}" bindinput="onMemberNameInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">性别</text>
+          <view class="gender-options">
+            <view class="gender-option {{inputMemberGender === 'male' ? 'selected' : ''}}" 
+              bindtap="selectMemberGender" data-gender="male">
+              <image class="gender-icon" src="/images/男.png" mode="aspectFit"></image>
+              <text class="gender-text">男</text>
+            </view>
+            <view class="gender-option {{inputMemberGender === 'female' ? 'selected' : ''}}" 
+              bindtap="selectMemberGender" data-gender="female">
+              <image class="gender-icon" src="/images/女.png" mode="aspectFit"></image>
+              <text class="gender-text">女</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeAddMemberModal">取消</button>
+        <button class="btn-primary" bindtap="saveMember">添加</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加统计类型弹窗 -->
+  <view wx:if="{{showStatModal}}" class="modal-overlay" bindtap="closeStatModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">添加统计类型</text>
+        <text class="modal-close" bindtap="closeStatModal">×</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">统计名称</text>
+          <input class="form-input" placeholder="例如：抢断" value="{{inputStatName}}" bindinput="onStatNameInput" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">统计颜色</text>
+          <view class="color-options">
+            <view wx:for="{{colorOptions}}" wx:key="*this" 
+              class="color-option {{inputStatColor === item ? 'selected' : ''}}"
+              style="background-color: {{item}}"
+              bindtap="selectStatColor"
+              data-color="{{item}}">
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeStatModal">取消</button>
+        <button class="btn-primary" bindtap="addStat">添加</button>
+      </view>
+    </view>
+  </view>
+</view>

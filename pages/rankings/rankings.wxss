@@ -1,0 +1,186 @@
+.tabs {
+  display: flex;
+  background: white;
+  border-radius: 16rpx;
+  padding: 8rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.tab-item.active {
+  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+  color: white;
+}
+
+.stat-filter {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+  padding: 16rpx 24rpx;
+  background: white;
+  border-radius: 12rpx;
+}
+
+.filter-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.filter-options {
+  display: flex;
+  gap: 12rpx;
+}
+
+.filter-option {
+  padding: 12rpx 24rpx;
+  background: #FAFAFA;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.filter-option.selected {
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: white;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.rank-badge {
+  font-size: 36rpx;
+  width: 60rpx;
+  text-align: center;
+}
+
+.rank-image {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+}
+
+.member-group {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.member-stats {
+  text-align: right;
+}
+
+.main-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.stat-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #FF6B35;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.other-stats {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 8rpx;
+}
+
+.other-stat {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.group-item {
+  padding: 24rpx;
+}
+
+.group-info {
+  flex: 1;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.group-color {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.group-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.group-record {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 8rpx;
+}
+
+.record-item {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.group-score {
+  text-align: right;
+}
+
+.score-value {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #FF6B35;
+  display: block;
+}
+
+.score-label {
+  font-size: 22rpx;
+  color: #999;
+}
