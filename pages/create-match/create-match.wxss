@@ -170,6 +170,44 @@
 
 .member-modal {
   max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 86%;
+}
+
+.member-modal .modal-header {
+  flex-shrink: 0;
+}
+
+.member-modal .picker-hint {
+  flex-shrink: 0;
+}
+
+.member-modal .modal-body {
+  flex: 1;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.member-modal .modal-footer {
+  flex-shrink: 0;
+}
+
+.member-modal .form-item {
+  box-sizing: border-box;
+}
+
+.member-modal .picker-btn {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.member-modal .color-options {
+  flex-wrap: wrap;
 }
 
 .add-member-btn {
@@ -292,4 +330,799 @@
 .gender-option.selected .gender-text {
   color: #FF6B35;
   font-weight: 700;
+}
+
+/* 模式切换 */
+.mode-tabs {
+  display: flex;
+  background: #F3F4F6;
+  border-radius: 20rpx;
+  padding: 6rpx;
+  margin-bottom: 28rpx;
+}
+
+.mode-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #6B7280;
+  transition: all 0.3s ease;
+}
+
+.mode-tab.active {
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.25);
+}
+
+.mode-section-header {
+  margin-bottom: 20rpx;
+}
+
+/* 步骤进度条 */
+.step-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 0 28rpx;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+.step-num {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #E5E7EB;
+  color: #9CA3AF;
+  font-size: 26rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.step-item.active .step-num {
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  color: white;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.step-label {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.step-item.active .step-label {
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+.step-line {
+  flex: 1;
+  height: 4rpx;
+  background: #E5E7EB;
+  margin: 0 8rpx;
+  border-radius: 2rpx;
+  margin-bottom: 30rpx;
+  transition: all 0.3s ease;
+}
+
+.step-line.active {
+  background: linear-gradient(90deg, #FF6B35, #F59E0B);
+}
+
+/* 步骤内容 */
+.random-step-content {
+  min-height: 400rpx;
+}
+
+.step-desc {
+  font-size: 26rpx;
+  color: #6B7280;
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+/* 添加队员按钮 */
+.add-player-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  color: white;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+  transition: all 0.2s ease;
+}
+
+.add-player-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.2);
+}
+
+/* 队员列表 */
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.player-item:active {
+  transform: scale(0.98);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.player-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-gender-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.player-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.player-delete {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #FEE2E2;
+}
+
+.player-stats {
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
+  flex-wrap: wrap;
+}
+
+/* 步骤按钮组 */
+.step-btn-group {
+  padding-top: 16rpx;
+}
+
+.step-btn-group.two-btn {
+  display: flex;
+  gap: 20rpx;
+}
+
+.step-btn {
+  flex: 1;
+}
+
+.step-btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Step 2: 队伍卡片 */
+.random-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.random-group-card {
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.rg-header {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  gap: 16rpx;
+  background: #FAFAFA;
+  border-bottom: 2rpx solid #F3F4F6;
+}
+
+.rg-color-bar {
+  width: 8rpx;
+  height: 48rpx;
+  border-radius: 4rpx;
+  flex-shrink: 0;
+}
+
+.rg-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.rg-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.rg-count {
+  font-size: 24rpx;
+  color: #9CA3AF;
+  background: #F3F4F6;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.rg-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.rg-action {
+  font-size: 24rpx;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx 12rpx;
+  border-radius: 12rpx;
+  background: #F3F4F6;
+}
+
+.rg-action.delete {
+  color: #EF4444;
+  background: #FEE2E2;
+}
+
+.rg-body {
+  padding: 20rpx 24rpx;
+}
+
+.rg-captain-row,
+.rg-fixed-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.rg-fixed-row {
+  margin-bottom: 0;
+}
+
+.rg-label {
+  font-size: 26rpx;
+  color: #6B7280;
+  font-weight: 500;
+  flex-shrink: 0;
+  width: 100rpx;
+}
+
+.rg-captain {
+  flex: 1;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #F59E0B;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.captain-icon {
+  font-size: 32rpx;
+}
+
+.rg-empty {
+  flex: 1;
+  font-size: 26rpx;
+  color: #D1D5DB;
+}
+
+.rg-fixed-list {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.rg-fixed-tag {
+  font-size: 24rpx;
+  color: #3B82F6;
+  background: #DBEAFE;
+  padding: 6rpx 14rpx;
+  border-radius: 12rpx;
+  font-weight: 500;
+}
+
+.add-group-btn-random {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 24rpx;
+  border: 3rpx dashed #FDBA74;
+  border-radius: 20rpx;
+  color: #FF6B35;
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  background: #FFF7ED;
+  transition: all 0.2s ease;
+}
+
+.add-group-btn-random:active {
+  transform: scale(0.98);
+}
+
+/* 选择器按钮 */
+.picker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: #F9FAFB;
+  border-radius: 16rpx;
+  border: 2rpx solid #E5E7EB;
+  transition: all 0.2s ease;
+}
+
+.picker-btn:active {
+  border-color: #FF6B35;
+  background: #FFF7ED;
+}
+
+.picker-value {
+  font-size: 28rpx;
+  color: #1F2937;
+  font-weight: 500;
+}
+
+.picker-placeholder {
+  font-size: 28rpx;
+  color: #9CA3AF;
+}
+
+.required {
+  color: #EF4444;
+  margin-left: 4rpx;
+}
+
+.selected-fixed-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.fixed-chip {
+  font-size: 24rpx;
+  color: #3B82F6;
+  background: #DBEAFE;
+  padding: 8rpx 16rpx;
+  border-radius: 16rpx;
+  font-weight: 500;
+}
+
+/* 队员选择弹窗 */
+.picker-hint {
+  padding: 16rpx 32rpx;
+  font-size: 24rpx;
+  color: #6B7280;
+  background: #F9FAFB;
+}
+
+.picker-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.picker-player-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: white;
+  border-radius: 16rpx;
+  border: 3rpx solid #E5E7EB;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.picker-player-item.selected {
+  border-color: #10B981;
+  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  box-shadow: 0 4rpx 16rpx rgba(16, 185, 129, 0.2);
+}
+
+.picker-player-item.selected .pp-name {
+  color: #065F46;
+  font-weight: 700;
+}
+
+.picker-player-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pp-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.pp-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pp-gender-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.pp-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.pp-disabled-tag {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  background: #F3F4F6;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.pp-check {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pp-circle {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  border: 3rpx solid #D1D5DB;
+}
+
+/* Step 3: 分配结果 */
+.shuffle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx;
+  background: #FFF7ED;
+  border: 3rpx solid #FDBA74;
+  color: #FF6B35;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  transition: all 0.3s ease;
+}
+
+.shuffle-btn.shuffling {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+.assign-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.assign-result-card {
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.ar-header {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  gap: 12rpx;
+  background: linear-gradient(135deg, #FAFAFA, #F9FAFB);
+  border-bottom: 2rpx solid #F3F4F6;
+}
+
+.ar-color-bar {
+  width: 8rpx;
+  height: 40rpx;
+  border-radius: 4rpx;
+  flex-shrink: 0;
+}
+
+.ar-name {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.ar-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+
+.ar-stat {
+  font-size: 22rpx;
+  color: #6B7280;
+}
+
+.ar-members {
+  padding: 20rpx 24rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.ar-member {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 10rpx 16rpx;
+  background: #F9FAFB;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+}
+
+.ar-gender-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.ar-mname {
+  color: #374151;
+  font-weight: 500;
+}
+
+.ar-mname.captain {
+  color: #F59E0B;
+  font-weight: 700;
+}
+
+.ar-badge {
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 10rpx;
+  font-weight: 600;
+}
+
+.ar-badge.captain-badge {
+  color: #92400E;
+  background: #FEF3C7;
+}
+
+.ar-badge.fixed-badge {
+  color: #1E40AF;
+  background: #DBEAFE;
+}
+
+/* Step 4: 点击选择调整 */
+.drag-step {
+  position: relative;
+}
+
+.step-desc-selected {
+  display: inline-block;
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+.cancel-select-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 20rpx;
+  margin: 8rpx 0 20rpx;
+  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
+  border: 2rpx solid #FFD4B8;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: #FF6B35;
+  font-weight: 500;
+}
+
+.cancel-select-bar:active {
+  transform: scale(0.96);
+}
+
+.drag-container {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+  min-height: 500rpx;
+}
+
+.drag-group {
+  flex: 1;
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  border: 4rpx solid transparent;
+  box-sizing: border-box;
+}
+
+.drag-group:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.drag-group.from-group {
+  border-color: #FCD34D;
+  box-shadow: 0 0 0 2rpx rgba(252, 211, 77, 0.4), 0 4rpx 16rpx rgba(252, 211, 77, 0.2);
+}
+
+.dg-header {
+  padding: 16rpx 20rpx;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  flex-shrink: 0;
+}
+
+.dg-name {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.dg-stats {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.dg-count {
+  font-size: 22rpx;
+  opacity: 0.95;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 2rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+.dg-gender-count {
+  font-size: 20rpx;
+  opacity: 0.9;
+}
+
+.dg-list {
+  flex: 1;
+  padding: 16rpx;
+  min-height: 300rpx;
+}
+
+.dg-member {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 14rpx 16rpx;
+  background: #F9FAFB;
+  border-radius: 14rpx;
+  margin-bottom: 12rpx;
+  font-size: 24rpx;
+  border: 3rpx solid transparent;
+  box-sizing: border-box;
+  transition: all 0.18s ease;
+}
+
+.dg-member:active {
+  transform: scale(0.97);
+}
+
+.dg-member.selected {
+  border-color: #FF6B35;
+  background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.25);
+  transform: scale(1.02);
+}
+
+.dg-member.selected .dg-mname {
+  color: #FF6B35;
+  font-weight: 700;
+}
+
+.dg-gender-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.dg-mname {
+  flex: 1;
+  color: #374151;
+  font-weight: 500;
+}
+
+.dg-mname.orange-name {
+  color: #FF6B35;
+}
+
+.dg-badge {
+  font-size: 18rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+
+.dg-badge.captain-badge {
+  color: #92400E;
+  background: #FEF3C7;
+}
+
+.dg-badge.fixed-badge {
+  color: #1E40AF;
+  background: #DBEAFE;
 }

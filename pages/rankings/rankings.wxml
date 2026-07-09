@@ -5,6 +5,13 @@
 
   <view class="tabs">
     <view 
+      class="tab-item {{activeTab === 'mvp' ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-tab="mvp"
+    >
+      MVP榜
+    </view>
+    <view 
       class="tab-item {{activeTab === 'member' ? 'active' : ''}}" 
       bindtap="switchTab" 
       data-tab="member"
@@ -17,6 +24,49 @@
       data-tab="group"
     >
       分组排名
+    </view>
+  </view>
+
+  <view wx:if="{{activeTab === 'mvp'}}">
+    <view wx:if="{{mvpRankings.length === 0}}" class="empty-state">
+      <text class="empty-icon">🏆</text>
+      <text class="empty-text">暂无MVP数据</text>
+      <text class="empty-hint">完成比赛后将显示MVP排名</text>
+      <text class="empty-hint">MVP分数 = 得分 + 助攻 + D盘 - 烂盘</text>
+    </view>
+
+    <view wx:else class="mvp-list">
+      <view class="mvp-header">
+        <text class="mvp-title">🏆 MVP排行榜</text>
+        <text class="mvp-formula">得分 + 助攻 + D盘 - 烂盘</text>
+      </view>
+      
+      <view class="mvp-top3">
+        <view 
+          wx:for="{{mvpRankings}}"
+          wx:if="{{index < 3}}"
+          wx:key="id"
+          class="mvp-item mvp-rank-{{item.mvpRank}}"
+        >
+          <view class="mvp-rank-badge">
+            <image wx:if="{{item.mvpRank === 1}}" class="mvp-crown" src="/images/冠军.png" mode="aspectFit"></image>
+            <image wx:elif="{{item.mvpRank === 2}}" class="mvp-crown" src="/images/亚军.png" mode="aspectFit"></image>
+            <image wx:elif="{{item.mvpRank === 3}}" class="mvp-crown" src="/images/季军.png" mode="aspectFit"></image>
+          </view>
+          <view class="mvp-avatar">
+            <image wx:if="{{item.avatar}}" class="mvp-avatar-img" src="{{item.avatar}}" mode="aspectFill"></image>
+            <text wx:else class="mvp-avatar-placeholder">{{item.name ? item.name.charAt(0) : '?'}}</text>
+          </view>
+          <view class="mvp-info">
+            <text class="mvp-name">{{item.name}}</text>
+            <text class="mvp-group">{{getGroupName(item.groupId)}}</text>
+          </view>
+          <view class="mvp-score">
+            <text class="mvp-score-value">{{item.mvpScore}}</text>
+            <text class="mvp-score-label">MVP分</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 

@@ -72,7 +72,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 比赛详情',
+      title: '南波万飞盘 - 比赛详情',
       path: `/pages/matches/detail?id=${this.data.match?.id}`,
       imageUrl: app.globalData.shareAvatar
     }

@@ -10,7 +10,11 @@ Page({
     canEdit: false,
     isCreator: false,
     isAssistant: false,
-    showGroupMembersModal: false
+    showGroupMembersModal: false,
+    groupStats: [],
+    showTeamStatsModal: false,
+    currentTeamMembers: [],
+    currentTeamName: ''
   },
 
   onLoad: async function (options) {
@@ -125,8 +129,97 @@ Page({
       }
       
       this.setData({ match })
-      
+      this.calculateGroupStats()
     }
+  },
+
+  calculateGroupStats: function () {
+    const match = this.data.match
+    if (!match || !match.groups || !match.records) {
+      this.setData({ groupStats: [] })
+      return
+    }
+    
+    const stats = []
+    for (let i = 0; i < match.groups.length; i++) {
+      const group = match.groups[i]
+      let score = 0
+      let assist = 0
+      let dDisc = 0
+      let turnover = 0
+      for (let j = 0; j < match.records.length; j++) {
+        const record = match.records[j]
+        if (record.groupId === group.id) {
+          if (record.statType === 'stat_score') score++
+          else if (record.statType === 'stat_assist') assist++
+          else if (record.statType === 'stat_d') dDisc++
+          else if (record.statType === 'stat_turnover') turnover++
+        }
+      }
+      stats.push({
+        groupId: group.id,
+        groupName: group.name,
+        color: group.color,
+        score: score,
+        assist: assist,
+        dDisc: dDisc,
+        turnover: turnover
+      })
+    }
+    this.setData({ groupStats: stats })
+  },
+
+  showTeamStats: function(e) {
+    const { groupId } = e.currentTarget.dataset
+    const { match } = this.data
+    
+    const group = match.groups.find(g => g.id === groupId)
+    if (!group || !group.members) return
+
+    // 获取队员的详细统计数据
+    const memberStats = {}
+    if (match.records) {
+      match.records.forEach(record => {
+        const key = record.memberId
+        if (!memberStats[key]) {
+          memberStats[key] = {
+            memberId: record.memberId,
+            memberName: record.memberName,
+            score: 0,
+            assist: 0,
+            dDisc: 0,
+            turnover: 0
+          }
+        }
+        if (record.statType === 'stat_score') memberStats[key].score++
+        else if (record.statType === 'stat_assist') memberStats[key].assist++
+        else if (record.statType === 'stat_d') memberStats[key].dDisc++
+        else if (record.statType === 'stat_turnover') memberStats[key].turnover++
+      })
+    }
+
+    // 构建队员数据
+    const members = group.members.map(member => {
+      const stats = memberStats[member.id] || { score: 0, assist: 0, dDisc: 0, turnover: 0 }
+      return {
+        ...member,
+        ...stats
+      }
+    })
+
+    this.setData({
+      showTeamStatsModal: true,
+      currentTeamMembers: members,
+      currentTeamName: group.name
+    })
+  },
+
+  hideTeamStatsModal: function() {
+    this.setData({
+      showTeamStatsModal: false,
+      currentTeamMembers: [],
+      currentTeamName: ''
+    })
   },
 
   syncMatchInBackground(matchId) {
@@ -278,6 +371,7 @@ Page({
     const newMatch = { ...match, records: newRecords, updatedAt: now.toISOString() }
     
     this.setData({ match: newMatch })
+    this.calculateGroupStats()
     await this.saveMatch(newMatch)
     
     wx.showToast({ title: '记录成功', icon: 'success' })
@@ -313,6 +407,7 @@ Page({
     const newMatch = { ...match, records: newRecords, updatedAt: new Date().toISOString() }
     
     this.setData({ match: newMatch })
+    this.calculateGroupStats()
     await this.saveMatch(newMatch)
     
     wx.showToast({ title: '已撤销', icon: 'success' })
@@ -335,6 +430,7 @@ Page({
           const newMatch = { ...match, records: newRecords, updatedAt: new Date().toISOString() }
           
           this.setData({ match: newMatch })
+          this.calculateGroupStats()
           await this.saveMatch(newMatch)
           
           wx.showToast({ title: '已删除', icon: 'success' })
@@ -405,7 +501,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 比赛记录',
+      title: '南波万飞盘 - 比赛记录',
       path: `/pages/match-record/match-record?id=${this.data.matchId}`,
       imageUrl: app.globalData.shareAvatar
     }

@@ -81,7 +81,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 比赛计分系统',
+      title: '南波万飞盘 - 比赛计分系统',
       path: '/pages/active/active',
       imageUrl: app.globalData.shareAvatar
     }

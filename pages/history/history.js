@@ -95,7 +95,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 赛程记录',
+      title: '南波万飞盘 - 赛程记录',
       path: '/pages/history/history',
       imageUrl: app.globalData.shareAvatar
     }

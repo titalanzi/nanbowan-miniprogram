@@ -36,3 +36,10 @@ Thumbs.db
 
 # 云开发本地文件
 /cloudbaserc.json
+.cloudbase/
+
+# TRAE IDE配置
+.trae/
+
+# 微信开发者工具本地缓存
+.WEAPP/

@@ -64,7 +64,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 我的比赛',
+      title: '南波万飞盘 - 我的比赛',
       path: '/pages/my-matches/my-matches',
       imageUrl: app.globalData.shareAvatar
     }

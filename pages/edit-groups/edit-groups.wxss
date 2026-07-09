@@ -74,15 +74,34 @@
   border-radius: 12rpx;
   overflow: hidden;
   box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.04);
+  border: 4rpx solid transparent;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.group-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.group-card.from-group {
+  border-color: #FCD34D;
+  box-shadow: 0 0 0 2rpx rgba(252, 211, 77, 0.4), 0 4rpx 16rpx rgba(252, 211, 77, 0.2);
 }
 
 .group-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8rpx 12rpx;
+  padding: 16rpx 14rpx;
   border-left: 5rpx solid;
   background: #F9FAFB;
+  transition: all 0.18s ease;
+}
+
+.group-header:active {
+  background: #F3F4F6;
+  transform: scale(0.99);
 }
 
 .group-name {
@@ -142,10 +161,29 @@
   background: #F9FAFB;
   border-radius: 8rpx;
   margin-bottom: 4rpx;
+  border: 3rpx solid transparent;
+  box-sizing: border-box;
+  transition: all 0.18s ease;
 }
 
 .member-item:last-child {
   margin-bottom: 0;
+}
+
+.member-item:active {
+  transform: scale(0.97);
+}
+
+.member-item.selected {
+  border-color: #FF6B35;
+  background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
+  transform: scale(1.02);
+}
+
+.member-item.selected .member-name {
+  color: #FF6B35;
+  font-weight: 700;
 }
 
 .member-info {
@@ -168,6 +206,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 160rpx;
+}
+
+.member-name.orange-name {
+  color: #FF6B35;
 }
 
 .member-gender-icon {
@@ -339,4 +381,70 @@
 .modal-btn.confirm {
   background: #FF6B35;
   color: white;
+}
+
+/* ========== 成员移动提示栏 ========== */
+.edit-tip-bar {
+  background: white;
+  border-radius: 14rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  border-left: 6rpx solid #FF6B35;
+}
+
+.tip-default {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 24rpx;
+  color: #475467;
+  font-weight: 500;
+}
+
+.tip-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #FF6B35;
+  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.2);
+  flex-shrink: 0;
+}
+
+.tip-selected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tip-selected-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 26rpx;
+}
+
+.tip-selected-label {
+  color: #475467;
+  font-weight: 500;
+}
+
+.tip-selected-name {
+  color: #FF6B35;
+  font-weight: 700;
+  font-size: 28rpx;
+}
+
+.tip-cancel-btn {
+  font-size: 24rpx;
+  color: #FF6B35;
+  font-weight: 500;
+  padding: 8rpx 18rpx;
+  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
+  border: 2rpx solid #FFD4B8;
+  border-radius: 20rpx;
+}
+
+.tip-cancel-btn:active {
+  transform: scale(0.96);
 }

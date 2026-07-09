@@ -221,7 +221,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 分组管理',
+      title: '南波万飞盘 - 分组管理',
       path: '/pages/groups/groups',
       imageUrl: app.globalData.shareAvatar
     }

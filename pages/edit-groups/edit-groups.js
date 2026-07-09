@@ -16,7 +16,12 @@ Page({
     editingGroupName: '',
     editingGroupColor: '#FF6B35',
     newMemberName: '',
-    newMemberGender: 'male'
+    newMemberGender: 'male',
+
+    // 成员移动选择状态
+    selectedMember: null,
+    selectedFromGroup: null,
+    selectedFromIndex: null
   },
 
   onLoad: async function(options) {
@@ -396,13 +401,90 @@ Page({
   },
 
   stopPropagation: function() {
-    
+
+  },
+
+  // ========== 成员移动选择 ==========
+  selectMember: function (e) {
+    const { groupindex, memberindex } = e.currentTarget.dataset
+    const { selectedMember, selectedFromGroup, selectedFromIndex, match } = this.data
+
+    if (selectedMember && selectedFromGroup === groupindex && selectedFromIndex === memberindex) {
+      // 再次点击同一队员取消选中
+      this.setData({
+        selectedMember: null,
+        selectedFromGroup: null,
+        selectedFromIndex: null
+      })
+    } else {
+      const group = match.groups[groupindex]
+      const member = group.members[memberindex]
+      this.setData({
+        selectedMember: member,
+        selectedFromGroup: groupindex,
+        selectedFromIndex: memberindex
+      })
+    }
+  },
+
+  moveMemberToGroup: function (e) {
+    const targetGroupIndex = e.currentTarget.dataset.groupindex
+    const { selectedMember, selectedFromGroup, selectedFromIndex, match } = this.data
+
+    if (!selectedMember) {
+      wx.showToast({ title: '请先点击选择队员', icon: 'none' })
+      return
+    }
+
+    if (selectedFromGroup === targetGroupIndex) {
+      wx.showToast({ title: '该队员已在此队伍', icon: 'none' })
+      return
+    }
+
+    var newGroups = match.groups.map(function (g) {
+      return {
+        id: g.id,
+        name: g.name,
+        color: g.color,
+        members: g.members.slice()
+      }
+    })
+
+    var movedMember = newGroups[selectedFromGroup].members[selectedFromIndex]
+    newGroups[selectedFromGroup].members.splice(selectedFromIndex, 1)
+    newGroups[targetGroupIndex].members.push(movedMember)
+
+    var newMatch = {}
+    for (var key in match) {
+      newMatch[key] = match[key]
+    }
+    newMatch.groups = newGroups
+    newMatch.updatedAt = new Date().toISOString()
+
+    this.setData({
+      match: newMatch,
+      selectedMember: null,
+      selectedFromGroup: null,
+      selectedFromIndex: null
+    })
+    this.saveMatch(newMatch)
+
+    wx.vibrateShort && wx.vibrateShort({ type: 'light' })
+    wx.showToast({ title: '已移动到 ' + newGroups[targetGroupIndex].name, icon: 'none' })
+  },
+
+  cancelMemberSelection: function () {
+    this.setData({
+      selectedMember: null,
+      selectedFromGroup: null,
+      selectedFromIndex: null
+    })
   },
 
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 编辑分组',
+      title: '南波万飞盘 - 编辑分组',
       path: `/pages/edit-groups/edit-groups?id=${this.data.matchId}`,
       imageUrl: app.globalData.shareAvatar
     }

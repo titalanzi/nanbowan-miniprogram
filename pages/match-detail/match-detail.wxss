@@ -26,7 +26,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40rpx;
+  gap: 20rpx;
 }
 
 .team-score {
@@ -34,15 +34,32 @@
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
+  padding: 16rpx 12rpx;
+  border-radius: 20rpx;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 0;
+}
+
+.team-score-hover {
+  transform: scale(0.95);
+  opacity: 0.85;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .team-label {
-  padding: 12rpx 32rpx;
+  padding: 12rpx 20rpx;
   border-radius: 28rpx;
   color: white;
   font-size: 28rpx;
   font-weight: 600;
   box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.15);
+  min-width: 180rpx;
+  max-width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+  word-break: break-all;
+  line-height: 1.4;
 }
 
 .score-number {
@@ -269,4 +286,393 @@
 .btn-danger:active {
   transform: scale(0.98);
   box-shadow: 0 4rpx 12rpx rgba(239, 68, 68, 0.25);
+}
+
+.mvp-card {
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+  border: 2rpx solid #F59E0B;
+}
+
+.mvp-header {
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.mvp-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #92400E;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.mvp-formula {
+  font-size: 24rpx;
+  color: #B45309;
+}
+
+.mvp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.mvp-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  background: white;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+}
+
+.mvp-rank-1 {
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+  border: 2rpx solid #F59E0B;
+}
+
+.mvp-rank-2 {
+  background: linear-gradient(135deg, #F9FAFB, #F3F4F6);
+  border: 2rpx solid #9CA3AF;
+}
+
+.mvp-rank-3 {
+  background: linear-gradient(135deg, #FEF3F2, #FEE2E2);
+  border: 2rpx solid #F87171;
+}
+
+.mvp-rank-badge {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mvp-icon {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.mvp-info {
+  flex: 1;
+}
+
+.mvp-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+  display: block;
+}
+
+.mvp-group {
+  font-size: 24rpx;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.mvp-score {
+  text-align: right;
+}
+
+.mvp-score-value {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #F59E0B;
+  display: block;
+}
+
+.mvp-details {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #6B7280;
+}
+
+.mvp-details .turnover {
+  color: #EF4444;
+}
+
+.share-canvas {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+}
+
+/* 飞盘精神榜样式 */
+.spirit-card {
+  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  border: 2rpx solid #10B981;
+}
+
+.spirit-header {
+  text-align: center;
+  margin-bottom: 8rpx;
+}
+
+.spirit-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #065F46;
+  display: block;
+}
+
+.spirit-hint {
+  text-align: center;
+  font-size: 22rpx;
+  color: #059669;
+  margin-bottom: 20rpx;
+}
+
+.spirit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.spirit-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 16rpx;
+  background: white;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+}
+
+.spirit-rank-1 {
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+  border: 2rpx solid #F59E0B;
+}
+
+.spirit-rank-2 {
+  background: linear-gradient(135deg, #F9FAFB, #F3F4F6);
+  border: 2rpx solid #9CA3AF;
+}
+
+.spirit-rank-3 {
+  background: linear-gradient(135deg, #FEF3F2, #FEE2E2);
+  border: 2rpx solid #F87171;
+}
+
+.spirit-rank-badge {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spirit-icon {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.spirit-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.spirit-rank-text {
+  font-size: 24rpx;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.spirit-names {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.spirit-names-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.spirit-name-item {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.spirit-name-sep {
+  color: #9CA3AF;
+  margin: 0 4rpx;
+}
+
+.spirit-score {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #10B981;
+}
+
+/* Vant Weapp 队伍成员弹窗样式 */
+.team-modal-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 85vh;
+  background: #F9FAFB;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.team-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  box-shadow: 0 8rpx 24rpx rgba(79, 70, 229, 0.25);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.team-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.team-header-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 1rpx;
+}
+
+.team-header-right {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.btn-hover {
+  transform: scale(0.9);
+  opacity: 0.8;
+}
+
+.team-modal-scroll {
+  flex: 1;
+  padding: 20rpx 24rpx;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.team-member-card {
+  background: white;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.team-member-card:last-child {
+  margin-bottom: 0;
+}
+
+.team-member-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.member-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.member-name-text {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1F2937;
+  letter-spacing: 0.5rpx;
+}
+
+.member-stats-row {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.member-vote-section {
+  display: flex;
+  gap: 16rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx solid #F3F4F6;
+}
+
+.vote-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+}
+
+.vote-btn-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 20rpx 16rpx;
+  border-radius: 20rpx;
+  background: #F3F4F6;
+  transition: all 0.2s ease;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.vote-btn-wrapper.liked {
+  background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+  box-shadow: 0 4rpx 16rpx rgba(16, 185, 129, 0.25);
+}
+
+.vote-btn-wrapper.disliked {
+  background: linear-gradient(135deg, #FEE2E2, #FECACA);
+  box-shadow: 0 4rpx 16rpx rgba(239, 68, 68, 0.25);
+}
+
+.vote-hover {
+  transform: scale(0.92);
+  opacity: 0.75;
+  background: #E5E7EB !important;
+}
+
+.vote-hover-dislike {
+  transform: scale(0.92);
+  opacity: 0.75;
+  background: #FEE2E2 !important;
+}
+
+.vote-count {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #6B7280;
+}
+
+.vote-count.liked-text {
+  color: #10B981;
+  font-weight: 700;
+}
+
+.vote-count.disliked-text {
+  color: #EF4444;
+  font-weight: 700;
 }

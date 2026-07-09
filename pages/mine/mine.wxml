@@ -4,7 +4,7 @@
     <view class="card">
       <view class="register-header">
         <text class="register-icon">👤</text>
-        <text class="register-title">欢迎来到福保南波万飞盘</text>
+        <text class="register-title">欢迎来到南波万飞盘</text>
         <text class="register-subtitle">完善信息，开始你的运动之旅</text>
       </view>
       <view class="form-item">

@@ -9,11 +9,16 @@
 
   <view class="card score-card">
     <view class="score-wrapper">
-      <view wx:for="{{match.groups}}" wx:key="id" class="team-score">
+      <view wx:for="{{groupStats}}" wx:key="groupId" class="team-score">
         <view class="team-label" style="background-color: {{item.color}}">
-          {{item.name}}
+          {{item.groupName}}
         </view>
-        <view class="score-number">{{getGroupScore(item.id)}}</view>
+        <view class="score-number" bindtap="showTeamStats" data-group-id="{{item.groupId}}">{{item.score}}</view>
+        <view class="score-total" bindtap="showTeamStats" data-group-id="{{item.groupId}}">
+          <text class="total-label">助攻: {{item.assist}}</text>
+          <text class="total-label">D盘: {{item.dDisc}}</text>
+          <text class="total-label">烂盘: {{item.turnover}}</text>
+        </view>
       </view>
     </view>
     <view class="view-members-btn" bindtap="showGroupMembers">
@@ -90,53 +95,98 @@
   </view>
 </view>
 
-<!-- 分组成员弹窗 -->
-<view wx:if="{{showGroupMembersModal}}" class="modal-overlay" bindtap="hideGroupMembers">
-  <view class="members-modal-content" catchtap="stopPropagation">
+<!-- 队伍队员数据弹窗 -->
+<view wx:if="{{showTeamStatsModal}}" class="modal-overlay" bindtap="hideTeamStatsModal">
+  <view class="team-stats-modal-content" catchtap="stopPropagation">
     <view class="modal-header">
-      <view class="modal-title-text">📋 分组成员</view>
-      <view class="modal-close" bindtap="hideGroupMembers">✕</view>
+      <view class="modal-title-text">📊 {{currentTeamName}} - 队员数据</view>
+      <view class="modal-close" bindtap="hideTeamStatsModal">✕</view>
     </view>
-    
-    <view class="match-info-display">
-      <view class="match-name-display">{{match.name}}</view>
-      <view class="match-meta-display">
-        <text>📍 {{match.location || '未知地点'}}</text>
-        <text>📅 {{match.date}}</text>
+    <scroll-view class="team-stats-scroll" scroll-y>
+      <view wx:for="{{currentTeamMembers}}" wx:key="id" class="team-stats-item">
+        <view class="team-stats-info">
+          <text class="team-stats-name">{{item.name}}</text>
+          <view class="team-stats-details">
+            <text class="team-stat-tag score">得分: {{item.score}}</text>
+            <text class="team-stat-tag assist">助攻: {{item.assist}}</text>
+            <text class="team-stat-tag d-disc">D盘: {{item.dDisc}}</text>
+            <text class="team-stat-tag turnover">烂盘: {{item.turnover}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{!currentTeamMembers || currentTeamMembers.length === 0}}" class="empty-members">
+        暂无队员数据
+      </view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 分组成员弹窗 -->
+<van-popup show="{{showGroupMembersModal}}" position="center" round custom-style="width: 94%; max-height: 92vh;" bind:close="hideGroupMembers">
+  <view class="members-modal-wrapper">
+    <!-- 标题栏 -->
+    <view class="modal-header-bar">
+      <view class="header-left">
+        <van-icon name="friends-o" size="20px" color="#fff" />
+        <text class="header-title">分组成员</text>
+      </view>
+      <view class="header-right" bindtap="hideGroupMembers" hover-class="btn-hover">
+        <van-icon name="cross" size="22px" color="#FF6B35" />
       </view>
     </view>
     
-    <scroll-view class="members-modal-scroll" scroll-y>
-      <view wx:for="{{match.groups}}" wx:key="id" class="group-display-card">
-        <view class="group-display-header" style="background-color: {{item.color}}">
-          <view class="group-display-name">{{item.name}}</view>
-          <view class="group-stats">
-            <text class="stat-item">
-              <text class="stat-text">男</text>
-              <text class="stat-value">{{item.maleCount}}</text>
-            </text>
-            <text class="stat-divider">/</text>
-            <text class="stat-item">
-              <text class="stat-text">女</text>
-              <text class="stat-value">{{item.femaleCount}}</text>
-            </text>
+    <!-- 比赛信息 -->
+    <view class="match-info-card">
+      <view class="match-title">{{match.name}}</view>
+      <view class="match-meta-row">
+        <van-icon name="location-o" size="14px" color="#6B7280" />
+        <text class="meta-text">{{match.location || '未知地点'}}</text>
+        <van-icon name="calendar-o" size="14px" color="#6B7280" custom-style="margin-left: 24rpx;" />
+        <text class="meta-text">{{match.date}}</text>
+      </view>
+    </view>
+    
+    <!-- 分组列表 -->
+    <scroll-view class="groups-scroll-area" scroll-y>
+      <view wx:for="{{match.groups}}" wx:key="id" class="group-card">
+        <!-- 分组头部 -->
+        <view class="group-header-bar" style="background-color: {{item.color}}">
+          <view class="group-left">
+            <van-icon name="user-o" size="18px" color="#fff" />
+            <text class="group-name-text">{{item.name}}</text>
+          </view>
+          <view class="group-right">
+            <view class="gender-stats">
+              <image class="stats-gender-icon" src="/images/男.png" mode="aspectFit"></image>
+              <text class="stats-count">{{item.maleCount}}</text>
+              <text class="stats-divider">/</text>
+              <image class="stats-gender-icon" src="/images/女.png" mode="aspectFit"></image>
+              <text class="stats-count">{{item.femaleCount}}</text>
+            </view>
           </view>
         </view>
-        <view class="group-members-display">
-          <view wx:for="{{item.members}}" wx:key="id" wx:for-item="member" class="member-display-item">
-            <text class="member-number-display" style="background-color: {{item.color}}">{{index + 1}}</text>
-            <text class="member-name-display">{{member.name}}</text>
-            <image class="member-gender-icon" src="{{member.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
+        
+        <!-- 成员列表 -->
+        <view class="members-grid">
+          <view wx:for="{{item.members}}" wx:key="id" wx:for-item="member" class="member-tag-item" hover-class="member-hover">
+            <view class="member-badge" style="background-color: {{item.color}}">
+              {{index + 1}}
+            </view>
+            <text class="member-name-text">{{member.name}}</text>
+            <image class="member-gender-img" src="{{member.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
           </view>
-          <view wx:if="{{!item.members || item.members.length === 0}}" class="empty-members-display">
-            暂无成员
+          <view wx:if="{{!item.members || item.members.length === 0}}" class="empty-placeholder">
+            <van-icon name="info-o" size="16px" color="#9CA3AF" />
+            <text class="empty-text">暂无成员</text>
           </view>
         </view>
       </view>
     </scroll-view>
     
-    <view class="modal-footer">
-      <view class="screenshot-tip">💡 截图此页面发到群里</view>
+    <!-- 底部提示 -->
+    <view class="footer-tip-bar">
+      <van-icon name="photo-o" size="14px" color="#9CA3AF" />
+      <text class="footer-tip-text">截图此页面分享到群里</text>
     </view>
   </view>
-</view>
+</van-popup>

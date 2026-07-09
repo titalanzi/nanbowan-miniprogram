@@ -1,4 +1,7 @@
 <view class="container">
+  <!-- 用于生成转发图片的隐藏Canvas -->
+  <canvas canvas-id="mvpCanvas" id="mvpCanvas" class="share-canvas" style="width:500px;height:400px;"></canvas>
+  
   <view class="card header-card">
     <view class="match-name">{{match.name}}</view>
     <view class="match-meta">
@@ -10,7 +13,7 @@
   <!-- 最终比分 -->
   <view class="card score-card">
     <view class="score-wrapper">
-      <view wx:for="{{groupStats}}" wx:key="groupId" class="team-score">
+      <view wx:for="{{groupStats}}" wx:key="groupId" class="team-score" bindtap="showTeamMembers" data-group-id="{{item.groupId}}" hover-class="team-score-hover">
         <view class="team-label" style="background-color: {{item.color}}">
           {{item.groupName}}
         </view>
@@ -18,6 +21,65 @@
         <view class="score-total">
           <text class="total-label">助攻: {{item.assist}}</text>
           <text class="total-label">D盘: {{item.dDisc}}</text>
+          <text class="total-label">烂盘: {{item.turnover}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- MVP榜单 -->
+  <view wx:if="{{mvpRankings.length > 0}}" class="card mvp-card">
+    <view class="mvp-header">
+      <text class="mvp-title">🏆 MVP排行榜</text>
+      <text class="mvp-formula">得分+助攻+D盘-烂盘</text>
+    </view>
+    <view class="mvp-list">
+      <view wx:for="{{mvpRankings}}" wx:if="{{index < 3}}" wx:key="memberId" class="mvp-item mvp-rank-{{item.mvpRank}}">
+        <view class="mvp-rank-badge">
+          <image wx:if="{{item.mvpRank === 1}}" class="mvp-icon" src="/images/冠军.png" mode="aspectFit"></image>
+          <image wx:elif="{{item.mvpRank === 2}}" class="mvp-icon" src="/images/亚军.png" mode="aspectFit"></image>
+          <image wx:elif="{{item.mvpRank === 3}}" class="mvp-icon" src="/images/季军.png" mode="aspectFit"></image>
+        </view>
+        <view class="mvp-info">
+          <text class="mvp-name" style="{{item.memberName === '29' || item.memberName === '二九' || item.memberName === '二舅' ? 'color: #FF6B35;' : ''}}">{{item.memberName}}</text>
+          <text class="mvp-group" style="color: {{item.groupColor}}">{{item.groupName}}</text>
+        </view>
+        <view class="mvp-score">
+          <text class="mvp-score-value">{{item.mvpScore}}</text>
+          <view class="mvp-details">
+            <text>{{item.score}}分</text>
+            <text>{{item.assist}}助</text>
+            <text>{{item.dDisc}}D</text>
+            <text class="turnover">-{{item.turnover}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 飞盘精神榜 -->
+  <view wx:if="{{spiritRankings.length > 0}}" class="card spirit-card">
+    <view class="spirit-header">
+      <text class="spirit-title">🤝 飞盘精神榜</text>
+    </view>
+    <view class="spirit-hint">可点击上方队伍给队内成员投票</view>
+    <view class="spirit-list">
+      <view wx:for="{{spiritRankings}}" wx:key="rank" class="spirit-item spirit-rank-{{item.rank}}">
+        <view class="spirit-rank-badge">
+          <image wx:if="{{item.rank === 1}}" class="spirit-icon" src="/images/冠军.png" mode="aspectFit"></image>
+          <image wx:elif="{{item.rank === 2}}" class="spirit-icon" src="/images/亚军.png" mode="aspectFit"></image>
+          <image wx:elif="{{item.rank === 3}}" class="spirit-icon" src="/images/季军.png" mode="aspectFit"></image>
+        </view>
+        <view class="spirit-info">
+          <text class="spirit-rank-text">第{{item.rank}}名</text>
+          <view class="spirit-names-row">
+            <text wx:for="{{item.members}}" wx:for-item="member" wx:key="memberId" class="spirit-name-item" style="{{member.memberName === '29' || member.memberName === '二九' || member.memberName === '二舅' ? 'color: #FF6B35;' : ''}}">
+              {{member.memberName}}<text wx:if="{{index < item.members.length - 1}}" class="spirit-name-sep">、</text>
+            </text>
+          </view>
+        </view>
+        <view class="spirit-score">
+          <text>{{item.spiritScore > 0 ? '+' : ''}}{{item.spiritScore}}</text>
         </view>
       </view>
     </view>
@@ -44,7 +106,7 @@
           <text wx:else>{{index + 1}}</text>
         </view>
         <view class="ranking-info">
-          <text class="ranking-name">{{item.memberName}}</text>
+          <text class="ranking-name" style="{{item.memberName === '29' || item.memberName === '二九' || item.memberName === '二舅' ? 'color: #FF6B35;' : ''}}">{{item.memberName}}</text>
           <text class="ranking-group" style="color: {{item.groupColor}}">{{item.groupName}}</text>
         </view>
         <view class="ranking-count">{{item.count}}</view>
@@ -78,4 +140,48 @@
     <button wx:if="{{canEdit}}" class="btn-primary" bindtap="unfinishMatch">取消结束比赛</button>
     <button wx:if="{{isAssistant}}" class="btn-danger" bindtap="showDeleteConfirm">删除比赛</button>
   </view>
+
+  <!-- 队伍成员弹窗 -->
+  <van-popup show="{{showTeamModal}}" position="center" custom-style="width: 92%; max-height: 85vh; background: transparent;" bind:close="hideTeamModal">
+    <view class="team-modal-wrapper">
+      <!-- 标题栏 -->
+      <view class="team-modal-header">
+        <view class="team-header-left">
+          <van-icon name="user-group-o" size="20px" color="#fff" />
+          <text class="team-header-title">{{currentTeamName}}</text>
+        </view>
+        <view class="team-header-right" bindtap="hideTeamModal" hover-class="btn-hover">
+          <van-icon name="cross" size="22px" color="#4F46E5" />
+        </view>
+      </view>
+      
+      <!-- 队员列表 -->
+      <scroll-view class="team-modal-scroll" scroll-y>
+        <view wx:for="{{currentTeamMembers}}" wx:key="id" class="team-member-card">
+          <!-- 队员信息 -->
+          <view class="member-info-section">
+            <text class="member-name-text" style="{{item.name === '29' || item.name === '二九' || item.name === '二舅' ? 'color: #FF6B35;' : ''}}">{{item.name}}</text>
+            <view class="member-stats-row">
+              <van-tag size="medium" color="#22C55E" text-color="#fff">得分 {{item.score}}</van-tag>
+              <van-tag size="medium" color="#3B82F6" text-color="#fff">助攻 {{item.assist}}</van-tag>
+              <van-tag size="medium" color="#F59E0B" text-color="#fff">D盘 {{item.dDisc}}</van-tag>
+              <van-tag size="medium" color="#EF4444" text-color="#fff">烂盘 {{item.turnover}}</van-tag>
+            </view>
+          </view>
+          
+          <!-- 投票按钮 -->
+          <view class="member-vote-section">
+            <view class="vote-btn-wrapper {{item.liked ? 'liked' : ''}}" hover-class="vote-hover" catchtap="toggleLike" data-member-id="{{item.id}}" data-type="like">
+              <image class="vote-icon" src="/images/点赞.png" mode="aspectFit"></image>
+              <text class="vote-count {{item.liked ? 'liked-text' : ''}}">{{item.likes}}</text>
+            </view>
+            <view class="vote-btn-wrapper dislike {{item.disliked ? 'disliked' : ''}}" hover-class="vote-hover-dislike" catchtap="toggleLike" data-member-id="{{item.id}}" data-type="dislike">
+              <image class="vote-icon" src="/images/反对.png" mode="aspectFit"></image>
+              <text class="vote-count {{item.disliked ? 'disliked-text' : ''}}">{{item.dislikes}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </van-popup>
 </view>

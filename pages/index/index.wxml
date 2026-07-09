@@ -1,7 +1,7 @@
 <view class="container">
   <view class="header">
     <view class="header-content">
-      <text class="app-name">福保南波万飞盘</text>
+      <text class="app-name">南波万飞盘</text>
       <text class="app-subtitle">飞盘比赛计分系统</text>
     </view>
     <view class="header-icon">🥏</view>

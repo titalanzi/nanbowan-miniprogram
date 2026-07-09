@@ -265,7 +265,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 创建比赛',
+      title: '南波万飞盘 - 创建比赛',
       path: '/pages/matches/create',
       imageUrl: app.globalData.shareAvatar
     }

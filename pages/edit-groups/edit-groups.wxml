@@ -1,7 +1,7 @@
 <view class="container">
   <view class="header-section">
     <text class="page-title">编辑分组</text>
-    <button wx:if="{{canEdit}}" class="add-group-btn" bindtap="showAddGroupModal">
+    <button wx:if="{{canEdit}}" class="add-group-btn" catchtap="showAddGroupModal">
       <text class="add-icon">+</text>
       <text>添加队伍</text>
     </button>
@@ -14,29 +14,50 @@
     </view>
   </view>
 
+  <view wx:if="{{canEdit}}" class="edit-tip-bar">
+    <view wx:if="{{!selectedMember}}" class="tip-default">
+      <text class="tip-dot"></text>
+      <text>点击队员选中，再点击目标队伍移动</text>
+    </view>
+    <view wx:else class="tip-selected">
+      <view class="tip-selected-info">
+        <text class="tip-selected-label">已选中：</text>
+        <text class="tip-selected-name">{{selectedMember.name}}</text>
+      </view>
+      <text class="tip-cancel-btn" catchtap="cancelMemberSelection">取消选择</text>
+    </view>
+  </view>
+
   <view wx:if="{{canEdit}}" class="groups-list">
-    <view wx:for="{{match.groups}}" wx:key="id" class="group-card">
-      <view class="group-header" style="border-left-color: {{item.color}}">
+    <view wx:for="{{match.groups}}" wx:key="id"
+      class="group-card {{selectedFromGroup === index ? 'from-group' : ''}}">
+      <view class="group-header" style="border-left-color: {{item.color}}"
+        data-groupindex="{{index}}"
+        bindtap="moveMemberToGroup">
         <view class="group-name" style="color: {{item.color}}">{{item.name}}</view>
         <view class="group-actions">
-          <text class="action-btn edit" bindtap="editGroup" data-index="{{index}}">编辑</text>
-          <text class="action-btn delete" bindtap="deleteGroup" data-index="{{index}}">删除</text>
+          <text class="action-btn edit" catchtap="editGroup" data-index="{{index}}">编辑</text>
+          <text class="action-btn delete" catchtap="deleteGroup" data-index="{{index}}">删除</text>
         </view>
       </view>
 
-      <view class="members-section">
+      <view class="members-section" catchtap="stopPropagation">
         <view class="members-list">
-          <view wx:for="{{item.members}}" wx:key="id" wx:for-item="member" wx:for-index="memberIdx" class="member-item">
+          <view wx:for="{{item.members}}" wx:key="id" wx:for-item="member" wx:for-index="memberIdx"
+            class="member-item {{selectedFromGroup === index && selectedFromIndex === memberIdx ? 'selected' : ''}}"
+            catchtap="selectMember"
+            data-groupindex="{{index}}"
+            data-memberindex="{{memberIdx}}">
             <view class="member-info">
-              <text class="member-name">{{member.name}}</text>
+              <text class="member-name {{member.name === '29' || member.name === '二九' || member.name === '二舅' ? 'orange-name' : ''}}">{{member.name}}</text>
               <image class="member-gender-icon" src="{{member.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
             </view>
-            <text class="member-delete" bindtap="deleteMember" 
+            <text class="member-delete" catchtap="deleteMember"
               data-groupindex="{{index}}" data-memberindex="{{memberIdx}}">×</text>
           </view>
           <view wx:if="{{item.members.length === 0}}" class="empty-members-tip">暂无成员</view>
         </view>
-        <view class="add-member-btn" bindtap="showAddMemberModal" data-groupindex="{{index}}">
+        <view class="add-member-btn" catchtap="showAddMemberModal" data-groupindex="{{index}}">
           + 添加成员
         </view>
       </view>

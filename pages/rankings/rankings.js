@@ -6,11 +6,13 @@ Page({
     statType: 'score',
     memberRankings: [],
     groupRankings: [],
+    mvpRankings: [],
     customStats: [],
     statOptions: [
       { id: 'score', name: '得分' },
       { id: 'assist', name: '助攻' },
-      { id: 'd_disc', name: 'D盘' }
+      { id: 'd_disc', name: 'D盘' },
+      { id: 'turnover', name: '烂盘' }
     ]
   },
 
@@ -31,6 +33,7 @@ Page({
 
     const memberRankings = this.calculateMemberRankings(members, records, customStats)
     const groupRankings = this.calculateGroupRankings(groups, matches, records)
+    const mvpRankings = this.calculateMVPRankings(memberRankings)
 
     const allStatOptions = [...this.data.statOptions]
     customStats.forEach(stat => {
@@ -42,13 +45,14 @@ Page({
     this.setData({
       memberRankings,
       groupRankings,
+      mvpRankings,
       customStats,
       statOptions: allStatOptions
     })
   },
 
   calculateMemberRankings: function (members, records, customStats) {
-    const statIds = ['score', 'assist', 'd_disc', ...customStats.map(s => s.id)]
+    const statIds = ['score', 'assist', 'd_disc', 'turnover', ...customStats.map(s => s.id)]
     
     return members.map(member => {
       const memberRecords = records.filter(r => r.memberId === member.id)
@@ -144,10 +148,45 @@ Page({
     return `第${index + 1}名`
   },
 
+  calculateMVPRankings: function (memberRankings) {
+    // MVP分数 = 得分 + 助攻 + D盘 - 烂盘
+    const mvpData = memberRankings.map(member => {
+      const score = member.score || 0
+      const assist = member.assist || 0
+      const d_disc = member.d_disc || 0
+      const turnover = member.turnover || 0
+      const mvpScore = score + assist + d_disc - turnover
+      
+      return {
+        ...member,
+        mvpScore
+      }
+    })
+    
+    // 按MVP分数降序排序
+    mvpData.sort((a, b) => b.mvpScore - a.mvpScore)
+    
+    // 处理并列排名
+    let currentRank = 1
+    let prevScore = null
+    
+    return mvpData.map((member, index) => {
+      if (prevScore !== null && member.mvpScore < prevScore) {
+        currentRank = index + 1
+      }
+      prevScore = member.mvpScore
+      
+      return {
+        ...member,
+        mvpRank: currentRank
+      }
+    }).filter(m => m.mvpScore > 0)
+  },
+
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 排行榜',
+      title: '南波万飞盘 - 排行榜',
       path: '/pages/rankings/rankings',
       imageUrl: app.globalData.shareAvatar
     }

@@ -119,7 +119,7 @@ Page({
   onShareAppMessage: function () {
     const app = getApp()
     return {
-      title: '福保南波万飞盘 - 比赛列表',
+      title: '南波万飞盘 - 比赛列表',
       path: '/pages/matches/matches',
       imageUrl: app.globalData.shareAvatar
     }
