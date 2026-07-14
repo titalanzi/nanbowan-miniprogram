@@ -485,7 +485,7 @@ Page({
     const app = getApp()
     return {
       title: '南波万飞盘 - 编辑分组',
-      path: `/pages/edit-groups/edit-groups?id=${this.data.matchId}`,
+      path: `/packageA/pages/edit-groups/edit-groups?id=${this.data.matchId}`,
       imageUrl: app.globalData.shareAvatar
     }
   }

@@ -482,7 +482,7 @@ Page({
       return
     }
     wx.navigateTo({
-      url: '/pages/edit-groups/edit-groups?id=' + this.data.matchId
+      url: '/packageA/pages/edit-groups/edit-groups?id=' + this.data.matchId
     })
   },
 
@@ -502,7 +502,7 @@ Page({
     const app = getApp()
     return {
       title: '南波万飞盘 - 比赛记录',
-      path: `/pages/match-record/match-record?id=${this.data.matchId}`,
+      path: `/packageA/pages/match-record/match-record?id=${this.data.matchId}`,
       imageUrl: app.globalData.shareAvatar
     }
   }

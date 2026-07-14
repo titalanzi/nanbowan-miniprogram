@@ -42,7 +42,7 @@ Page({
 
   goToCreate: function () {
     wx.navigateTo({
-      url: '/pages/create-match/create-match'
+      url: '/packageA/pages/create-match/create-match'
     })
   },
 
@@ -52,11 +52,11 @@ Page({
     
     if (match && match.status === 'active') {
       wx.navigateTo({
-        url: `/pages/match-record/match-record?id=${matchId}`
+        url: `/packageA/pages/match-record/match-record?id=${matchId}`
       })
     } else {
       wx.navigateTo({
-        url: `/pages/match-detail/match-detail?id=${matchId}`
+        url: `/packageA/pages/match-detail/match-detail?id=${matchId}`
       })
     }
   },

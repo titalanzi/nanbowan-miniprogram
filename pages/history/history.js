@@ -88,7 +88,7 @@ Page({
   goToDetail: function (e) {
     const matchId = e.currentTarget.dataset.id
     wx.navigateTo({
-      url: `/pages/match-detail/match-detail?id=${matchId}`
+      url: `/packageA/pages/match-detail/match-detail?id=${matchId}`
     })
   },
 

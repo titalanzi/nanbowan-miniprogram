@@ -3,11 +3,18 @@
     "pages/active/active",
     "pages/history/history",
     "pages/mine/mine",
-    "pages/my-matches/my-matches",
-    "pages/create-match/create-match",
-    "pages/match-detail/match-detail",
-    "pages/match-record/match-record",
-    "pages/edit-groups/edit-groups"
+    "pages/my-matches/my-matches"
+  ],
+  "subpackages": [
+    {
+      "root": "packageA",
+      "pages": [
+        "pages/create-match/create-match",
+        "pages/match-record/match-record",
+        "pages/edit-groups/edit-groups",
+        "pages/match-detail/match-detail"
+      ]
+    }
   ],
   "window": {
     "backgroundTextStyle": "dark",

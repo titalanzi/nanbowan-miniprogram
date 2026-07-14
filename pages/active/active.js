@@ -95,7 +95,7 @@ Page({
   goToMatch: function (e) {
     const matchId = e.currentTarget.dataset.id
     wx.navigateTo({
-      url: `/pages/match-record/match-record?id=${matchId}`
+      url: `/packageA/pages/match-record/match-record?id=${matchId}`
     })
   },
 

@@ -202,7 +202,7 @@ Page({
       return
     }
     wx.navigateTo({
-      url: '/pages/create-match/create-match'
+      url: '/packageA/pages/create-match/create-match'
     })
   },
 

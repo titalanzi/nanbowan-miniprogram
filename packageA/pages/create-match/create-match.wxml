@@ -88,9 +88,15 @@
       <!-- Step 1: 录入参赛队员 -->
       <view wx:if="{{randomStep === 1}}" class="random-step-content">
         <view class="step-desc">先录入所有参赛队员的姓名和性别</view>
-        <view class="add-player-btn" bindtap="showAddPlayerModal">
-          <van-icon name="plus" size="18px" color="#fff" />
-          <text>添加队员</text>
+        <view class="step-btn-group two-btn">
+          <view class="add-player-btn" bindtap="showAddPlayerModal">
+            <van-icon name="plus" size="18px" color="#fff" />
+            <text>添加队员</text>
+          </view>
+          <view class="import-btn" bindtap="importQuhuolist" disabled="{{isImporting}}">
+            <van-icon name="upload" size="18px" color="#FF6B35" />
+            <text>导入取伙名单</text>
+          </view>
         </view>
         <view wx:if="{{allPlayers.length === 0}}" class="empty-tip">
           还没有队员，点击上方按钮添加
@@ -518,6 +524,36 @@
       <view class="modal-footer">
         <button class="btn-secondary" bindtap="closePlayerPicker">取消</button>
         <button class="btn-primary" bindtap="confirmPlayerPicker">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 导入预览弹窗 -->
+  <view wx:if="{{showImportPreview}}" class="modal-overlay" bindtap="cancelImport">
+    <view class="modal-content import-modal" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">导入取伙名单预览</text>
+        <text class="modal-close" bindtap="cancelImport">×</text>
+      </view>
+      <view class="modal-body">
+        <view wx:if="{{importPlayers.length === 0}}" class="empty-tip">
+          没有数据
+        </view>
+        <view wx:else class="import-player-list">
+          <view wx:for="{{importPlayers}}" wx:key="id" class="import-player-item">
+            <view class="ip-gender" bindtap="toggleImportPlayerGender" data-index="{{index}}">
+              <image class="ip-gender-icon" src="{{item.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
+            </view>
+            <input class="ip-name-input" value="{{item.name}}" bindinput="updateImportPlayer" data-index="{{index}}" data-field="name" placeholder="输入姓名" />
+            <view class="ip-delete" bindtap="removeImportPlayer" data-index="{{index}}">
+              <van-icon name="cross" size="18px" color="#EF4444" />
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="cancelImport">取消</button>
+        <button class="btn-primary" bindtap="confirmImport">确认导入</button>
       </view>
     </view>
   </view>

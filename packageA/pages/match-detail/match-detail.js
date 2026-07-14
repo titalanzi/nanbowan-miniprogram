@@ -380,7 +380,7 @@ Page({
     const memberVotes = votes[memberId]
     if (!memberVotes) return false
     const list = type === 'like' ? memberVotes.likes : memberVotes.dislikes
-    return list && list.includes(currentUserId)
+    return list && list.indexOf(currentUserId) !== -1
   },
 
   toggleLike: function(e) {
@@ -404,11 +404,11 @@ Page({
       allMemberIds.forEach(mid => {
         if (mid !== memberId) {
           const mv = votes[mid]
-          if (type === 'like' && mv.likes && mv.likes.includes(currentUserId)) {
+          if (type === 'like' && mv.likes && mv.likes.indexOf(currentUserId) !== -1) {
             const idx = mv.likes.indexOf(currentUserId)
             if (idx > -1) mv.likes.splice(idx, 1)
           }
-          if (type === 'dislike' && mv.dislikes && mv.dislikes.includes(currentUserId)) {
+          if (type === 'dislike' && mv.dislikes && mv.dislikes.indexOf(currentUserId) !== -1) {
             const idx = mv.dislikes.indexOf(currentUserId)
             if (idx > -1) mv.dislikes.splice(idx, 1)
           }
@@ -436,8 +436,8 @@ Page({
           ...member,
           likes: mv.likes ? mv.likes.length : 0,
           dislikes: mv.dislikes ? mv.dislikes.length : 0,
-          liked: mv.likes && mv.likes.includes(currentUserId),
-          disliked: mv.dislikes && mv.dislikes.includes(currentUserId)
+          liked: mv.likes && mv.likes.indexOf(currentUserId) !== -1,
+          disliked: mv.dislikes && mv.dislikes.indexOf(currentUserId) !== -1
         }
       })
       newData.currentTeamMembers = updatedMembers
@@ -506,8 +506,8 @@ Page({
         ...stats,
         likes: memberVotes.likes ? memberVotes.likes.length : 0,
         dislikes: memberVotes.dislikes ? memberVotes.dislikes.length : 0,
-        liked: memberVotes.likes && memberVotes.likes.includes(this.data.currentUserId),
-        disliked: memberVotes.dislikes && memberVotes.dislikes.includes(this.data.currentUserId)
+        liked: memberVotes.likes && memberVotes.likes.indexOf(this.data.currentUserId) !== -1,
+        disliked: memberVotes.dislikes && memberVotes.dislikes.indexOf(this.data.currentUserId) !== -1
       }
     })
 
@@ -555,7 +555,7 @@ Page({
 
           setTimeout(() => {
             wx.redirectTo({
-              url: '/pages/match-record/match-record?id=' + match.id
+              url: '/packageA/pages/match-record/match-record?id=' + match.id
             })
           }, 1000)
         }
@@ -659,7 +659,7 @@ Page({
     
     return {
       title: '南波万飞盘 - 比赛详情',
-      path: `/pages/match-detail/match-detail?id=${this.data.matchId}`,
+      path: `/packageA/pages/match-detail/match-detail?id=${this.data.matchId}`,
       imageUrl: app.globalData.shareAvatar
     }
   },

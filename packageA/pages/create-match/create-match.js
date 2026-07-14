@@ -1,4 +1,5 @@
 const storage = require('../../utils/storage.js')
+const XLSX = require('../../utils/xlsx.js')
 
 Page({
   data: {
@@ -52,7 +53,12 @@ Page({
     
     showStatModal: false,
     inputStatName: '',
-    inputStatColor: '#FF6B35'
+    inputStatColor: '#FF6B35',
+
+    // 导入取伙名单
+    showImportPreview: false,
+    importPlayers: [],
+    isImporting: false
   },
 
   onLoad: async function () {
@@ -417,6 +423,214 @@ Page({
     const maleCount = allPlayers.filter(p => p.gender === 'male').length
     const femaleCount = allPlayers.filter(p => p.gender === 'female').length
     this.setData({ maleCount, femaleCount })
+  },
+
+  // ========== 导入取伙名单 ==========
+  importQuhuolist: function () {
+    const self = this
+    wx.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      success: function (res) {
+        const file = res.tempFiles[0]
+        const fileName = file.name.toLowerCase()
+        
+        if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+          wx.showToast({ title: '请选择Excel文件', icon: 'none' })
+          return
+        }
+
+        self.setData({ isImporting: true })
+        
+        wx.showLoading({ title: '解析中...' })
+        
+        wx.getFileSystemManager().readFile({
+          filePath: file.path,
+          encoding: 'binary',
+          success: function (data) {
+            try {
+              const workbook = XLSX.read(data.data, { type: 'binary' })
+              const firstSheetName = workbook.SheetNames[0]
+              const worksheet = workbook.Sheets[firstSheetName]
+              
+              const players = self.parseExcelData(worksheet)
+              
+              if (players.length === 0) {
+                wx.showToast({ title: '未找到有效数据', icon: 'none' })
+              } else {
+                self.setData({
+                  importPlayers: players,
+                  showImportPreview: true
+                })
+              }
+            } catch (e) {
+              console.error('Excel parse error:', e)
+              wx.showToast({ title: '文件解析失败', icon: 'none' })
+            }
+            
+            wx.hideLoading()
+            self.setData({ isImporting: false })
+          },
+          fail: function (e) {
+            console.error('File read error:', e)
+            wx.hideLoading()
+            wx.showToast({ title: '读取文件失败', icon: 'none' })
+            self.setData({ isImporting: false })
+          }
+        })
+      },
+      fail: function () {
+        wx.showToast({ title: '未选择文件', icon: 'none' })
+      }
+    })
+  },
+
+  parseExcelData: function (worksheet) {
+    // 用 header: 1 读取为二维数组，保留所有原始行
+    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+
+    if (!rawData || rawData.length === 0) {
+      wx.showToast({ title: 'Excel数据为空', icon: 'none' })
+      return []
+    }
+
+    // 找到标题行：包含"用户昵称"关键字的行
+    let headerRowIndex = -1
+    let nameColIndex = -1
+    let ticketColIndex = -1
+
+    const nameColumnKeys = ['用户昵称', '昵称', '姓名', '名字', '用户名', '用户']
+    const ticketColumnKeys = ['票种名称', '票种', '性别', '票类型']
+
+    for (let i = 0; i < rawData.length; i++) {
+      const row = rawData[i]
+      if (!row || row.length === 0) continue
+
+      for (let j = 0; j < row.length; j++) {
+        const cell = (row[j] || '').toString().trim()
+        if (nameColIndex < 0 && nameColumnKeys.some(k => cell.indexOf(k) !== -1)) {
+          headerRowIndex = i
+          nameColIndex = j
+        }
+        if (ticketColIndex < 0 && ticketColumnKeys.some(k => cell.indexOf(k) !== -1)) {
+          ticketColIndex = j
+        }
+      }
+
+      if (nameColIndex >= 0) break
+    }
+
+    console.log('标题行索引:', headerRowIndex, '名称列索引:', nameColIndex, '票种列索引:', ticketColIndex)
+
+    if (headerRowIndex < 0 || nameColIndex < 0) {
+      wx.showToast({ title: '未找到用户昵称列', icon: 'none', duration: 3000 })
+      return []
+    }
+
+    // 从标题行下一行开始读取数据
+    const nameCountMap = {}
+    const players = []
+
+    for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+      const row = rawData[i]
+      if (!row || row.length === 0) continue
+
+      const name = (row[nameColIndex] || '').toString().trim()
+      if (!name) continue
+
+      const ticketName = ticketColIndex >= 0 ? (row[ticketColIndex] || '').toString().trim() : ''
+      let gender = 'male'
+      if (ticketName.indexOf('女') !== -1) {
+        gender = 'female'
+      }
+
+      const count = nameCountMap[name] || 0
+      nameCountMap[name] = count + 1
+
+      let finalName = name
+      if (count > 0) {
+        finalName = name + this.getLetterSuffix(count)
+      }
+
+      players.push({
+        id: 'import_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        name: finalName,
+        gender: gender,
+        originalName: name
+      })
+    }
+
+    return players
+  },
+
+  getLetterSuffix: function (index) {
+    let suffix = ''
+    let num = index
+    
+    while (num > 0) {
+      num--
+      suffix = String.fromCharCode(65 + (num % 26)) + suffix
+      num = Math.floor(num / 26)
+    }
+    
+    return suffix
+  },
+
+  updateImportPlayer: function (e) {
+    const { index, field } = e.currentTarget.dataset
+    const value = e.detail.value
+    
+    const importPlayers = [...this.data.importPlayers]
+    if (field === 'name') {
+      importPlayers[index].name = value
+    } else if (field === 'gender') {
+      importPlayers[index].gender = value
+    }
+    
+    this.setData({ importPlayers })
+  },
+
+  toggleImportPlayerGender: function (e) {
+    const { index } = e.currentTarget.dataset
+    const importPlayers = [...this.data.importPlayers]
+    importPlayers[index].gender = importPlayers[index].gender === 'male' ? 'female' : 'male'
+    this.setData({ importPlayers })
+  },
+
+  removeImportPlayer: function (e) {
+    const { index } = e.currentTarget.dataset
+    const importPlayers = [...this.data.importPlayers]
+    importPlayers.splice(index, 1)
+    this.setData({ importPlayers })
+  },
+
+  confirmImport: function () {
+    const { importPlayers, allPlayers } = this.data
+    
+    const newPlayers = importPlayers.map(p => ({
+      id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      name: p.name,
+      gender: p.gender
+    }))
+    
+    const updatedPlayers = [...newPlayers, ...allPlayers]
+    
+    this.setData({
+      allPlayers: updatedPlayers,
+      showImportPreview: false,
+      importPlayers: []
+    })
+    
+    this.updatePlayerStats()
+    
+    wx.showToast({ title: '导入成功', icon: 'success' })
+  },
+
+  cancelImport: function () {
+    this.setData({
+      showImportPreview: false,
+      importPlayers: []
+    })
   },
 
   gotoRandomStep2: function () {
@@ -904,7 +1118,7 @@ Page({
     const app = getApp()
     return {
       title: '南波万飞盘 - 创建比赛',
-      path: '/pages/create-match/create-match',
+      path: '/packageA/pages/create-match/create-match',
       imageUrl: app.globalData.shareAvatar
     }
   }

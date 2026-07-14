@@ -1126,3 +1126,124 @@
   color: #1E40AF;
   background: #DBEAFE;
 }
+
+/* 导入取伙名单按钮 */
+.import-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 24rpx;
+  background: #FFFFFF;
+  color: #FF6B35;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+  border: 2rpx dashed #FF6B35;
+  transition: all 0.2s ease;
+}
+
+.import-btn:active {
+  background: #FFF7ED;
+  border-style: solid;
+}
+
+.import-btn[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 导入预览弹窗 */
+.import-modal {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 86%;
+}
+
+.import-modal .modal-header {
+  flex-shrink: 0;
+}
+
+.import-modal .modal-body {
+  flex: 1;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.import-modal .modal-footer {
+  flex-shrink: 0;
+}
+
+/* 导入队员列表 */
+.import-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+/* 导入队员项 */
+.import-player-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  background: #F9FAFB;
+  border-radius: 16rpx;
+  border: 2rpx solid #E5E7EB;
+}
+
+.ip-gender {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #DBEAFE;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.ip-gender:active {
+  transform: scale(0.95);
+}
+
+.ip-gender-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.ip-name-input {
+  flex: 1;
+  height: 64rpx;
+  padding: 0 20rpx;
+  background: white;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1F2937;
+  box-sizing: border-box;
+}
+
+.ip-name-input:focus {
+  border-color: #FF6B35;
+  background: #FFF7ED;
+}
+
+.ip-delete {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #FEE2E2;
+  flex-shrink: 0;
+}
