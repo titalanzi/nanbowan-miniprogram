@@ -1,3 +1,11 @@
+<wxs module="util">
+  function firstChar(str) {
+    if (!str) return '?'
+    return str.charAt(0)
+  }
+  module.exports = { firstChar: firstChar }
+</wxs>
+
 <view class="container">
   <!-- banner 轮播区：有云存储 banner 时显示 swiper，否则显示兜底图 -->
   <view wx:if="{{banners.length > 0}}" class="banner-swiper-wrap">
@@ -14,16 +22,20 @@
     <image src="{{bannerFallback}}" mode="aspectFill" class="banner-image"></image>
   </view>
   
-  <view wx:if="{{activeMatches.length === 0}}" class="empty-state">
+  <view wx:if="{{activeMatches.length === 0 && activeTrainings.length === 0}}" class="empty-state">
     <text class="empty-icon">🥏</text>
     <text class="empty-text">暂无正在进行的活动</text>
-    <text class="empty-hint">去"我的"页面创建比赛吧</text>
+    <text class="empty-hint">去"我的"页面创建比赛或队训吧</text>
   </view>
 
   <view wx:else>
-    <view wx:for="{{activeMatches}}" wx:key="id" class="card" bindtap="goToMatch" data-id="{{item.id}}">
+    <!-- 比赛卡片 -->
+    <view wx:for="{{activeMatches}}" wx:key="id" class="card match-card" bindtap="goToMatch" data-id="{{item.id}}">
       <view class="match-header">
-        <view class="match-title">{{item.name}}</view>
+        <view class="match-title-wrap">
+          <text class="type-icon">🥏</text>
+          <view class="match-title">{{item.name}}</view>
+        </view>
         <view class="tag tag-active">进行中</view>
       </view>
       <view class="match-creator">
@@ -45,9 +57,44 @@
           {{group.name}} ({{group.members.length}}人)
         </view>
       </view>
-      <view class="match-enter">
-        进入记录
+      <view class="match-enter">进入记录</view>
+    </view>
+
+    <!-- 队训卡片 -->
+    <view wx:for="{{activeTrainings}}" wx:key="id" class="card training-card" bindtap="goToTraining" data-id="{{item.id}}">
+      <view class="match-header">
+        <view class="match-title-wrap">
+          <text class="type-icon">🏃</text>
+          <view class="match-title">{{item.title}}</view>
+        </view>
+        <view class="tag tag-training">{{item.status}}</view>
       </view>
+      <view class="match-creator">
+        <image wx:if="{{item.coachAvatar}}" src="{{item.coachAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+        <image wx:elif="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+        <view wx:else class="creator-avatar placeholder training-placeholder">
+          <text class="avatar-text">{{util.firstChar(item.coachName || item.creatorName)}}</text>
+        </view>
+        <view class="creator-info">
+          <text class="creator-name">{{item.coachName || item.creatorName || '未指定教练'}}</text>
+          <text wx:if="{{item.coachName}}" class="coach-info">👟 教练</text>
+        </view>
+      </view>
+      <view class="match-info">
+        <text class="info-item">{{item.location || '未知地点'}}</text>
+        <text class="info-item">{{item.startTime}}</text>
+      </view>
+      <view class="training-meta">
+        <view class="meta-item">
+          <text class="meta-icon">👥</text>
+          <text class="meta-text">{{item.attendeeCount || 0}} 人已加入</text>
+        </view>
+      </view>
+      <view wx:if="{{item.attendeeAvatars && item.attendeeAvatars.length > 0}}" class="attendee-avatars">
+        <image wx:for="{{item.attendeeAvatars}}" wx:for-item="avatar" wx:key="*this" wx:for-index="aIdx" class="attendee-avatar-item {{aIdx >= 5 ? 'hidden' : ''}}" src="{{avatar || '/images/mine.png'}}" mode="aspectFill"></image>
+        <view wx:if="{{item.attendeeAvatars.length > 5}}" class="attendee-avatar-more">+{{item.attendeeAvatars.length - 5}}</view>
+      </view>
+      <view class="match-enter">进入队训</view>
     </view>
   </view>
 </view>

@@ -120,9 +120,33 @@ async function verifyAssistantCode(code) {
   return config.DEFAULT_ASSISTANT_CODES.indexOf(code) !== -1
 }
 
+// 检查队训权限：创建者或教练或助理可编辑
+async function checkTrainingPermission(trainingId) {
+  try {
+    if (storage.isCloudAvailable()) {
+      const result = await storage.callCloudFunction('checkTrainingPermission', { trainingId })
+      if (result && result.success) {
+        const isCreator = result.isCreator || false
+        const isCoach = result.isCoach || false
+        const isAssistant = result.isAssistant || false
+        return {
+          isCreator,
+          isCoach,
+          isAssistant,
+          canEdit: isCreator || isCoach || isAssistant
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Check training permission error:', e)
+  }
+  return { isCreator: false, isCoach: false, isAssistant: false, canEdit: false }
+}
+
 module.exports = {
   syncUserFromCloud,
   calculateGroupStats,
   checkPermissionFromCloud,
-  verifyAssistantCode
+  verifyAssistantCode,
+  checkTrainingPermission
 }

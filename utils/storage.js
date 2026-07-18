@@ -339,6 +339,82 @@ async function getMatchesFromCloudOnly() {
   return []
 }
 
+// ============ 队训数据同步 ============
+
+async function syncTrainingToCloud(training) {
+  try {
+    if (isCloudAvailable()) {
+      const result = await withTimeout(wx.cloud.callFunction({
+        name: 'syncTraining',
+        data: { training }
+      }), 10000)
+      return result && result.result && result.result.success
+    }
+  } catch (e) {
+    console.error('Training sync error:', e)
+  }
+  return false
+}
+
+async function getTrainingsFromCloud(status) {
+  try {
+    if (isCloudAvailable()) {
+      console.log('Calling getTrainingList function, status:', status)
+      const result = await withTimeout(wx.cloud.callFunction({
+        name: 'getTrainingList',
+        data: { status }
+      }), 10000)
+
+      if (result && result.result && result.result.success) {
+        console.log('Got trainings from cloud, count:', result.result.data.length)
+        return result.result.data
+      } else {
+        console.log('Training cloud function returned unsuccessful:', result)
+      }
+    } else {
+      console.log('wx.cloud not available')
+    }
+  } catch (e) {
+    console.error('Training cloud sync error:', e)
+  }
+  return []
+}
+
+async function getMyTrainingsFromCloud() {
+  try {
+    if (isCloudAvailable()) {
+      const result = await withTimeout(wx.cloud.callFunction({
+        name: 'getMyTrainings'
+      }), 10000)
+
+      if (result && result.result && result.result.success) {
+        return result.result.data
+      }
+    }
+  } catch (e) {
+    console.error('Get my trainings error:', e)
+  }
+  return []
+}
+
+async function getTrainingDetailFromCloud(trainingId) {
+  try {
+    if (isCloudAvailable()) {
+      const result = await withTimeout(wx.cloud.callFunction({
+        name: 'getTrainingDetail',
+        data: { trainingId }
+      }), 10000)
+
+      if (result && result.result && result.result.success) {
+        return result.result.data
+      }
+    }
+  } catch (e) {
+    console.error('Get training detail error:', e)
+  }
+  return null
+}
+
 // ============ 节流工具 ============
 
 const throttleMap = {}
@@ -383,6 +459,12 @@ module.exports = {
   // 比赛同步
   syncMatches,
   getMatchesFromCloudOnly,
+
+  // 队训同步
+  syncTrainingToCloud,
+  getTrainingsFromCloud,
+  getMyTrainingsFromCloud,
+  getTrainingDetailFromCloud,
 
   // 已删除管理
   addDeletedMatchId,

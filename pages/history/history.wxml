@@ -1,36 +1,100 @@
 <view class="container">
-  <view wx:if="{{historyMatches.length === 0}}" class="empty-state">
-    <text class="empty-icon">📋</text>
-    <text class="empty-text">暂无比赛记录</text>
+  <!-- Tab 切换栏 -->
+  <view class="tabs-wrapper">
+    <view class="tabs">
+      <view wx:for="{{tabs}}" wx:key="id"
+        class="tab {{activeTab === item.id ? 'active' : ''}}"
+        bindtap="switchTab" data-tab="{{item.id}}">
+        <text class="tab-icon">{{item.icon}}</text>
+        <text class="tab-name">{{item.name}}</text>
+        <text class="tab-indicator" wx:if="{{activeTab === item.id}}"></text>
+      </view>
+    </view>
   </view>
 
-  <view wx:else>
-    <view wx:for="{{historyMatches}}" wx:key="id" class="card" bindtap="goToDetail" data-id="{{item.id}}">
-      <view class="match-header">
-        <view class="match-title">{{item.name}}</view>
-        <view class="tag tag-finished">已结束</view>
-      </view>
-      <view class="match-creator">
-        <image wx:if="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
-        <view wx:else class="creator-avatar placeholder">
-          <text class="avatar-text">{{item.creatorName ? item.creatorName.charAt(0) : '?'}}</text>
+  <!-- 比赛列表 -->
+  <view wx:if="{{activeTab === 'match'}}">
+    <view wx:if="{{historyMatches.length === 0}}" class="empty-state">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无比赛记录</text>
+    </view>
+
+    <view wx:else>
+      <view wx:for="{{historyMatches}}" wx:key="id" class="card" bindtap="goToDetail" data-id="{{item.id}}">
+        <view class="match-header">
+          <view class="match-title">{{item.name}}</view>
+          <view class="tag tag-finished">已结束</view>
         </view>
-        <view class="creator-info">
-          <text class="creator-name">发起人：{{item.creatorName || '未知'}}</text>
-          <image wx:if="{{user.role === 'assistant'}}" class="vip-icon" src="/images/VIP.png" mode="aspectFit"></image>
+        <view class="match-creator">
+          <image wx:if="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+          <view wx:else class="creator-avatar placeholder">
+            <text class="avatar-text">{{item.creatorName ? item.creatorName.charAt(0) : '?'}}</text>
+          </view>
+          <view class="creator-info">
+            <text class="creator-name">发起人：{{item.creatorName || '未知'}}</text>
+            <image wx:if="{{user.role === 'assistant'}}" class="vip-icon" src="/images/VIP.png" mode="aspectFit"></image>
+          </view>
         </view>
-      </view>
-      <view class="match-info">
-        <text class="info-item">📍 {{item.location || '未知地点'}}</text>
-        <text class="info-item">📅 {{item.date}}</text>
-      </view>
-      <view class="match-groups">
-        <view wx:for="{{item.groups}}" wx:key="id" wx:for-item="group" class="group-tag" style="background-color: {{group.color}}">
-          {{group.name}}
+        <view class="match-info">
+          <text class="info-item">📍 {{item.location || '未知地点'}}</text>
+          <text class="info-item">📅 {{item.date}}</text>
         </view>
+        <view class="match-groups">
+          <view wx:for="{{item.groups}}" wx:key="id" wx:for-item="group" class="group-tag" style="background-color: {{group.color}}">
+            {{group.name}}
+          </view>
+        </view>
+        <view class="match-enter">查看详情</view>
       </view>
-      <view class="match-enter">
-        查看详情 >
+    </view>
+  </view>
+
+  <!-- 队训列表 -->
+  <view wx:if="{{activeTab === 'training'}}">
+    <view wx:if="{{historyTrainings.length === 0}}" class="empty-state">
+      <text class="empty-icon">🏃</text>
+      <text class="empty-text">暂无队训记录</text>
+    </view>
+
+    <view wx:else>
+      <view wx:for="{{historyTrainings}}" wx:key="id" class="card training-card" bindtap="goToDetail" data-id="{{item.id}}">
+        <view class="match-header">
+          <view class="match-title-wrap">
+            <text class="type-icon">🏃</text>
+            <view class="match-title">{{item.title}}</view>
+          </view>
+          <view class="tag tag-finished">已结束</view>
+        </view>
+        <view class="match-creator">
+          <image wx:if="{{item.coachAvatar}}" src="{{item.coachAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+          <image wx:elif="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+          <view wx:else class="creator-avatar placeholder training-placeholder">
+            <text class="avatar-text">{{item.coachName ? item.coachName.charAt(0) : (item.creatorName ? item.creatorName.charAt(0) : '?')}}</text>
+          </view>
+          <view class="creator-info">
+            <text class="creator-name">{{item.coachName || item.creatorName || '未指定教练'}}</text>
+            <text wx:if="{{item.coachName}}" class="coach-info">👟 教练</text>
+          </view>
+        </view>
+        <view class="match-info">
+          <text class="info-item">📍 {{item.location || '未知地点'}}</text>
+          <text class="info-item">📅 {{item.startTime}}</text>
+        </view>
+        <view class="training-meta">
+          <view class="meta-item">
+            <text class="meta-icon">👥</text>
+            <text class="meta-text">{{item.attendeeCount || 0}} 人签到</text>
+          </view>
+          <view wx:if="{{item.scoreCompleted}}" class="meta-item">
+            <text class="meta-icon">✅</text>
+            <text class="meta-text">已完成评分</text>
+          </view>
+        </view>
+        <view wx:if="{{item.attendeeAvatars && item.attendeeAvatars.length > 0}}" class="attendee-avatars">
+          <image wx:for="{{item.attendeeAvatars}}" wx:for-item="avatar" wx:key="*this" wx:for-index="aIdx" class="attendee-avatar-item {{aIdx >= 5 ? 'hidden' : ''}}" src="{{avatar || '/images/mine.png'}}" mode="aspectFill"></image>
+          <view wx:if="{{item.attendeeAvatars.length > 5}}" class="attendee-avatar-more">+{{item.attendeeAvatars.length - 5}}</view>
+        </view>
+        <view class="match-enter">查看详情</view>
       </view>
     </view>
   </view>

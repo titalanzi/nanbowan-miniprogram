@@ -1,0 +1,55 @@
+<view class="container">
+  <!-- 顶部训练标题 -->
+  <view class="card training-header-card">
+    <view class="training-title">{{training.title || '训练详情'}}</view>
+    <view wx:if="{{training.startTime}}" class="training-meta">
+      📅 {{training.startTime}}
+    </view>
+  </view>
+
+  <!-- 队员评价列表 -->
+  <view wx:if="{{attendees.length > 0}}" class="attendees-list">
+    <view wx:for="{{attendees}}" wx:key="userOpenId" class="card comment-card">
+      <!-- 队员信息 -->
+      <view class="attendee-info">
+        <image
+          wx:if="{{item.avatarUrl}}"
+          class="attendee-avatar"
+          src="{{item.avatarUrl}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="attendee-avatar default-avatar">
+          <text class="avatar-text">{{item.nickName ? item.nickName[0] : '友'}}</text>
+        </view>
+        <text class="attendee-name">{{item.nickName || '飞盘队友'}}</text>
+      </view>
+
+      <!-- 评语输入框 -->
+      <textarea
+        class="comment-textarea"
+        placeholder="写下你对TA的评价..."
+        placeholder-class="placeholder-style"
+        bindinput="onCommentInput"
+        bindblur="onCommentBlur"
+        data-user-id="{{item.userOpenId}}"
+        maxlength="200"
+      />
+    </view>
+  </view>
+
+  <!-- 无其他队员 -->
+  <view wx:else class="empty-tip">
+    暂无其他队员参与
+  </view>
+
+  <!-- 底部固定提交按钮 -->
+  <view class="footer-bar">
+    <button
+      class="submit-btn {{submitting ? 'disabled' : ''}}"
+      bindtap="submitPeerComments"
+      disabled="{{submitting}}"
+    >
+      {{submitting ? '提交中...' : '提交互评'}}
+    </button>
+  </view>
+</view>

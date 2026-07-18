@@ -209,8 +209,32 @@
   -webkit-text-fill-color: transparent;
 }
 
-.records-scroll {
-  max-height: 480rpx;
+.records-list {
+}
+
+.toggle-records-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx;
+  margin-top: 8rpx;
+  background: #F3F4F6;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.toggle-records-btn:active {
+  background: #E5E7EB;
+  transform: scale(0.98);
+}
+
+.toggle-icon {
+  font-size: 22rpx;
+  font-weight: 600;
 }
 
 .record-item {

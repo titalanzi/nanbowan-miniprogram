@@ -1,0 +1,6 @@
+<view class="container">
+  <view class="loading-wrap">
+    <view class="loading-icon"></view>
+    <text class="loading-text">跳转中...</text>
+  </view>
+</view>

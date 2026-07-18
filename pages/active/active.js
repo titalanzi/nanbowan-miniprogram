@@ -4,6 +4,8 @@ const { syncUserFromCloud } = require('../../utils/sync-helper.js')
 Page({
   data: {
     activeMatches: [],
+    activeTrainings: [],       // 进行中的队训列表
+    activities: [],             // 合并后的活动列表（比赛+队训）
     banners: [],               // 云存储 banner 临时 URL 数组
     bannerFallback: '', // 云加载失败时隐藏 banner
     currentSwiper: 0,          // 当前 swiper 索引
@@ -54,41 +56,38 @@ Page({
     try {
       // 优先使用预拉取的数据（保留数据不清理，其他页面也可复用）
       const app = getApp()
+      let activeMatches = []
       if (app.globalData.preloadedMatches) {
-        const activeMatches = app.globalData.preloadedMatches.filter(m => m.status === 'active')
+        activeMatches = app.globalData.preloadedMatches.filter(m => m.status === 'active')
         this.setData({ activeMatches })
-        // 更新预拉取时间为当前时间，延迟下次云请求
         app.globalData.preloadedTime = Date.now()
-        return
-      }
+      } else {
+        const now = Date.now()
+        if (now - this._lastSyncTime < this._SYNC_INTERVAL) {
+          const localMatches = storage.get('matches') || []
+          activeMatches = localMatches.filter(m => m.status === 'active')
+          this.setData({ activeMatches })
+          await this.loadTrainings()
+          return
+        }
+        this._lastSyncTime = now
 
-      // 节流：如果最近刚拉取过，跳过
-      const now = Date.now()
-      if (now - this._lastSyncTime < this._SYNC_INTERVAL) {
-        // 使用本地缓存
-        const localMatches = storage.get('matches') || []
-        const activeMatches = localMatches.filter(m => m.status === 'active')
+        console.log('Loading active matches from cloud...')
+        const cloudMatches = await storage.getMatchesFromCloudOnly()
+        if (!cloudMatches || cloudMatches.length === 0) {
+          console.log('Cloud fetch empty, trying local storage...')
+          const localMatches = storage.get('matches') || []
+          activeMatches = localMatches.filter(m => m.status === 'active')
+        } else {
+          activeMatches = cloudMatches.filter(m => m.status === 'active')
+        }
         this.setData({ activeMatches })
-        return
-      }
-      this._lastSyncTime = now
-
-      console.log('Loading active matches from cloud...')
-      const cloudMatches = await storage.getMatchesFromCloudOnly()
-
-      if (!cloudMatches || cloudMatches.length === 0) {
-        console.log('Cloud fetch empty, trying local storage...')
-        const localMatches = storage.get('matches') || []
-        const activeMatches = localMatches.filter(m => m.status === 'active')
-        this.setData({ activeMatches })
-        return
       }
 
-      const activeMatches = cloudMatches.filter(m => m.status === 'active')
-      this.setData({ activeMatches })
+      // 并行加载进行中的队训
+      await this.loadTrainings()
     } catch (e) {
       console.error('Background sync failed:', e)
-      // 出错时尝试从本地获取
       try {
         const localMatches = storage.get('matches') || []
         const activeMatches = localMatches.filter(m => m.status === 'active')
@@ -96,6 +95,16 @@ Page({
       } catch (e2) {
         console.error('Local fallback also failed:', e2)
       }
+    }
+  },
+
+  async loadTrainings() {
+    try {
+      const trainings = await storage.getTrainingsFromCloud('active')
+      this.setData({ activeTrainings: trainings })
+    } catch (e) {
+      console.error('Load trainings failed:', e)
+      this.setData({ activeTrainings: [] })
     }
   },
 
@@ -111,6 +120,7 @@ Page({
       }
 
       this.setData({ activeMatches })
+      await this.loadTrainings()
       wx.showToast({ title: '刷新成功', icon: 'success' })
     } catch (e) {
       console.error('Refresh failed:', e)
@@ -130,6 +140,13 @@ Page({
     const matchId = e.currentTarget.dataset.id
     wx.navigateTo({
       url: `/packageA/pages/match-record/match-record?id=${matchId}`
+    })
+  },
+
+  goToTraining: function (e) {
+    const trainingId = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: `/packageB/pages/training-detail/training-detail?id=${trainingId}`
     })
   },
 

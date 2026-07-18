@@ -56,9 +56,21 @@
       <view class="action-arrow">></view>
     </view>
 
+    <view class="card action-card training-action" bindtap="createTraining">
+      <view class="action-icon">🏃</view>
+      <view class="action-text">创建队训</view>
+      <view class="action-arrow">></view>
+    </view>
+
     <view class="card action-card" bindtap="showMyMatches">
       <view class="action-icon">📋</view>
       <view class="action-text">我创建的比赛</view>
+      <view class="action-arrow">></view>
+    </view>
+
+    <view class="card action-card training-action" bindtap="goMyTrainings">
+      <view class="action-icon">📊</view>
+      <view class="action-text">我的训练记录</view>
       <view class="action-arrow">></view>
     </view>
 

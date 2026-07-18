@@ -15,6 +15,17 @@
         "pages/edit-groups/edit-groups",
         "pages/match-detail/match-detail"
       ]
+    },
+    {
+      "root": "packageB",
+      "pages": [
+        "pages/create-training/create-training",
+        "pages/training-detail/training-detail",
+        "pages/training-score/training-score",
+        "pages/training-checkin/training-checkin",
+        "pages/my-trainings/my-trainings",
+        "pages/training-peer-comment/training-peer-comment"
+      ]
     }
   ],
   "window": {

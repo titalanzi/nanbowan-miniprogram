@@ -1,0 +1,90 @@
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="empty-state">
+    <text class="empty-icon">⏳</text>
+    <text class="empty-text">加载中...</text>
+  </view>
+
+  <block wx:elif="{{training.id}}">
+    <!-- 顶部：训练标题 -->
+    <view class="card training-info-card">
+      <view class="training-title">{{training.title}}</view>
+      <view class="training-meta">
+        <text>📅 {{training.startTime}}</text>
+        <text>📍 {{training.location}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{attendees.length === 0}}" class="empty-state">
+      <text class="empty-icon">👥</text>
+      <text class="empty-text">暂无签到队员</text>
+    </view>
+
+    <!-- 队员评分卡片 -->
+    <view wx:for="{{scoreData}}" wx:key="userId" wx:for-index="outerIdx" class="card score-card">
+      <view class="member-header">
+        <image class="member-avatar" src="{{item.userAvatarUrl || '/images/mine.png'}}" mode="aspectFill" />
+        <text class="member-name">{{item.userNickName}}</text>
+      </view>
+
+      <!-- 5个维度评分 -->
+      <view class="dimensions-list">
+        <view wx:for="{{dimensions}}" wx:for-item="dim" wx:key="*this" class="dimension-row">
+          <view class="dim-info">
+            <text class="dim-name">{{dim}}</text>
+            <text class="dim-score">{{scoreData[outerIdx].scores[dim]}}分</text>
+          </view>
+          <!-- 教练才显示评分按钮 -->
+          <view wx:if="{{isCoach}}" class="score-btns">
+            <view wx:for="{{scoreOptions}}" wx:for-item="n" wx:key="*this" class="score-btn {{scoreData[outerIdx].scores[dim] === n ? 'active' : ''}}" data-index="{{outerIdx}}" data-dimension="{{dim}}" data-value="{{n}}" bindtap="onScoreTap">{{n}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 总分和平均分 -->
+      <view class="score-summary">
+        <view class="summary-item">
+          <text class="summary-label">总分</text>
+          <text class="summary-value">{{scoreData[outerIdx].totalScore}}</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-label">平均分</text>
+          <text class="summary-value">{{scoreData[outerIdx].avgScore}}</text>
+        </view>
+      </view>
+
+      <!-- 教练评语：教练可编辑，非教练只读展示 -->
+      <view wx:if="{{isCoach}}" class="comment-section">
+        <text class="comment-label">教练评语</text>
+        <textarea
+          class="comment-textarea"
+          placeholder="请输入对该队员的评语..."
+          data-index="{{outerIdx}}"
+          bindinput="onCommentInput"
+          bindblur="onCommentBlur"
+          maxlength="200"
+        />
+      </view>
+      <view wx:elif="{{scoreData[outerIdx].coachComment}}" class="comment-section">
+        <text class="comment-label">教练评语</text>
+        <view class="comment-readonly">{{scoreData[outerIdx].coachComment}}</view>
+      </view>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="bottom-spacer"></view>
+
+    <!-- 底部固定提交按钮：仅教练可见 -->
+    <view wx:if="{{isCoach}}" class="bottom-bar">
+      <button class="btn-primary submit-btn" bindtap="submitScores" loading="{{submitting}}" disabled="{{submitting}}">
+        提交评分
+      </button>
+    </view>
+  </block>
+
+  <!-- 未找到队训 -->
+  <view wx:else class="empty-state">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">未找到该队训</text>
+  </view>
+</view>

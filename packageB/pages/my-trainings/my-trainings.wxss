@@ -1,0 +1,146 @@
+/* 雷达图卡片：紫色主题 */
+.radar-card {
+  background: linear-gradient(135deg, #FAF5FF, #FFFFFF);
+  border: 2rpx solid #8B5CF6;
+}
+
+.card-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 20rpx;
+}
+
+/* 雷达图区域居中 */
+.radar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 综合平均分 */
+.overall-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20rpx;
+  padding: 16rpx 40rpx;
+  background: rgba(139, 92, 246, 0.08);
+  border-radius: 20rpx;
+}
+
+.score-label {
+  font-size: 26rpx;
+  color: #6B7280;
+  margin-bottom: 8rpx;
+}
+
+.score-value {
+  font-size: 64rpx;
+  font-weight: 800;
+  color: #8B5CF6;
+  line-height: 1.2;
+}
+
+/* 雷达图空状态 */
+.radar-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  opacity: 0.6;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #9CA3AF;
+  margin-bottom: 8rpx;
+}
+
+.empty-sub-text {
+  font-size: 24rpx;
+  color: #B5BAC2;
+}
+
+/* 训练记录列表 */
+.training-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.training-item {
+  padding: 24rpx 24rpx 24rpx 28rpx;
+  border-radius: 16rpx;
+  background: #F9FAFB;
+  border-left: 8rpx solid #8B5CF6;
+  transition: all 0.2s ease;
+}
+
+.training-item-hover {
+  transform: scale(0.98);
+  background: #F3F4F6;
+}
+
+.training-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.training-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #111827;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 16rpx;
+}
+
+/* 本次平均分：大号紫色字体 */
+.training-score {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: #8B5CF6;
+  line-height: 1;
+}
+
+.training-info {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 12rpx;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  font-size: 26rpx;
+  color: #6B7280;
+}
+
+/* 教练评语摘要 */
+.coach-comment {
+  margin-top: 8rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(139, 92, 246, 0.06);
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #4B5563;
+  line-height: 1.5;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #9CA3AF;
+  font-size: 30rpx;
+}

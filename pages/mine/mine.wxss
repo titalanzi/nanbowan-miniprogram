@@ -214,6 +214,15 @@
   background: #F9FAFB;
 }
 
+/* 队训相关入口样式 */
+.action-card.training-action {
+  border-left: 6rpx solid #8B5CF6;
+}
+
+.action-card.training-action .action-icon {
+  background: linear-gradient(135deg, #F5F3FF, #EDE9FE);
+}
+
 .action-icon {
   font-size: 44rpx;
   margin-right: 20rpx;

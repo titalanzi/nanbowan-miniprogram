@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "radar-chart": "/components/radar-chart/radar-chart"
+  },
+  "navigationBarTitleText": "队训详情"
+}

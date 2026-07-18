@@ -1,0 +1,141 @@
+/* 顶部训练标题卡片 */
+.training-header-card {
+  text-align: center;
+}
+
+.training-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12rpx;
+}
+
+.training-meta {
+  font-size: 26rpx;
+  color: #6B7280;
+}
+
+/* 队员评价列表 */
+.attendees-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+/* 评价卡片：紫色边框 */
+.comment-card {
+  border: 2rpx solid #8B5CF6;
+  background: linear-gradient(135deg, #FAF5FF, #FFFFFF);
+  overflow: visible;
+  transition: none;
+}
+
+.comment-card:active {
+  transform: none;
+}
+
+/* 队员信息 */
+.attendee-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.attendee-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.default-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+}
+
+.avatar-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.attendee-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 评语输入框：圆角、浅灰背景 */
+.comment-textarea {
+  width: 100%;
+  height: 140rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 16rpx;
+  background: #F9FAFB;
+  font-size: 28rpx;
+  color: #111827;
+  line-height: 1.6;
+}
+
+.comment-textarea:focus {
+  border-color: #8B5CF6;
+}
+
+.placeholder-style {
+  color: #9CA3AF;
+  font-size: 28rpx;
+}
+
+/* 空状态提示 */
+.empty-tip {
+  text-align: center;
+  padding: 120rpx 0;
+  color: #9CA3AF;
+  font-size: 30rpx;
+}
+
+/* 底部固定提交按钮 */
+.footer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+.submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20rpx;
+  padding: 26rpx 0;
+  font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: 0 6rpx 20rpx rgba(139, 92, 246, 0.3);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  line-height: 1.4;
+}
+
+.submit-btn.disabled {
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* 给底部按钮留出空间 */
+.container {
+  padding-bottom: 160rpx;
+}

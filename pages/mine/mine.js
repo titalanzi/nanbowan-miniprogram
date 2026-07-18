@@ -256,8 +256,64 @@ Page({
       })
       return
     }
+    if (!user.avatar) {
+      wx.showModal({
+        title: '请完善头像',
+        content: '创建比赛前需要先设置头像',
+        confirmText: '去设置',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this.showEditModal()
+          }
+        }
+      })
+      return
+    }
     wx.navigateTo({
       url: '/packageA/pages/create-match/create-match'
+    })
+  },
+
+  createTraining: function () {
+    const user = this.data.user
+    if (!user || !user.id) {
+      wx.showToast({
+        title: '请先注册',
+        icon: 'none'
+      })
+      return
+    }
+    if (!user.avatar) {
+      wx.showModal({
+        title: '请完善头像',
+        content: '创建队训前需要先设置头像',
+        confirmText: '去设置',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this.showEditModal()
+          }
+        }
+      })
+      return
+    }
+    wx.navigateTo({
+      url: '/packageB/pages/create-training/create-training'
+    })
+  },
+
+  goMyTrainings: function () {
+    const user = this.data.user
+    if (!user || !user.id) {
+      wx.showToast({
+        title: '请先注册',
+        icon: 'none'
+      })
+      return
+    }
+    wx.navigateTo({
+      url: '/packageB/pages/my-trainings/my-trainings'
     })
   },
 

@@ -56,6 +56,7 @@
           style="background-color: {{item.color}}"
           bindtap="addRecord" data-stat="{{item}}">
           +1 {{item.name}}
+          <view wx:if="{{floatingStatId === item.id}}" class="floating-plus-one">+1</view>
         </view>
       </view>
     </view>
@@ -124,25 +125,17 @@
 <!-- 分组成员弹窗 -->
 <van-popup show="{{showGroupMembersModal}}" position="center" round custom-style="width: 94%; max-height: 92vh;" bind:close="hideGroupMembers">
   <view class="members-modal-wrapper">
-    <!-- 标题栏 -->
+    <!-- 标题栏（含比赛信息） -->
     <view class="modal-header-bar">
       <view class="header-left">
-        <van-icon name="friends-o" size="20px" color="#fff" />
-        <text class="header-title">分组成员</text>
+        <text class="header-title">{{match.name}}</text>
+        <text class="header-divider">·</text>
+        <text class="header-meta">📍 {{match.location || '未知地点'}}</text>
+        <text class="header-divider">·</text>
+        <text class="header-meta">📅 {{match.date}}</text>
       </view>
       <view class="header-right" bindtap="hideGroupMembers" hover-class="btn-hover">
         <van-icon name="cross" size="22px" color="#FF6B35" />
-      </view>
-    </view>
-    
-    <!-- 比赛信息 -->
-    <view class="match-info-card">
-      <view class="match-title">{{match.name}}</view>
-      <view class="match-meta-row">
-        <van-icon name="location-o" size="14px" color="#6B7280" />
-        <text class="meta-text">{{match.location || '未知地点'}}</text>
-        <van-icon name="calendar-o" size="14px" color="#6B7280" custom-style="margin-left: 24rpx;" />
-        <text class="meta-text">{{match.date}}</text>
       </view>
     </view>
     

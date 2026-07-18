@@ -1,0 +1,7 @@
+<view class="radar-wrapper">
+  <canvas type="2d" id="radarCanvas" class="radar-canvas"></canvas>
+  <view wx:if="{{!hasData}}" class="radar-empty">
+    <text class="empty-icon">{{emptyIcon}}</text>
+    <text class="empty-text">{{emptyText}}</text>
+  </view>
+</view>

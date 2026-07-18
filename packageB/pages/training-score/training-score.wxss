@@ -1,0 +1,207 @@
+/* 顶部训练信息卡片 */
+.training-info-card {
+  text-align: center;
+  background: linear-gradient(135deg, #FAF5FF, #FFFFFF);
+  border-left: 8rpx solid #8B5CF6;
+}
+
+.training-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12rpx;
+}
+
+.training-meta {
+  display: flex;
+  justify-content: center;
+  gap: 32rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+}
+
+/* 评分卡片：紫色边框区分 */
+.score-card {
+  border: 2rpx solid #8B5CF6;
+  border-left: 8rpx solid #8B5CF6;
+  overflow: visible;
+  transition: none;
+}
+
+.score-card:active {
+  transform: none;
+}
+
+.member-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #F2F4F7;
+}
+
+.member-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #E5E7EB;
+}
+
+.member-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+/* 5个维度评分 */
+.dimensions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.dimension-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.dim-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dim-name {
+  font-size: 28rpx;
+  color: #4B5563;
+  font-weight: 500;
+}
+
+.dim-score {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #FF6B35;
+  min-width: 80rpx;
+  text-align: right;
+}
+
+/* 评分按钮组 */
+.score-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.score-btn {
+  flex: 1;
+  min-width: 56rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #6B7280;
+  background: #F3F4F6;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.score-btn.active {
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  color: white;
+  border-color: #FF6B35;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+/* 总分和平均分 */
+.score-summary {
+  display: flex;
+  gap: 24rpx;
+  padding: 16rpx;
+  background: #F9FAFB;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.summary-label {
+  font-size: 24rpx;
+  color: #6B7280;
+}
+
+.summary-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #FF6B35;
+}
+
+/* 教练评语 */
+.comment-section {
+  margin-top: 16rpx;
+}
+
+.comment-label {
+  display: block;
+  font-size: 26rpx;
+  color: #4B5563;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+
+.comment-textarea {
+  width: 100%;
+  height: 140rpx;
+  padding: 20rpx;
+  border: 1rpx solid #E4E7EC;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  background: #F9FAFB;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+/* 只读评语展示（非教练） */
+.comment-readonly {
+  padding: 20rpx;
+  border: 1rpx solid #E4E7EC;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  color: #374151;
+  background: #F9FAFB;
+  line-height: 1.6;
+}
+
+/* 底部占位 */
+.bottom-spacer {
+  height: 160rpx;
+}
+
+/* 提交按钮固定底部 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: white;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+  z-index: 100;
+}
+
+.submit-btn {
+  width: 100%;
+  border-radius: 16rpx;
+}

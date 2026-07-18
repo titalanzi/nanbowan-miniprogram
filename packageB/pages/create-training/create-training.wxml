@@ -1,0 +1,61 @@
+<view class="container">
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="section-title">队训基本信息</view>
+
+    <view class="form-item">
+      <text class="form-label">队训标题 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入队训标题" value="{{title}}" bindinput="onTitleInput" maxlength="40" />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">日期 <text class="required">*</text></text>
+      <picker mode="date" value="{{date}}" bindchange="onDateChange">
+        <view class="picker">{{date || '请选择日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">开始时间</text>
+      <picker mode="time" value="{{startTime}}" bindchange="onStartTimeChange">
+        <view class="picker">{{startTime}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">结束时间</text>
+      <picker mode="time" value="{{endTime}}" bindchange="onEndTimeChange">
+        <view class="picker">{{endTime}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">地点 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入地点" value="{{location}}" bindinput="onLocationInput" maxlength="60" />
+    </view>
+  </view>
+
+  <!-- 队训描述 -->
+  <view class="card description-card">
+    <view class="section-title">队训描述</view>
+    <view class="form-item">
+      <textarea class="form-textarea" placeholder="可填写训练内容、注意事项等" maxlength="300" bindinput="onDescriptionInput" bindblur="onDescriptionBlur" />
+    </view>
+  </view>
+
+  <!-- 评分维度提示 -->
+  <view class="card">
+    <view class="section-title">评分维度</view>
+    <view class="dim-list">
+      <view wx:for="{{['传盘稳定性','接盘成功率','跑动与空间','战术理解','飞盘精神']}}" wx:key="*this" class="dim-tag">{{item}}</view>
+    </view>
+    <view class="dim-tip">创建后将默认使用以上 5 个评分维度</view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-btn-wrapper">
+    <button class="submit-btn" bindtap="submitTraining" loading="{{submitting}}" disabled="{{submitting}}">
+      {{submitting ? '提交中...' : '创建队训'}}
+    </button>
+  </view>
+</view>

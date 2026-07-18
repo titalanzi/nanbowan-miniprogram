@@ -64,9 +64,9 @@
 }
 
 .groups-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 .group-card {
@@ -136,49 +136,44 @@
 }
 
 .members-section {
-  padding: 6rpx;
+  padding: 12rpx 14rpx;
 }
 
 .members-title {
   font-size: 22rpx;
   font-weight: 500;
   color: #667085;
-  margin-bottom: 10rpx;
-  display: none;
+  margin-bottom: 12rpx;
+  display: block;
 }
 
 .members-list {
-  margin-bottom: 8rpx;
-  max-height: 360rpx;
-  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
 }
 
 .member-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 8rpx 10rpx;
+  gap: 8rpx;
+  padding: 12rpx 16rpx;
   background: #F9FAFB;
-  border-radius: 8rpx;
-  margin-bottom: 4rpx;
+  border-radius: 32rpx;
   border: 3rpx solid transparent;
   box-sizing: border-box;
   transition: all 0.18s ease;
-}
-
-.member-item:last-child {
-  margin-bottom: 0;
+  cursor: pointer;
 }
 
 .member-item:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 .member-item.selected {
   border-color: #FF6B35;
   background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
-  transform: scale(1.02);
 }
 
 .member-item.selected .member-name {
@@ -189,7 +184,7 @@
 .member-info {
   display: flex;
   align-items: center;
-  gap: 6rpx;
+  gap: 8rpx;
 }
 
 .member-number {
@@ -205,7 +200,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 160rpx;
 }
 
 .member-name.orange-name {
@@ -213,18 +207,19 @@
 }
 
 .member-gender-icon {
-  width: 32rpx;
-  height: 32rpx;
+  width: 28rpx;
+  height: 28rpx;
   opacity: 0.9;
 }
 
 .member-delete {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: #EF4444;
   font-weight: 500;
-  padding: 2rpx 8rpx;
+  padding: 4rpx 10rpx;
   background: #FEF2F2;
-  border-radius: 6rpx;
+  border-radius: 8rpx;
+  margin-left: 6rpx;
 }
 
 .empty-members-tip {

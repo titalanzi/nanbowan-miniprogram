@@ -147,3 +147,96 @@
   justify-content: flex-end;
   gap: 6rpx;
 }
+
+/* ===== 队训卡片样式 ===== */
+.match-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.type-icon {
+  font-size: 36rpx;
+  flex-shrink: 0;
+}
+
+.training-card {
+  border-left: 8rpx solid #8B5CF6;
+  padding-left: 24rpx;
+}
+
+.training-placeholder {
+  background: linear-gradient(135deg, #8B5CF6, #6366F1) !important;
+}
+
+.tag-training {
+  background: #F3F0FF;
+  color: #8B5CF6;
+}
+
+.coach-info {
+  font-size: 24rpx;
+  color: #8B5CF6;
+  margin-top: 6rpx;
+  font-weight: 500;
+}
+
+.training-meta {
+  display: flex;
+  gap: 32rpx;
+  margin-bottom: 16rpx;
+  padding: 16rpx 20rpx;
+  background: linear-gradient(135deg, #F5F3FF, #FFFFFF);
+  border-radius: 16rpx;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.meta-icon {
+  font-size: 28rpx;
+}
+
+.meta-text {
+  font-size: 24rpx;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+/* 签到人员头像列表 */
+.attendee-avatars {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  padding-left: 4rpx;
+}
+
+.attendee-avatar-item {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 2rpx solid #FFFFFF;
+  margin-left: -12rpx;
+  background: #E5E7EB;
+}
+
+.attendee-avatar-item:first-child {
+  margin-left: 0;
+}
+
+.attendee-avatar-item.hidden {
+  display: none;
+}
+
+.attendee-avatar-more {
+  margin-left: 8rpx;
+  font-size: 22rpx;
+  color: #6B7280;
+  font-weight: 600;
+}
+

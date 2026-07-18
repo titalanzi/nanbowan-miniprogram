@@ -271,6 +271,13 @@ Page({
       return
     }
 
+    wx.vibrateShort && wx.vibrateShort({ type: 'medium' })
+
+    this.setData({ floatingStatId: stat.id })
+    setTimeout(() => {
+      this.setData({ floatingStatId: null })
+    }, 600)
+
     const group = match.groups[selectedGroupIndex]
     const member = group.members[selectedMemberIndex]
     const now = new Date()

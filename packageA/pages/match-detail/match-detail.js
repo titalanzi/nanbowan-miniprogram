@@ -20,7 +20,8 @@ Page({
     currentUserId: '',
     showTeamModal: false,
     currentTeamMembers: [],
-    currentTeamName: ''
+    currentTeamName: '',
+    showAllRecords: false
   },
 
   onLoad: async function (options) {
@@ -561,6 +562,11 @@ Page({
       })
       console.error('Delete match error:', error)
     }
+  },
+
+  toggleRecords: function() {
+    const current = this.data.showAllRecords
+    this.setData({ showAllRecords: !current })
   },
 
   onShareAppMessage: function () {

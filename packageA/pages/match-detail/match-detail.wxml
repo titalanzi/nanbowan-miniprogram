@@ -120,8 +120,8 @@
   <!-- 完整记录 -->
   <view class="card">
     <view class="section-title">完整记录</view>
-    <scroll-view wx:if="{{match.records && match.records.length > 0}}" class="records-scroll" scroll-y>
-      <view wx:for="{{match.records}}" wx:key="id" wx:for-item="record" class="record-item">
+    <view wx:if="{{match.records && match.records.length > 0}}" class="records-list">
+      <view wx:for="{{showAllRecords ? match.records : match.records.slice(0, 5)}}" wx:key="id" wx:for-item="record" class="record-item">
         <view class="record-time">{{record.time}}</view>
         <view class="record-content">
           <view class="record-group" style="color: {{record.groupColor}}">{{record.groupName}}</view>
@@ -129,7 +129,11 @@
           <view class="record-stat" style="background-color: {{record.statColor}}">{{record.statName}}</view>
         </view>
       </view>
-    </scroll-view>
+      <view wx:if="{{match.records.length > 5}}" class="toggle-records-btn" catchtap="toggleRecords">
+        <text>{{showAllRecords ? '收起' : '展开全部'}} ({{match.records.length}}条)</text>
+        <text class="toggle-icon">{{showAllRecords ? '↑' : '↓'}}</text>
+      </view>
+    </view>
     <view wx:else class="empty-tip">
       暂无记录
     </view>

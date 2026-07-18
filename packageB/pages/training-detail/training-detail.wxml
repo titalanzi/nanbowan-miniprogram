@@ -1,0 +1,156 @@
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="empty-state">
+    <text class="empty-icon">⏳</text>
+    <text class="empty-text">加载中...</text>
+  </view>
+
+  <block wx:elif="{{training.id}}">
+    <!-- 顶部卡片：标题、状态标签、时间、地点、描述 -->
+    <view class="card training-card">
+      <view class="training-header">
+        <text class="training-title">{{training.title}}</text>
+        <text class="tag {{training.status === '已结束' ? 'tag-finished' : 'tag-active'}}">{{training.status}}</text>
+      </view>
+      <view class="training-meta">
+        <text class="meta-item">📅 {{training.startTime}}</text>
+        <text class="meta-item">📍 {{training.location}}</text>
+      </view>
+      <view wx:if="{{training.description}}" class="training-desc">{{training.description}}</view>
+    </view>
+
+    <!-- 教练信息区 -->
+    <view class="card">
+      <view class="section-title">教练</view>
+      <view class="coach-info">
+        <image wx:if="{{training.coachAvatar}}" class="coach-avatar" src="{{training.coachAvatar}}" mode="aspectFill" />
+        <view wx:else class="coach-avatar coach-avatar-placeholder">👨‍🏫</view>
+        <text class="coach-name">{{training.coachName || '未指定'}}</text>
+        <view wx:if="{{training.coachOpenId && permission.canEdit && training.status !== '已结束'}}" class="coach-actions">
+          <text class="coach-change-btn" bindtap="openCoachPicker">更换</text>
+        </view>
+        <view wx:if="{{!training.coachOpenId && permission.canEdit && training.status !== '已结束'}}" class="coach-actions">
+          <text class="coach-change-btn" bindtap="openCoachPicker">指定教练</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 签到列表 -->
+    <view class="card">
+      <view class="section-title">签到列表 ({{attendees.length}})</view>
+      <view wx:if="{{attendees.length > 0}}" class="attendee-list">
+        <view wx:for="{{attendees}}" wx:key="userOpenId" class="attendee-item">
+          <image class="attendee-avatar" src="{{item.avatarUrl || '/images/mine.png'}}" mode="aspectFill" />
+          <view class="attendee-info">
+            <view class="attendee-name-wrap">
+              <text class="attendee-name">{{item.nickName || '匿名队员'}}</text>
+              <text wx:if="{{item.userOpenId === training.coachOpenId}}" class="coach-badge">教练</text>
+            </view>
+            <text class="attendee-time">签到时间: {{item.checkInTimeText}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-tip">暂无签到</view>
+    </view>
+
+    <!-- 评分详情 -->
+    <view wx:if="{{training.status === '已结束' && training.scoreCompleted}}" class="card">
+      <view class="section-title">评分详情</view>
+      <view wx:if="{{attendees.length > 0}}" class="score-list">
+        <view wx:for="{{attendees}}" wx:key="userOpenId" class="score-item">
+          <view class="score-item-header">
+            <image class="score-avatar" src="{{item.avatarUrl || '/images/mine.png'}}" mode="aspectFill" />
+            <text class="score-name">{{item.nickName || '匿名队员'}}</text>
+          </view>
+          <view class="dimension-tags">
+            <view wx:for="{{dimensions}}" wx:for-item="dim" wx:key="*this" class="dimension-tag">
+              <text class="dim-label">{{dim}}</text>
+              <text class="dim-value">{{item.scores[dim] || 0}}</text>
+            </view>
+          </view>
+          <view class="score-summary">
+            <text class="summary-item">总分: <text class="summary-value">{{item.totalScore || 0}}</text></text>
+            <text class="summary-item">平均: <text class="summary-value">{{item.avgScore || 0}}</text></text>
+          </view>
+          <view wx:if="{{item.coachComment}}" class="coach-comment">
+            <text class="comment-label">教练评语：</text>
+            <text class="comment-text">{{item.coachComment}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-tip">暂无评分</view>
+    </view>
+
+    <!-- 操作按钮区 -->
+    <view wx:if="{{training.status !== '已结束'}}" class="footer-wrapper">
+      <view wx:if="{{isJoined}}" class="joined-tip">✓ 您已加入本次队训</view>
+      <button wx:if="{{!isJoined && !permission.canEdit}}" class="btn-primary" bindtap="joinTraining">加入队训</button>
+      <button wx:if="{{permission.canEdit}}" class="btn-primary" open-type="share">分享队训</button>
+      <button wx:if="{{permission.canEdit}}" class="btn-secondary" bindtap="goToScore">开始评分</button>
+      <button wx:if="{{permission.canEdit}}" class="btn-outline" bindtap="endTraining">结束队训</button>
+      <button wx:if="{{!permission.canEdit}}" class="btn-outline" open-type="share">分享给队友</button>
+    </view>
+  </block>
+
+  <!-- 加入队训弹窗（注册） -->
+  <view wx:if="{{showJoinModal}}" class="modal-overlay" bindtap="closeJoinModal">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-header">
+        <text class="modal-title">加入队训</text>
+        <text class="modal-close" bindtap="closeJoinModal">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="modal-desc">请填写您的信息以加入本次队训</view>
+
+        <view class="avatar-section">
+          <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+            <image wx:if="{{joinAvatar}}" class="avatar-img" src="{{joinAvatar}}" mode="aspectFill" />
+            <view wx:else class="avatar-placeholder">
+              <text class="avatar-placeholder-icon">📷</text>
+              <text class="avatar-placeholder-text">选择头像</text>
+            </view>
+          </button>
+          <view wx:if="{{uploadingAvatar}}" class="uploading-tip">上传中...</view>
+        </view>
+
+        <input class="name-input"
+          type="nickname"
+          placeholder="请输入昵称"
+          placeholder-class="input-placeholder"
+          value="{{joinName}}"
+          bindinput="onJoinNameInput"
+          bindnicknamereview="onNickname" />
+
+        <button class="btn-primary join-modal-btn" bindtap="submitJoin" disabled="{{!joinName || uploadingAvatar || joining}}">
+          {{joining ? '加入中...' : '确认加入'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 指定教练弹窗 -->
+  <view wx:if="{{showCoachPicker}}" class="modal-overlay" bindtap="closeCoachPicker">
+    <view class="modal-content coach-picker-content" catchtap="noop">
+      <view class="modal-header">
+        <text class="modal-title">指定教练</text>
+        <text class="modal-close" bindtap="closeCoachPicker">✕</text>
+      </view>
+      <view class="coach-picker-body">
+        <view class="coach-picker-tip">从已加入的队员中选择教练</view>
+        <scroll-view scroll-y class="coach-picker-list">
+          <view wx:for="{{attendees}}" wx:key="userOpenId" class="coach-option {{item.userOpenId === training.coachOpenId ? 'selected' : ''}}" data-openid="{{item.userOpenId}}" data-name="{{item.nickName}}" data-avatar="{{item.avatarUrl}}" bindtap="selectCoach">
+            <image class="coach-option-avatar" src="{{item.avatarUrl || '/images/mine.png'}}" mode="aspectFill" />
+            <text class="coach-option-name">{{item.nickName || '匿名队员'}}</text>
+            <text wx:if="{{item.userOpenId === training.coachOpenId}}" class="coach-option-current">当前</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 未找到队训 -->
+  <view wx:else class="empty-state">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">未找到该队训</text>
+  </view>
+</view>
