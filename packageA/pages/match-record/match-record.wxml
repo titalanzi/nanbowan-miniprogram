@@ -185,8 +185,17 @@
     
     <!-- 底部提示 -->
     <view class="footer-tip-bar">
-      <van-icon name="photo-o" size="14px" color="#9CA3AF" />
-      <text class="footer-tip-text">截图此页面分享到群里</text>
+      <view class="footer-left">
+        <van-icon name="photo-o" size="14px" color="#9CA3AF" />
+        <text class="footer-tip-text">截图此页面分享到群里</text>
+      </view>
+      <view class="download-image-btn" bindtap="downloadGroupImage">
+        <van-icon name="down" size="14px" color="#fff" />
+        <text class="download-image-text">保存图片</text>
+      </view>
     </view>
   </view>
 </van-popup>
+
+<!-- 隐藏 canvas 用于绘制分组图片 -->
+<canvas type="2d" id="groupShareCanvas" class="share-canvas"></canvas>

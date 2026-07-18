@@ -1,8 +1,22 @@
+/* ===== Banner 轮播 ===== */
+
 .banner {
   position: relative;
   width: 100%;
   height: 280rpx;
   margin-bottom: 24rpx;
+}
+
+.banner-swiper-wrap {
+  position: relative;
+  width: 100%;
+  height: 280rpx;
+  margin-bottom: 24rpx;
+}
+
+.banner-swiper {
+  width: 100%;
+  height: 100%;
 }
 
 .banner-image {
@@ -11,14 +25,28 @@
   border-radius: 20rpx;
 }
 
-.banner-text {
+/* 自定义指示点 */
+.banner-dots {
   position: absolute;
-  bottom: 24rpx;
-  left: 24rpx;
-  font-size: 44rpx;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.5);
+  bottom: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12rpx;
+}
+
+.dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.25s ease;
+}
+
+.dot.active {
+  width: 28rpx;
+  border-radius: 6rpx;
+  background: #FF6B35;
 }
 
 .match-creator {

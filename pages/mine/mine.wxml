@@ -9,23 +9,20 @@
       </view>
       <view class="form-item">
         <text class="form-label">昵称</text>
-        <input class="form-input" placeholder="请输入你的昵称" value="{{inputName}}" bindinput="onNameInput" />
+        <input class="form-input" type="nickname" placeholder="点击获取微信昵称或手动输入" value="{{inputName}}" bindinput="onNameInput" bindnickname="onNickname" data-source="input" />
       </view>
       <view class="form-item">
         <text class="form-label">头像</text>
-        <view class="avatar-section">
-          <view class="avatar-preview">
+        <view class="avatar-pick-area">
+          <view class="avatar-preview avatar-circle">
             <image wx:if="{{inputAvatar}}" class="avatar-img" src="{{inputAvatar}}" mode="aspectFill"></image>
-            <text wx:else class="avatar-placeholder">+</text>
+            <text wx:else class="avatar-placeholder">👤</text>
           </view>
-          <text class="avatar-tip">选择你的头像</text>
-        </view>
-        <view class="avatar-grid">
-          <view wx:for="{{avatarList}}" wx:key="*this" 
-                class="avatar-option {{inputAvatar === item ? 'selected' : ''}}"
-                bindtap="selectAvatar" data-avatar="{{item}}">
-            <image src="{{item}}" class="option-img" mode="aspectFill"></image>
+          <view class="avatar-pick-actions">
+            <button class="wx-btn choose-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">选择微信头像</button>
+            <view class="album-link" bindtap="chooseFromAlbum" data-source="input">从相册上传</view>
           </view>
+          <text class="avatar-tip">默认使用微信头像，也可从相册上传</text>
         </view>
       </view>
       <button class="btn-primary" bindtap="register">完成注册</button>
@@ -62,6 +59,12 @@
     <view class="card action-card" bindtap="showMyMatches">
       <view class="action-icon">📋</view>
       <view class="action-text">我创建的比赛</view>
+      <view class="action-arrow">></view>
+    </view>
+
+    <view class="card action-card" bindtap="goFrisbeeVocab">
+      <view class="action-icon">🥏</view>
+      <view class="action-text">飞盘词汇</view>
       <view class="action-arrow">></view>
     </view>
 
@@ -105,24 +108,21 @@
       <view class="modal-body">
         <view class="form-item">
           <text class="form-label">昵称</text>
-          <input class="form-input" placeholder="请输入昵称" value="{{editName}}" bindinput="onEditNameInput" />
+          <input class="form-input" type="nickname" placeholder="点击获取微信昵称或手动输入" value="{{editName}}" bindinput="onEditNameInput" bindnickname="onNickname" data-source="edit" />
         </view>
         <view class="form-item">
           <text class="form-label">头像</text>
-          <view class="avatar-section">
-            <view class="avatar-preview">
+          <view class="avatar-pick-area">
+            <view class="avatar-preview avatar-circle">
               <image wx:if="{{editAvatar}}" class="avatar-img" src="{{editAvatar}}" mode="aspectFill"></image>
               <image wx:elif="{{user.avatar}}" class="avatar-img" src="{{user.avatar}}" mode="aspectFill"></image>
-              <text wx:else class="avatar-placeholder">+</text>
+              <text wx:else class="avatar-placeholder">👤</text>
             </view>
-            <text class="avatar-tip">选择你的头像</text>
-          </view>
-          <view class="avatar-grid">
-            <view wx:for="{{avatarList}}" wx:key="*this" 
-                  class="avatar-option {{(editAvatar === item || (!editAvatar && user.avatar === item)) ? 'selected' : ''}}"
-                  bindtap="selectEditAvatar" data-avatar="{{item}}">
-              <image src="{{item}}" class="option-img" mode="aspectFill"></image>
+            <view class="avatar-pick-actions">
+              <button class="wx-btn choose-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">选择微信头像</button>
+              <view class="album-link" bindtap="chooseFromAlbum" data-source="edit">从相册上传</view>
             </view>
+            <text class="avatar-tip">默认使用微信头像，也可从相册上传</text>
           </view>
         </view>
       </view>

@@ -1,4 +1,6 @@
-const storage = require('../../utils/storage.js')
+const storage = require('../../../utils/storage.js')
+const app = getApp()
+const { checkPermissionFromCloud, calculateGroupStats } = require('../../../utils/sync-helper.js')
 
 Page({
   data: {
@@ -35,56 +37,9 @@ Page({
   },
 
   async checkPermission() {
-    const user = await storage.get('user') || {}
-    const isAssistant = user.role === 'assistant'
     const matchId = this.data.matchId
-    
-    console.log('=== match-detail checkPermission 调试 ===')
-    console.log('当前用户:', user)
-    console.log('用户ID:', user.id)
-    console.log('用户角色:', user.role)
-    console.log('比赛ID:', matchId)
-    
-    let isCreator = false
-    let match = null
-    
-    if (matchId) {
-      // 优先从云端获取比赛数据进行权限检查
-      console.log('从云端获取比赛数据...')
-      const cloudMatches = await storage.getMatchesFromCloudOnly()
-      console.log('云端比赛数量:', cloudMatches.length)
-      match = cloudMatches.find(m => m.id === matchId)
-      console.log('云端找到的比赛:', match)
-      
-      // 如果云端没有，再从本地获取
-      if (!match) {
-        console.log('云端没有，从本地获取...')
-        const matches = await storage.get('matches') || []
-        match = matches.find(m => m.id === matchId)
-        console.log('本地找到的比赛:', match)
-      }
-      
-      if (match) {
-        console.log('比赛创建者ID:', match.creatorId)
-        console.log('用户ID vs 创建者ID:', user.id, '===', match.creatorId)
-        if (match.creatorId === user.id) {
-          isCreator = true
-          console.log('✅ 用户是创建者')
-        } else {
-          console.log('❌ 用户不是创建者')
-        }
-      }
-    }
-    
-    const canEdit = isCreator || isAssistant
-    console.log('最终权限 - isCreator:', isCreator, 'isAssistant:', isAssistant, 'canEdit:', canEdit)
-    console.log('=======================================')
-    
-    this.setData({ 
-      isAssistant,
-      isCreator,
-      canEdit
-    })
+    const permission = await checkPermissionFromCloud(matchId)
+    this.setData(permission)
   },
 
   async loadMatchFast() {
@@ -110,7 +65,7 @@ Page({
         activeTab = match.statTypes[0].id
       }
       this.setData({ match, activeTab })
-      this.calculateGroupStats()
+      this.updateGroupStats()
       this.calculateRankings(activeTab)
       this.calculateMVPRankings()
       this.loadVotes()
@@ -137,7 +92,7 @@ Page({
           
           if (!localMatch || new Date(cloudMatch.updatedAt) > new Date(localMatch.updatedAt || 0)) {
             this.setData({ match: cloudMatch })
-            this.calculateGroupStats()
+            this.updateGroupStats()
           }
         }
       }
@@ -146,40 +101,10 @@ Page({
     }
   },
 
-  calculateGroupStats: function () {
+  updateGroupStats: function () {
     const match = this.data.match
-    if (!match || !match.groups || !match.records) {
-      this.setData({ groupStats: [] })
-      return
-    }
-    
-    const stats = []
-    for (let i = 0; i < match.groups.length; i++) {
-      const group = match.groups[i]
-      let score = 0
-      let assist = 0
-      let dDisc = 0
-      let turnover = 0
-      for (let j = 0; j < match.records.length; j++) {
-        const record = match.records[j]
-        if (record.groupId === group.id) {
-          if (record.statType === 'stat_score') score++
-          else if (record.statType === 'stat_assist') assist++
-          else if (record.statType === 'stat_d') dDisc++
-          else if (record.statType === 'stat_turnover') turnover++
-        }
-      }
-      stats.push({
-        groupId: group.id,
-        groupName: group.name,
-        color: group.color,
-        score: score,
-        assist: assist,
-        dDisc: dDisc,
-        turnover: turnover
-      })
-    }
-    this.setData({ groupStats: stats })
+    const groupStats = calculateGroupStats(match)
+    this.setData({ groupStats })
   },
 
   getGroupScore: function (groupId) {

@@ -1,13 +1,12 @@
 const mockData = require('./data/mockData.js')
-const cloud = require('./utils/cloud.js')
 const storage = require('./utils/storage.js')
 
 App({
   onLaunch: function () {
-    cloud.initCloud('cloudbase-d1gy9zpsb97f7c289')
-    
-    // 先清理错误的用户数据
-    this.cleanupWrongUserData()
+    wx.cloud.init({
+      env: 'cloudbase-d1gy9zpsb97f7c289',
+      traceUser: true
+    })
     
     mockData.initData()
     
@@ -18,25 +17,11 @@ App({
     this.loadUserForShare()
   },
   
-  // 清理错误的用户数据
-  async cleanupWrongUserData() {
-    try {
-      const user = await storage.get('user')
-      // 如果用户ID是 user_001，就清理掉
-      if (user && user.id === 'user_001') {
-        console.log('清理错误的用户数据:', user)
-        await storage.remove('user')
-        console.log('已清理 user_001 数据，请重新注册')
-      }
-    } catch (e) {
-      console.log('清理用户数据失败:', e)
-    }
-  },
-  
   globalData: {
     userInfo: null,
     preloadedMatches: null,
-    shareAvatar: '/images/banner.jpg' // 默认转发图片
+    preloadedTime: 0,   // 预拉取时间戳，用于判断有效期
+    shareAvatar: '' // 由 loadUserForShare 异步更新
   },
   
   // 预拉取数据函数
@@ -45,6 +30,7 @@ App({
       console.log('App prefetching data...')
       const matches = await storage.syncMatches()
       this.globalData.preloadedMatches = matches
+      this.globalData.preloadedTime = Date.now()
       console.log('App prefetch complete, matches count:', matches.length)
     } catch (e) {
       console.log('Prefetch failed:', e)
@@ -56,8 +42,22 @@ App({
     try {
       const user = await storage.get('user')
       if (user && user.avatar) {
-        this.globalData.shareAvatar = user.avatar
-        console.log('Share avatar updated:', user.avatar)
+        const avatar = user.avatar
+        // cloud:// fileID 不能作为转发分享图，需转为 https 临时地址
+        if (avatar.indexOf('cloud://') === 0 && wx.cloud && wx.cloud.getTempFileURL) {
+          try {
+            const res = await wx.cloud.getTempFileURL({ fileList: [avatar] })
+            if (res && res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
+              this.globalData.shareAvatar = res.fileList[0].tempFileURL
+              console.log('Share avatar (cloud) updated:', this.globalData.shareAvatar)
+              return
+            }
+          } catch (e) {
+            console.log('Convert cloud avatar failed, fallback to raw:', e)
+          }
+        }
+        this.globalData.shareAvatar = avatar
+        console.log('Share avatar updated:', avatar)
       }
     } catch (e) {
       console.log('Load user for share failed:', e)

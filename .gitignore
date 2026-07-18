@@ -38,6 +38,10 @@ Thumbs.db
 /cloudbaserc.json
 .cloudbase/
 
+# 敏感密钥文件（切勿提交到仓库）
+cloudfunctions/tts/secret.json
+**/secret.json
+
 # TRAE IDE配置
 .trae/
 

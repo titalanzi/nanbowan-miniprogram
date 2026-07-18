@@ -31,7 +31,7 @@ Page({
       if (cloudMatches && cloudMatches.length > 0) {
         const user = await storage.get('user') || {}
         const myMatches = cloudMatches
-          .filter(m => m.creatorId === user.id && m.status !== 'finished')
+          .filter(m => m.creatorId === user.id)
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         this.setData({ myMatches })
       }

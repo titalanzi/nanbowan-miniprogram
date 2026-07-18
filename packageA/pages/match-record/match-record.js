@@ -1,4 +1,5 @@
-const storage = require('../../utils/storage.js')
+const storage = require('../../../utils/storage.js')
+const { checkPermissionFromCloud, calculateGroupStats } = require('../../../utils/sync-helper.js')
 
 Page({
   data: {
@@ -31,56 +32,9 @@ Page({
   },
 
   async checkPermission() {
-    const user = await storage.get('user') || {}
-    const isAssistant = user.role === 'assistant'
     const matchId = this.data.matchId
-    
-    console.log('=== checkPermission 调试 ===')
-    console.log('当前用户:', user)
-    console.log('用户ID:', user.id)
-    console.log('用户角色:', user.role)
-    console.log('比赛ID:', matchId)
-    
-    let isCreator = false
-    let match = null
-    
-    if (matchId) {
-      // 优先从云端获取比赛数据进行权限检查
-      console.log('从云端获取比赛数据...')
-      const cloudMatches = await storage.getMatchesFromCloudOnly()
-      console.log('云端比赛数量:', cloudMatches.length)
-      match = cloudMatches.find(m => m.id === matchId)
-      console.log('云端找到的比赛:', match)
-      
-      // 如果云端没有，再从本地获取
-      if (!match) {
-        console.log('云端没有，从本地获取...')
-        const matches = await storage.get('matches') || []
-        match = matches.find(m => m.id === matchId)
-        console.log('本地找到的比赛:', match)
-      }
-      
-      if (match) {
-        console.log('比赛创建者ID:', match.creatorId)
-        console.log('用户ID vs 创建者ID:', user.id, '===', match.creatorId)
-        if (match.creatorId === user.id) {
-          isCreator = true
-          console.log('✅ 用户是创建者')
-        } else {
-          console.log('❌ 用户不是创建者')
-        }
-      }
-    }
-    
-    const canEdit = isCreator || isAssistant
-    console.log('最终权限 - isCreator:', isCreator, 'isAssistant:', isAssistant, 'canEdit:', canEdit)
-    console.log('===========================')
-    
-    this.setData({ 
-      isAssistant,
-      isCreator,
-      canEdit
-    })
+    const permission = await checkPermissionFromCloud(matchId)
+    this.setData(permission)
   },
 
   updateCanEdit() {
@@ -129,44 +83,14 @@ Page({
       }
       
       this.setData({ match })
-      this.calculateGroupStats()
+      this.updateGroupStats()
     }
   },
 
-  calculateGroupStats: function () {
+  updateGroupStats: function () {
     const match = this.data.match
-    if (!match || !match.groups || !match.records) {
-      this.setData({ groupStats: [] })
-      return
-    }
-    
-    const stats = []
-    for (let i = 0; i < match.groups.length; i++) {
-      const group = match.groups[i]
-      let score = 0
-      let assist = 0
-      let dDisc = 0
-      let turnover = 0
-      for (let j = 0; j < match.records.length; j++) {
-        const record = match.records[j]
-        if (record.groupId === group.id) {
-          if (record.statType === 'stat_score') score++
-          else if (record.statType === 'stat_assist') assist++
-          else if (record.statType === 'stat_d') dDisc++
-          else if (record.statType === 'stat_turnover') turnover++
-        }
-      }
-      stats.push({
-        groupId: group.id,
-        groupName: group.name,
-        color: group.color,
-        score: score,
-        assist: assist,
-        dDisc: dDisc,
-        turnover: turnover
-      })
-    }
-    this.setData({ groupStats: stats })
+    const groupStats = calculateGroupStats(match)
+    this.setData({ groupStats })
   },
 
   showTeamStats: function(e) {
@@ -371,7 +295,7 @@ Page({
     const newMatch = { ...match, records: newRecords, updatedAt: now.toISOString() }
     
     this.setData({ match: newMatch })
-    this.calculateGroupStats()
+    this.updateGroupStats()
     await this.saveMatch(newMatch)
     
     wx.showToast({ title: '记录成功', icon: 'success' })
@@ -407,7 +331,7 @@ Page({
     const newMatch = { ...match, records: newRecords, updatedAt: new Date().toISOString() }
     
     this.setData({ match: newMatch })
-    this.calculateGroupStats()
+    this.updateGroupStats()
     await this.saveMatch(newMatch)
     
     wx.showToast({ title: '已撤销', icon: 'success' })
@@ -430,7 +354,7 @@ Page({
           const newMatch = { ...match, records: newRecords, updatedAt: new Date().toISOString() }
           
           this.setData({ match: newMatch })
-          this.calculateGroupStats()
+          this.updateGroupStats()
           await this.saveMatch(newMatch)
           
           wx.showToast({ title: '已删除', icon: 'success' })
@@ -471,7 +395,7 @@ Page({
 
     setTimeout(() => {
       wx.redirectTo({
-        url: '/pages/match-detail/match-detail?id=' + match.id
+        url: '/packageA/pages/match-detail/match-detail?id=' + match.id
       })
     }, 1000)
   },
@@ -492,6 +416,316 @@ Page({
 
   hideGroupMembers: function () {
     this.setData({ showGroupMembersModal: false })
+  },
+
+  // 下载分组图片到相册
+  downloadGroupImage: async function () {
+    wx.showLoading({ title: '生成图片中...' })
+    try {
+      const tempFilePath = await this.drawGroupImage()
+      wx.hideLoading()
+      wx.showLoading({ title: '保存中...' })
+      await wx.saveImageToPhotosAlbum({ filePath: tempFilePath })
+      wx.hideLoading()
+      wx.showToast({ title: '已保存到相册', icon: 'success' })
+    } catch (e) {
+      wx.hideLoading()
+      console.error('Download group image failed:', e)
+      if (e.errMsg && e.errMsg.indexOf('auth deny') !== -1) {
+        wx.showModal({
+          title: '需要授权',
+          content: '请允许保存图片到相册',
+          confirmText: '去设置',
+          success: function (res) {
+            if (res.confirm) {
+              wx.openSetting()
+            }
+          }
+        })
+      } else {
+        wx.showToast({ title: '保存失败', icon: 'none' })
+      }
+    }
+  },
+
+  // 使用 canvas 绘制分组图片
+  drawGroupImage: function () {
+    const self = this
+    return new Promise(function (resolve, reject) {
+      const query = wx.createSelectorQuery()
+      query.select('#groupShareCanvas')
+        .fields({ node: true, size: true })
+        .exec(function (res) {
+          if (!res || !res[0] || !res[0].node) {
+            reject(new Error('canvas not found'))
+            return
+          }
+
+          const canvas = res[0].node
+          const ctx = canvas.getContext('2d')
+          const dpr = wx.getSystemInfoSync().pixelRatio
+
+          const match = self.data.match || {}
+          const groups = (match.groups || []).map(function (group) {
+            return {
+              ...group,
+              maleCount: group.maleCount || 0,
+              femaleCount: group.femaleCount || 0
+            }
+          })
+
+          const width = 750
+          const padding = 32
+          const headerHeight = 120
+          const matchInfoHeight = 140
+          const footerHeight = 80
+          const groupHeaderHeight = 80
+          const tagHeight = 64
+          const tagGap = 16
+          const gridPadding = 24
+          const groupCardGap = 24
+          const tagsPerRow = 3
+          const cardRadius = 16
+
+          function calcGroupCardHeight(group) {
+            const members = group.members || []
+            const rowCount = members.length === 0 ? 1 : Math.ceil(members.length / tagsPerRow)
+            const membersHeight = gridPadding + rowCount * tagHeight + (rowCount - 1) * tagGap + gridPadding
+            return groupHeaderHeight + membersHeight
+          }
+
+          let groupsHeight = 0
+          groups.forEach(function (group) {
+            groupsHeight += calcGroupCardHeight(group) + groupCardGap
+          })
+          if (groups.length > 0) groupsHeight -= groupCardGap
+
+          const totalHeight = headerHeight + matchInfoHeight + groupsHeight + footerHeight + 64
+
+          canvas.width = width * dpr
+          canvas.height = totalHeight * dpr
+          ctx.scale(dpr, dpr)
+
+          // 绘制圆角矩形
+          function drawRoundRect(x, y, w, h, r) {
+            ctx.beginPath()
+            ctx.moveTo(x + r, y)
+            ctx.arcTo(x + w, y, x + w, y + h, r)
+            ctx.arcTo(x + w, y + h, x, y + h, r)
+            ctx.arcTo(x, y + h, x, y, r)
+            ctx.arcTo(x, y, x + w, y, r)
+            ctx.closePath()
+          }
+
+          // 背景
+          ctx.fillStyle = '#F8F9FB'
+          ctx.fillRect(0, 0, width, totalHeight)
+
+          // 顶部标题栏
+          const gradient = ctx.createLinearGradient(0, 0, width, headerHeight)
+          gradient.addColorStop(0, '#FF6B35')
+          gradient.addColorStop(1, '#F59E0B')
+          ctx.fillStyle = gradient
+          ctx.fillRect(0, 0, width, headerHeight)
+
+          // 标题图标（圆形）
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'
+          ctx.beginPath()
+          ctx.arc(70, headerHeight / 2, 32, 0, Math.PI * 2)
+          ctx.fill()
+
+          ctx.fillStyle = '#FFFFFF'
+          ctx.font = 'bold 40px sans-serif'
+          ctx.textAlign = 'left'
+          ctx.textBaseline = 'middle'
+          ctx.fillText('分组成员', 118, headerHeight / 2)
+
+          // 比赛信息卡片
+          let y = headerHeight + 24
+          ctx.fillStyle = '#FFFFFF'
+          drawRoundRect(padding, y, width - padding * 2, matchInfoHeight - 24, cardRadius)
+          ctx.fill()
+
+          ctx.fillStyle = '#111827'
+          ctx.font = 'bold 36px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'top'
+          ctx.fillText(match.name || '比赛', width / 2, y + 26)
+
+          ctx.fillStyle = '#6B7280'
+          ctx.font = '24px sans-serif'
+          const locationText = match.location || '未知地点'
+          const dateText = match.date || ''
+          ctx.fillText('📍 ' + locationText + '   📅 ' + dateText, width / 2, y + 82)
+
+          y = headerHeight + matchInfoHeight
+
+          // 分组卡片
+          groups.forEach(function (group) {
+            const cardHeight = calcGroupCardHeight(group)
+
+            // 卡片背景
+            ctx.fillStyle = '#FFFFFF'
+            drawRoundRect(padding, y, width - padding * 2, cardHeight, cardRadius)
+            ctx.fill()
+            ctx.save()
+            ctx.clip()
+
+            // 分组头部
+            ctx.fillStyle = group.color || '#FF6B35'
+            ctx.fillRect(padding, y, width - padding * 2, groupHeaderHeight)
+
+            // 组名图标
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'
+            ctx.beginPath()
+            ctx.arc(padding + 40, y + groupHeaderHeight / 2, 24, 0, Math.PI * 2)
+            ctx.fill()
+
+            ctx.fillStyle = '#FFFFFF'
+            ctx.font = 'bold 30px sans-serif'
+            ctx.textAlign = 'left'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(group.name || '队伍', padding + 78, y + groupHeaderHeight / 2)
+
+            // 性别统计
+            const statsX = width - padding - 160
+            const statsY = y + 20
+            const statsW = 140
+            const statsH = 40
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)'
+            drawRoundRect(statsX, statsY, statsW, statsH, 20)
+            ctx.fill()
+
+            ctx.fillStyle = '#FFFFFF'
+            ctx.font = 'bold 22px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText('♂ ' + group.maleCount + ' / ♀ ' + group.femaleCount, statsX + statsW / 2, statsY + statsH / 2)
+
+            ctx.restore()
+
+            y += groupHeaderHeight
+
+            // 成员网格
+            const members = group.members || []
+            if (members.length === 0) {
+              ctx.fillStyle = '#9CA3AF'
+              ctx.font = '24px sans-serif'
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
+              ctx.fillText('暂无成员', width / 2, y + 50)
+              y += 80 + groupCardGap
+            } else {
+              const rowCount = Math.ceil(members.length / tagsPerRow)
+              const gridHeight = gridPadding + rowCount * tagHeight + (rowCount - 1) * tagGap + gridPadding
+              const tagWidth = (width - padding * 2 - gridPadding * 2 - (tagsPerRow - 1) * tagGap) / tagsPerRow
+              const tagRadius = 12
+
+              members.forEach(function (member, idx) {
+                const row = Math.floor(idx / tagsPerRow)
+                const col = idx % tagsPerRow
+                const tagX = padding + gridPadding + col * (tagWidth + tagGap)
+                const tagY = y + gridPadding + row * (tagHeight + tagGap)
+
+                // tag 背景
+                ctx.fillStyle = '#F9FAFB'
+                drawRoundRect(tagX, tagY, tagWidth, tagHeight, tagRadius)
+                ctx.fill()
+
+                // 序号 badge
+                const badgeSize = 36
+                const badgeColor = group.color || '#FF6B35'
+                ctx.fillStyle = badgeColor
+                ctx.beginPath()
+                ctx.arc(tagX + 20 + badgeSize / 2, tagY + tagHeight / 2, badgeSize / 2, 0, Math.PI * 2)
+                ctx.fill()
+
+                ctx.fillStyle = '#FFFFFF'
+                ctx.font = 'bold 20px sans-serif'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                ctx.fillText(String(idx + 1), tagX + 20 + badgeSize / 2, tagY + tagHeight / 2)
+
+                // 性别圆点（先计算，因为需要根据圆点位置反推名字可用空间）
+                const genderDotRadius = 10
+                const genderDotMargin = 6  // 性别圆点与名字之间的间距
+                const genderDotX = tagX + tagWidth - 24 - genderDotRadius
+                const nameStartX = tagX + 64  // badge 右侧起始位置
+                const nameMaxWidth = genderDotX - genderDotRadius - genderDotMargin - nameStartX
+
+                // 名字 —— 根据可用宽度动态调整字号，防止被性别圆点遮挡
+                const memberName = member.name || ''
+                let nameFontSize = 24
+                ctx.font = 'bold ' + nameFontSize + 'px sans-serif'
+                let nameMetrics = ctx.measureText(memberName)
+
+                if (nameMetrics.width > nameMaxWidth) {
+                  // 尝试缩小字号，最小到 16px
+                  nameFontSize = Math.max(16, Math.floor(nameFontSize * nameMaxWidth / nameMetrics.width))
+                  ctx.font = 'bold ' + nameFontSize + 'px sans-serif'
+                  nameMetrics = ctx.measureText(memberName)
+                  // 如果缩小后仍然超出，做截断处理
+                  if (nameMetrics.width > nameMaxWidth && memberName.length > 0) {
+                    let truncated = memberName
+                    while (ctx.measureText(truncated + '…').width > nameMaxWidth && truncated.length > 1) {
+                      truncated = truncated.slice(0, -1)
+                    }
+                    ctx.fillStyle = '#374151'
+                    ctx.textAlign = 'left'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText(truncated + '…', nameStartX, tagY + tagHeight / 2)
+                  } else {
+                    ctx.fillStyle = '#374151'
+                    ctx.textAlign = 'left'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText(memberName, nameStartX, tagY + tagHeight / 2)
+                  }
+                } else {
+                  ctx.fillStyle = '#374151'
+                  ctx.font = 'bold ' + nameFontSize + 'px sans-serif'
+                  ctx.textAlign = 'left'
+                  ctx.textBaseline = 'middle'
+                  ctx.fillText(memberName, nameStartX, tagY + tagHeight / 2)
+                }
+
+                // 性别圆点
+                const genderColor = member.gender === 'female' ? '#EC4899' : '#3B82F6'
+                ctx.fillStyle = genderColor
+                ctx.beginPath()
+                ctx.arc(genderDotX, tagY + tagHeight / 2, genderDotRadius, 0, Math.PI * 2)
+                ctx.fill()
+              })
+
+              y += gridHeight + groupCardGap
+            }
+          })
+
+          // 底部
+          ctx.fillStyle = '#FFFFFF'
+          ctx.fillRect(0, totalHeight - footerHeight, width, footerHeight)
+          ctx.fillStyle = '#9CA3AF'
+          ctx.font = '22px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText('南波万飞盘 · 分组图片', width / 2, totalHeight - footerHeight / 2)
+
+          wx.canvasToTempFilePath({
+            canvas: canvas,
+            x: 0,
+            y: 0,
+            width: width,
+            height: totalHeight,
+            destWidth: width * dpr,
+            destHeight: totalHeight * dpr,
+            success: function (res) {
+              resolve(res.tempFilePath)
+            },
+            fail: function (err) {
+              reject(err)
+            }
+          })
+        })
+    })
   },
 
   stopPropagation: function () {

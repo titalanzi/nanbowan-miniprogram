@@ -1,48 +1,18 @@
 const storage = require('../../utils/storage.js')
+const { verifyAssistantCode } = require('../../utils/sync-helper.js')
 
 Page({
   data: {
     user: {},
     inputName: '',
-    inputAvatar: '',
+    inputAvatar: '',        // 微信头像/相册上传后得到的 cloud://fileID（或临时路径兜底）
     showRegisterModal: false,
     registerCode: '',
     showEditModal: false,
     editName: '',
     editAvatar: '',
-    lastSyncTime: 0,
-    avatarList: [
-      '/images/touxiang/仓鼠.png',
-      '/images/touxiang/伊布.png',
-      '/images/touxiang/可达鸭.png',
-      '/images/touxiang/可达鹅.png',
-      '/images/touxiang/哈士奇.png',
-      '/images/touxiang/喵猫.png',
-      '/images/touxiang/奶牛猫.png',
-      '/images/touxiang/妙蛙种子.png',
-      '/images/touxiang/小火龙.png',
-      '/images/touxiang/布偶猫.png',
-      '/images/touxiang/无毛猫.png',
-      '/images/touxiang/暹罗猫.png',
-      '/images/touxiang/杰尼龟.png',
-      '/images/touxiang/柯基.png',
-      '/images/touxiang/橘猫.png',
-      '/images/touxiang/法斗.png',
-      '/images/touxiang/波波.png',
-      '/images/touxiang/猴怪.png',
-      '/images/touxiang/田园犬.png',
-      '/images/touxiang/皮卡丘-2.png',
-      '/images/touxiang/皮皮.png',
-      '/images/touxiang/精灵蛋.png',
-      '/images/touxiang/羊.png',
-      '/images/touxiang/腊肠犬.png',
-      '/images/touxiang/草莓.png',
-      '/images/touxiang/荷兰猪.png',
-      '/images/touxiang/藏獒.png',
-      '/images/touxiang/边牧.png',
-      '/images/touxiang/金毛.png',
-      '/images/touxiang/黑猫.png'
-    ]
+    uploadingAvatar: false, // 头像上传中状态
+    lastSyncTime: 0
   },
 
   onLoad: async function () {
@@ -104,14 +74,99 @@ Page({
     this.setData({ inputName: e.detail.value })
   },
 
-  selectAvatar: function (e) {
-    const avatarUrl = e.currentTarget.dataset.avatar
-    this.setData({ inputAvatar: avatarUrl })
+  // 微信头像选择：chooseAvatar 返回临时文件，上传云存储后得到 cloud://fileID
+  onChooseAvatar: function (e) {
+    const tempPath = e.detail.avatarUrl
+    if (!tempPath) return
+    const user = this.data.user
+    const key = user.registered ? 'editAvatar' : 'inputAvatar'
+    this.setData({ uploadingAvatar: true })
+    const doUpload = async () => {
+      try {
+        const fileID = await storage.uploadAvatarToCloud(tempPath, user.openid)
+        this.setData({ [key]: fileID, uploadingAvatar: false })
+      } catch (err) {
+        console.error('onChooseAvatar upload failed:', err)
+        this.setData({ uploadingAvatar: false })
+      }
+    }
+    doUpload()
   },
 
-  selectEditAvatar: function (e) {
-    const avatarUrl = e.currentTarget.dataset.avatar
-    this.setData({ editAvatar: avatarUrl })
+  // 微信昵称快捷填充（input type="nickname" 触发）
+  onNickname: function (e) {
+    const nickname = e.detail.nickname
+    if (nickname) {
+      const source = e.currentTarget.dataset.source || 'input'
+      const key = source === 'edit' ? 'editName' : 'inputName'
+      this.setData({ [key]: nickname })
+    }
+  },
+
+  // 从相册/相机上传自定义头像：选图 → 1:1裁剪 → 压缩 → 上传
+  chooseFromAlbum: function (e) {
+    const source = e.currentTarget.dataset.source || 'input'
+    const self = this
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      fail: function () {},
+      success: function (res) {
+        const tempPath = res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath
+        if (!tempPath) return
+        // 第一步：打开裁剪页，锁定 1:1 比例
+        wx.cropImage({
+          src: tempPath,
+          cropScale: '1:1',
+          success: async function (cropRes) {
+            const croppedPath = cropRes.tempFilePath
+            if (!croppedPath) {
+              // 裁剪失败兜底：用原图上传
+              self._uploadAndSetAvatar(tempPath, source)
+              return
+            }
+            // 第二步：压缩裁剪后的图片，保证文件不大于 200KB
+            self.setData({ uploadingAvatar: true })
+            try {
+              const compressedPath = await storage.compressImage(croppedPath, 200)
+              const user = self.data.user
+              const fileID = await storage.uploadAvatarToCloud(compressedPath, user.openid)
+              const key = source === 'edit' ? 'editAvatar' : 'inputAvatar'
+              self.setData({ [key]: fileID, uploadingAvatar: false })
+            } catch (err) {
+              console.error('chooseFromAlbum upload failed:', err)
+              self.setData({ uploadingAvatar: false })
+              wx.showToast({ title: '上传失败，请重试', icon: 'none' })
+            }
+          },
+          fail: function () {
+            // 裁剪取消或失败，用原图上传兜底
+            self._uploadAndSetAvatar(tempPath, source)
+          }
+        })
+      }
+    })
+  },
+
+  // 兜底上传（裁剪取消/失败时直接上传原图）
+  _uploadAndSetAvatar: function (tempPath, source) {
+    const self = this
+    self.setData({ uploadingAvatar: true })
+    const doUpload = async () => {
+      try {
+        const user = self.data.user
+        const fileID = await storage.uploadAvatarToCloud(tempPath, user.openid)
+        const key = source === 'edit' ? 'editAvatar' : 'inputAvatar'
+        self.setData({ [key]: fileID, uploadingAvatar: false })
+      } catch (err) {
+        console.error('_uploadAndSetAvatar failed:', err)
+        self.setData({ uploadingAvatar: false })
+        wx.showToast({ title: '上传失败，请重试', icon: 'none' })
+      }
+    }
+    doUpload()
   },
 
   register: function() {
@@ -146,7 +201,7 @@ Page({
         const user = {
           id: userId,
           name: inputName.trim(),
-          avatar: inputAvatar || '/images/touxiang/精灵蛋.png',
+          avatar: inputAvatar || '',
           openid: openid,
           registered: true,
           role: 'normal'
@@ -220,6 +275,12 @@ Page({
     })
   },
 
+  goFrisbeeVocab: function () {
+    wx.navigateTo({
+      url: '/pages/frisbee-vocab/frisbee-vocab'
+    })
+  },
+
   showRegisterModal: function () {
     this.setData({
       showRegisterModal: true,
@@ -269,7 +330,7 @@ Page({
         const updatedUser = {
           ...user,
           name: editName.trim(),
-          avatar: editAvatar || user.avatar || '/images/touxiang/精灵蛋.png'
+          avatar: editAvatar || user.avatar || ''
         }
 
         await storage.set('user', updatedUser)
@@ -366,42 +427,42 @@ Page({
     this.setData({ registerCode: e.detail.value })
   },
 
-  submitRegisterCode: function() {
+  submitRegisterCode: async function() {
     const { registerCode, user } = this.data
-    if (registerCode === 'kangtianyu') {
-      wx.showLoading({ title: '更新中...' })
+    
+    wx.showLoading({ title: '验证中...' })
+    
+    try {
+      const valid = await verifyAssistantCode(registerCode)
+      wx.hideLoading()
       
-      const doUpdate = async () => {
-        try {
-          const newUser = { ...user, role: 'assistant' }
-          await storage.set('user', newUser)
-          
-          this.syncToCloud(newUser)
-          
-          wx.hideLoading()
-          this.setData({
-            user: newUser,
-            showRegisterModal: false,
-            registerCode: ''
-          })
-          wx.showToast({
-            title: '恭喜成为主理人助理',
-            icon: 'success'
-          })
-        } catch (error) {
-          wx.hideLoading()
-          console.error('Update role error:', error)
-          wx.showToast({
-            title: '更新失败，请重试',
-            icon: 'none'
-          })
-        }
+      if (valid) {
+        wx.showLoading({ title: '更新中...' })
+        const newUser = { ...user, role: 'assistant' }
+        await storage.set('user', newUser)
+        this.syncToCloud(newUser)
+        wx.hideLoading()
+        
+        this.setData({
+          user: newUser,
+          showRegisterModal: false,
+          registerCode: ''
+        })
+        wx.showToast({
+          title: '验证通过，已升级为主理人助理',
+          icon: 'success'
+        })
+      } else {
+        wx.showToast({
+          title: '验证码无效',
+          icon: 'none'
+        })
       }
-
-      doUpdate()
-    } else {
+    } catch (error) {
+      wx.hideLoading()
+      console.error('Verify code error:', error)
       wx.showToast({
-        title: '注册码不正确',
+        title: '验证失败，请重试',
         icon: 'none'
       })
     }

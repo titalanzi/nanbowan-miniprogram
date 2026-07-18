@@ -1,4 +1,5 @@
-const storage = require('../../utils/storage.js')
+const storage = require('../../../utils/storage.js')
+const { checkPermissionFromCloud } = require('../../../utils/sync-helper.js')
 
 Page({
   data: {
@@ -41,27 +42,9 @@ Page({
 
   checkPermission: async function() {
     var self = this;
-    var user = await storage.get('user') || {};
-    var isAssistant = user.role === 'assistant';
     var matchId = self.data.matchId;
-    var isCreator = false;
-    
-    if (matchId) {
-      var matches = await storage.get('matches') || [];
-      var match = matches.find(function(m) { return m.id === matchId; });
-      
-      if (!match) {
-        const cloudMatches = await storage.getMatchesFromCloudOnly();
-        match = cloudMatches.find(m => m.id === matchId);
-      }
-      
-      if (match && match.creatorId === user.id) {
-        isCreator = true;
-      }
-      self.setData({ canEdit: isCreator || isAssistant });
-    } else {
-      self.setData({ canEdit: isAssistant });
-    }
+    var permission = await checkPermissionFromCloud(matchId);
+    self.setData(permission);
   },
 
   loadMatch: async function() {

@@ -508,18 +508,52 @@
 .footer-tip-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8rpx;
+  justify-content: space-between;
   padding: 16rpx 24rpx;
   background: white;
   border-top: 1rpx solid #F0F0F0;
   flex-shrink: 0;
 }
 
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
 .footer-tip-text {
   font-size: 20rpx;
   color: #9CA3AF;
   font-weight: 500;
+}
+
+.download-image-btn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  border-radius: 28rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
+}
+
+.download-image-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+.download-image-text {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: white;
+}
+
+.share-canvas {
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
+  width: 750px;
+  height: 3000px;
 }
 
 /* 队伍队员数据弹窗 */

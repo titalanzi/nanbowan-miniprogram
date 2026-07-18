@@ -1,5 +1,6 @@
-const storage = require('../../utils/storage.js')
-const XLSX = require('../../utils/xlsx.js')
+const storage = require('../../../utils/storage.js')
+const { performRandomAssign, shuffleArray } = require('../../utils/random-assign.js')
+const { chooseAndParseExcel } = require('../../utils/excel-parser.js')
 
 Page({
   data: {
@@ -71,7 +72,7 @@ Page({
   },
 
   async checkPermission() {
-    const user = await storage.get('user') || {}
+    const user = storage.get('user') || {}
     if (!user || !user.id) {
       wx.showModal({
         title: '提示',
@@ -96,6 +97,7 @@ Page({
     this.setData({ matchDate: e.detail.value })
   },
 
+  // ========== 队伍管理（手动模式） ==========
   showAddGroupModal: function () {
     this.setData({
       showGroupModal: true,
@@ -125,18 +127,14 @@ Page({
   },
 
   selectGroupColor: function (e) {
-    const color = e.currentTarget.dataset.color
-    this.setData({ inputGroupColor: color })
+    this.setData({ inputGroupColor: e.currentTarget.dataset.color })
   },
 
   selectStatColor: function (e) {
-    const color = e.currentTarget.dataset.color
-    this.setData({ inputStatColor: color })
+    this.setData({ inputStatColor: e.currentTarget.dataset.color })
   },
 
-  stopPropagation: function () {
-    // 阻止事件冒泡
-  },
+  stopPropagation: function () {},
 
   saveGroup: function () {
     const { inputGroupName, inputGroupColor, editingGroupIndex, groups } = this.data
@@ -171,6 +169,7 @@ Page({
     this.setData({ groups })
   },
 
+  // ========== 成员管理 ==========
   openMemberModal: function (e) {
     const index = e.currentTarget.dataset.index
     const group = this.data.groups[index]
@@ -245,6 +244,7 @@ Page({
     })
   },
 
+  // ========== 统计项管理 ==========
   showAddStatModal: function () {
     this.setData({
       showStatModal: true,
@@ -297,6 +297,7 @@ Page({
     this.setData({ statTypes })
   },
 
+  // ========== 创建比赛 ==========
   async createMatch() {
     const { matchName, matchLocation, matchDate, groups, statTypes } = this.data
 
@@ -316,7 +317,7 @@ Page({
       return
     }
 
-    const user = await storage.get('user') || {}
+    const user = storage.get('user') || {}
 
     const match = {
       id: 'match_' + Date.now(),
@@ -333,38 +334,32 @@ Page({
       createdAt: new Date().toISOString()
     }
 
-    const matches = await storage.get('matches') || []
+    const matches = storage.get('matches') || []
     matches.push(match)
-    await storage.set('matches', matches)
+    storage.set('matches', matches)
 
     this.syncToCloud(match)
 
-    wx.showToast({
-      title: '创建成功',
-      icon: 'success'
-    })
+    wx.showToast({ title: '创建成功', icon: 'success' })
 
     setTimeout(() => {
       wx.redirectTo({
-        url: '/pages/match-record/match-record?id=' + match.id
+        url: '/packageA/pages/match-record/match-record?id=' + match.id
       })
     }, 1000)
   },
 
   async syncToCloud(match) {
     try {
-      if (wx.cloud && wx.cloud.callFunction) {
-        await wx.cloud.callFunction({
-          name: 'syncMatch',
-          data: { match }
-        })
+      if (storage.isCloudAvailable()) {
+        await storage.syncMatchToCloud(match)
       }
     } catch (e) {
       console.log('Failed to sync match to cloud:', e)
     }
   },
 
-  // ========== 随机分配模式 - 基础方法 ==========
+  // ========== 随机分配模式 - 模式切换 ==========
   switchGroupMode: function (e) {
     const mode = e.currentTarget.dataset.mode
     this.setData({ groupMode: mode })
@@ -425,168 +420,37 @@ Page({
     this.setData({ maleCount, femaleCount })
   },
 
-  // ========== 导入取伙名单 ==========
-  importQuhuolist: function () {
-    const self = this
-    wx.chooseMessageFile({
-      count: 1,
-      type: 'file',
-      success: function (res) {
-        const file = res.tempFiles[0]
-        const fileName = file.name.toLowerCase()
-        
-        if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-          wx.showToast({ title: '请选择Excel文件', icon: 'none' })
-          return
-        }
+  // ========== 导入取伙名单（使用公共模块） ==========
+  async importQuhuolist() {
+    this.setData({ isImporting: true })
 
-        self.setData({ isImporting: true })
-        
-        wx.showLoading({ title: '解析中...' })
-        
-        wx.getFileSystemManager().readFile({
-          filePath: file.path,
-          encoding: 'binary',
-          success: function (data) {
-            try {
-              const workbook = XLSX.read(data.data, { type: 'binary' })
-              const firstSheetName = workbook.SheetNames[0]
-              const worksheet = workbook.Sheets[firstSheetName]
-              
-              const players = self.parseExcelData(worksheet)
-              
-              if (players.length === 0) {
-                wx.showToast({ title: '未找到有效数据', icon: 'none' })
-              } else {
-                self.setData({
-                  importPlayers: players,
-                  showImportPreview: true
-                })
-              }
-            } catch (e) {
-              console.error('Excel parse error:', e)
-              wx.showToast({ title: '文件解析失败', icon: 'none' })
-            }
-            
-            wx.hideLoading()
-            self.setData({ isImporting: false })
-          },
-          fail: function (e) {
-            console.error('File read error:', e)
-            wx.hideLoading()
-            wx.showToast({ title: '读取文件失败', icon: 'none' })
-            self.setData({ isImporting: false })
-          }
-        })
-      },
-      fail: function () {
-        wx.showToast({ title: '未选择文件', icon: 'none' })
-      }
-    })
-  },
+    const result = await chooseAndParseExcel()
+    this.setData({ isImporting: false })
 
-  parseExcelData: function (worksheet) {
-    // 用 header: 1 读取为二维数组，保留所有原始行
-    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-
-    if (!rawData || rawData.length === 0) {
-      wx.showToast({ title: 'Excel数据为空', icon: 'none' })
-      return []
+    if (result.error) {
+      wx.showToast({ title: result.error, icon: 'none' })
+      return
     }
 
-    // 找到标题行：包含"用户昵称"关键字的行
-    let headerRowIndex = -1
-    let nameColIndex = -1
-    let ticketColIndex = -1
-
-    const nameColumnKeys = ['用户昵称', '昵称', '姓名', '名字', '用户名', '用户']
-    const ticketColumnKeys = ['票种名称', '票种', '性别', '票类型']
-
-    for (let i = 0; i < rawData.length; i++) {
-      const row = rawData[i]
-      if (!row || row.length === 0) continue
-
-      for (let j = 0; j < row.length; j++) {
-        const cell = (row[j] || '').toString().trim()
-        if (nameColIndex < 0 && nameColumnKeys.some(k => cell.indexOf(k) !== -1)) {
-          headerRowIndex = i
-          nameColIndex = j
-        }
-        if (ticketColIndex < 0 && ticketColumnKeys.some(k => cell.indexOf(k) !== -1)) {
-          ticketColIndex = j
-        }
-      }
-
-      if (nameColIndex >= 0) break
-    }
-
-    console.log('标题行索引:', headerRowIndex, '名称列索引:', nameColIndex, '票种列索引:', ticketColIndex)
-
-    if (headerRowIndex < 0 || nameColIndex < 0) {
-      wx.showToast({ title: '未找到用户昵称列', icon: 'none', duration: 3000 })
-      return []
-    }
-
-    // 从标题行下一行开始读取数据
-    const nameCountMap = {}
-    const players = []
-
-    for (let i = headerRowIndex + 1; i < rawData.length; i++) {
-      const row = rawData[i]
-      if (!row || row.length === 0) continue
-
-      const name = (row[nameColIndex] || '').toString().trim()
-      if (!name) continue
-
-      const ticketName = ticketColIndex >= 0 ? (row[ticketColIndex] || '').toString().trim() : ''
-      let gender = 'male'
-      if (ticketName.indexOf('女') !== -1) {
-        gender = 'female'
-      }
-
-      const count = nameCountMap[name] || 0
-      nameCountMap[name] = count + 1
-
-      let finalName = name
-      if (count > 0) {
-        finalName = name + this.getLetterSuffix(count)
-      }
-
-      players.push({
-        id: 'import_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-        name: finalName,
-        gender: gender,
-        originalName: name
+    if (result.players.length === 0) {
+      wx.showToast({ title: '未找到有效数据', icon: 'none' })
+    } else {
+      this.setData({
+        importPlayers: result.players,
+        showImportPreview: true
       })
     }
-
-    return players
-  },
-
-  getLetterSuffix: function (index) {
-    let suffix = ''
-    let num = index
-    
-    while (num > 0) {
-      num--
-      suffix = String.fromCharCode(65 + (num % 26)) + suffix
-      num = Math.floor(num / 26)
-    }
-    
-    return suffix
   },
 
   updateImportPlayer: function (e) {
     const { index, field } = e.currentTarget.dataset
     const value = e.detail.value
-    
     const importPlayers = [...this.data.importPlayers]
     if (field === 'name') {
       importPlayers[index].name = value
     } else if (field === 'gender') {
       importPlayers[index].gender = value
     }
-    
     this.setData({ importPlayers })
   },
 
@@ -606,23 +470,18 @@ Page({
 
   confirmImport: function () {
     const { importPlayers, allPlayers } = this.data
-    
     const newPlayers = importPlayers.map(p => ({
       id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       name: p.name,
       gender: p.gender
     }))
-    
     const updatedPlayers = [...newPlayers, ...allPlayers]
-    
     this.setData({
       allPlayers: updatedPlayers,
       showImportPreview: false,
       importPlayers: []
     })
-    
     this.updatePlayerStats()
-    
     wx.showToast({ title: '导入成功', icon: 'success' })
   },
 
@@ -633,6 +492,7 @@ Page({
     })
   },
 
+  // ========== 步骤导航 ==========
   gotoRandomStep2: function () {
     if (this.data.allPlayers.length < 4) {
       wx.showToast({ title: '至少需要4名队员', icon: 'none' })
@@ -859,7 +719,7 @@ Page({
     this.setData({ showPlayerPicker: false })
   },
 
-  // ========== Step 3: 随机分配 ==========
+  // ========== Step 3: 随机分配（使用公共模块） ==========
   performRandomAssign: function () {
     const { randomGroups, allPlayers, canStartRandom } = this.data
     if (!canStartRandom) {
@@ -867,135 +727,13 @@ Page({
       return
     }
 
-    const malePlayers = allPlayers.filter(p => p.gender === 'male')
-    const femalePlayers = allPlayers.filter(p => p.gender === 'female')
-
-    const assignedGroups = randomGroups.map(g => ({
-      id: g.id,
-      name: g.name,
-      color: g.color,
-      members: []
-    }))
-
-    // 1. 先放入队长和固定队员
-    const usedIds = []
-    randomGroups.forEach((g, i) => {
-      const captain = allPlayers.find(p => p.id === g.captainId)
-      if (captain) {
-        assignedGroups[i].members.push({ ...captain, isCaptain: true, isFixed: true })
-        usedIds.push(captain.id)
-      }
-      if (g.fixedMemberIds) {
-        g.fixedMemberIds.forEach(fid => {
-          if (usedIds.indexOf(fid) === -1) {
-            const fp = allPlayers.find(p => p.id === fid)
-            if (fp) {
-              assignedGroups[i].members.push({ ...fp, isCaptain: false, isFixed: true })
-              usedIds.push(fid)
-            }
-          }
-        })
-      }
-    })
-
-    // 2. 计算每队已有男女数，剩余需要分配的男女总数
-    const remainingMale = malePlayers.filter(p => usedIds.indexOf(p.id) === -1)
-    const remainingFemale = femalePlayers.filter(p => usedIds.indexOf(p.id) === -1)
-
-    const groupCount = assignedGroups.length
-    const totalMale = malePlayers.length
-    const totalFemale = femalePlayers.length
-
-    // 每队应分到的目标男女数（包括队长/固定队员），尽量平均
-    const targetMalePerGroup = Math.floor(totalMale / groupCount)
-    const targetFemalePerGroup = Math.floor(totalFemale / groupCount)
-    const extraMaleCount = totalMale % groupCount
-    const extraFemaleCount = totalFemale % groupCount
-
-    // 每队还需补充的男女人数 = 目标数 - 已有数
-    const maleNeeds = []
-    const femaleNeeds = []
-    for (let i = 0; i < groupCount; i++) {
-      const curMale = assignedGroups[i].members.filter(m => m.gender === 'male').length
-      const curFemale = assignedGroups[i].members.filter(m => m.gender === 'female').length
-      maleNeeds.push(Math.max(0, targetMalePerGroup - curMale))
-      femaleNeeds.push(Math.max(0, targetFemalePerGroup - curFemale))
-    }
-
-    // 洗牌剩余队员
-    const shuffledMale = this.shuffleArray([...remainingMale])
-    const shuffledFemale = this.shuffleArray([...remainingFemale])
-
-    // 3. 先按需分配男生
-    let maleIdx = 0
-    for (let i = 0; i < groupCount && maleIdx < shuffledMale.length; i++) {
-      for (let j = 0; j < maleNeeds[i] && maleIdx < shuffledMale.length; j++) {
-        assignedGroups[i].members.push({ ...shuffledMale[maleIdx], isCaptain: false, isFixed: false })
-        maleIdx++
-      }
-    }
-
-    // 4. 先按需分配女生
-    let femaleIdx = 0
-    for (let i = 0; i < groupCount && femaleIdx < shuffledFemale.length; i++) {
-      for (let j = 0; j < femaleNeeds[i] && femaleIdx < shuffledFemale.length; j++) {
-        assignedGroups[i].members.push({ ...shuffledFemale[femaleIdx], isCaptain: false, isFixed: false })
-        femaleIdx++
-      }
-    }
-
-    // 5. 分配余数男生到随机队伍（每队最多多1个）
-    const extraMaleIndices = this.shuffleArray([...Array(groupCount).keys()]).slice(0, extraMaleCount)
-    extraMaleIndices.forEach(i => {
-      if (maleIdx < shuffledMale.length) {
-        assignedGroups[i].members.push({ ...shuffledMale[maleIdx], isCaptain: false, isFixed: false })
-        maleIdx++
-      }
-    })
-
-    // 6. 分配余数女生到随机队伍（每队最多多1个）
-    const extraFemaleIndices = this.shuffleArray([...Array(groupCount).keys()]).slice(0, extraFemaleCount)
-    extraFemaleIndices.forEach(i => {
-      if (femaleIdx < shuffledFemale.length) {
-        assignedGroups[i].members.push({ ...shuffledFemale[femaleIdx], isCaptain: false, isFixed: false })
-        femaleIdx++
-      }
-    })
-
-    // 7. 如果还有剩余（队长/固定分布不均导致需求数不够），随机分配
-    const randomExtraIndices = this.shuffleArray([...Array(groupCount).keys()])
-    let extraPtr = 0
-    while (maleIdx < shuffledMale.length) {
-      assignedGroups[randomExtraIndices[extraPtr % groupCount]].members.push({ ...shuffledMale[maleIdx], isCaptain: false, isFixed: false })
-      maleIdx++
-      extraPtr++
-    }
-    extraPtr = 0
-    while (femaleIdx < shuffledFemale.length) {
-      assignedGroups[randomExtraIndices[extraPtr % groupCount]].members.push({ ...shuffledFemale[femaleIdx], isCaptain: false, isFixed: false })
-      femaleIdx++
-      extraPtr++
-    }
-
-    assignedGroups.forEach(g => {
-      g.maleCount = g.members.filter(m => m.gender === 'male').length
-      g.femaleCount = g.members.filter(m => m.gender === 'female').length
-    })
+    const assignedGroups = performRandomAssign({ randomGroups, allPlayers })
 
     this.setData({
       assignedGroups,
       randomStep: 3,
       isShuffling: false
     })
-  },
-
-  shuffleArray: function (arr) {
-    const result = [...arr]
-    for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[result[i], result[j]] = [result[j], result[i]]
-    }
-    return result
   },
 
   reRandom: function () {

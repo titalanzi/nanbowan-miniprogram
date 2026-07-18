@@ -1,6 +1,17 @@
 <view class="container">
-  <view class="banner">
-    <image src="{{bannerImage}}" mode="aspectFill" class="banner-image"></image>
+  <!-- banner 轮播区：有云存储 banner 时显示 swiper，否则显示兜底图 -->
+  <view wx:if="{{banners.length > 0}}" class="banner-swiper-wrap">
+    <swiper class="banner-swiper" indicator-dots="{{false}}" autoplay interval="4000" duration="500" circular bindchange="onSwiperChange">
+      <swiper-item wx:for="{{banners}}" wx:key="tempFileURL">
+        <image src="{{item.tempFileURL}}" mode="aspectFill" class="banner-image"></image>
+      </swiper-item>
+    </swiper>
+    <view class="banner-dots" wx:if="{{banners.length > 1}}">
+      <view wx:for="{{banners}}" wx:key="tempFileURL" class="dot {{currentSwiper === index ? 'active' : ''}}"></view>
+    </view>
+  </view>
+  <view wx:elif="{{bannerFallback}}" class="banner">
+    <image src="{{bannerFallback}}" mode="aspectFill" class="banner-image"></image>
   </view>
   
   <view wx:if="{{activeMatches.length === 0}}" class="empty-state">

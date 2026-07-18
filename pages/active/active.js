@@ -1,92 +1,126 @@
 const storage = require('../../utils/storage.js')
+const { syncUserFromCloud } = require('../../utils/sync-helper.js')
 
 Page({
   data: {
     activeMatches: [],
-    bannerImage: '/images/banner.jpg',
+    banners: [],               // 云存储 banner 临时 URL 数组
+    bannerFallback: '', // 云加载失败时隐藏 banner
+    currentSwiper: 0,          // 当前 swiper 索引
     user: {}
   },
 
+  _lastSyncTime: 0,
+  _SYNC_INTERVAL: 30000, // 30秒内不重复从云端拉取
+
   onLoad: async function () {
-    await this.syncUserFromCloud()
+    await this.loadUser()
     await this.syncMatchesInBackground()
+    this.loadBanners()
   },
 
   onShow: async function () {
-    await this.syncUserFromCloud()
+    await this.loadUser()
     await this.syncMatchesInBackground()
   },
 
-  async syncUserFromCloud() {
-    const user = await storage.get('user') || {}
-    if (!user.id) {
-      this.setData({ user })
-      return
-    }
-    
+  // 从云存储 banners/ 目录加载 banner 图
+  loadBanners: async function () {
     try {
-      if (wx.cloud && wx.cloud.callFunction) {
-        const result = await wx.cloud.callFunction({
-          name: 'getUserFromCloud'
-        })
-        
-        if (result && result.result && result.result.success && result.result.data) {
-          const cloudUser = result.result.data
-          const mergedUser = {
-            ...user,
-            name: cloudUser.name || user.name,
-            avatar: cloudUser.avatar || user.avatar,
-            role: cloudUser.role || user.role,
-            registered: true
-          }
-          
-          if (JSON.stringify(mergedUser) !== JSON.stringify(user)) {
-            storage.setLocal('user', mergedUser)
-            this.setData({ user: mergedUser })
-          }
-        }
+      if (!wx.cloud || !wx.cloud.callFunction) {
+        return
+      }
+      const res = await wx.cloud.callFunction({ name: 'getBanners' })
+      if (res && res.result && res.result.success && res.result.data.length > 0) {
+        this.setData({ banners: res.result.data })
+        console.log('Banners loaded from cloud:', res.result.data.length)
       }
     } catch (e) {
-      console.log('Sync user from cloud failed:', e)
-      this.setData({ user })
+      console.log('Load banners failed, using fallback:', e)
     }
+  },
+
+  // swiper 切换事件
+  onSwiperChange: function (e) {
+    this.setData({ currentSwiper: e.detail.current })
+  },
+
+  async loadUser() {
+    const user = await syncUserFromCloud()
+    this.setData({ user })
   },
 
   async syncMatchesInBackground() {
     try {
-      // 优先使用预拉取的数据
+      // 优先使用预拉取的数据（保留数据不清理，其他页面也可复用）
       const app = getApp()
       if (app.globalData.preloadedMatches) {
-        console.log('Using preloaded matches for active page')
         const activeMatches = app.globalData.preloadedMatches.filter(m => m.status === 'active')
         this.setData({ activeMatches })
-        // 清空预拉取数据，避免重复使用
-        app.globalData.preloadedMatches = null
+        // 更新预拉取时间为当前时间，延迟下次云请求
+        app.globalData.preloadedTime = Date.now()
         return
       }
-      
-      // 没有预拉取数据，正常请求
+
+      // 节流：如果最近刚拉取过，跳过
+      const now = Date.now()
+      if (now - this._lastSyncTime < this._SYNC_INTERVAL) {
+        // 使用本地缓存
+        const localMatches = storage.get('matches') || []
+        const activeMatches = localMatches.filter(m => m.status === 'active')
+        this.setData({ activeMatches })
+        return
+      }
+      this._lastSyncTime = now
+
       console.log('Loading active matches from cloud...')
       const cloudMatches = await storage.getMatchesFromCloudOnly()
-      console.log('Cloud matches count:', cloudMatches.length)
-      
+
+      if (!cloudMatches || cloudMatches.length === 0) {
+        console.log('Cloud fetch empty, trying local storage...')
+        const localMatches = storage.get('matches') || []
+        const activeMatches = localMatches.filter(m => m.status === 'active')
+        this.setData({ activeMatches })
+        return
+      }
+
       const activeMatches = cloudMatches.filter(m => m.status === 'active')
-      console.log('Active matches count:', activeMatches.length)
-      activeMatches.forEach(m => console.log('Active match:', m.id, 'status:', m.status))
-      
       this.setData({ activeMatches })
     } catch (e) {
       console.error('Background sync failed:', e)
+      // 出错时尝试从本地获取
+      try {
+        const localMatches = storage.get('matches') || []
+        const activeMatches = localMatches.filter(m => m.status === 'active')
+        this.setData({ activeMatches })
+      } catch (e2) {
+        console.error('Local fallback also failed:', e2)
+      }
     }
   },
 
   onPullDownRefresh: async function () {
     try {
+      this._lastSyncTime = 0 // 下拉刷新不受节流限制
       const cloudMatches = await storage.getMatchesFromCloudOnly()
-      const activeMatches = cloudMatches.filter(m => m.status === 'active')
+      let activeMatches = cloudMatches.filter(m => m.status === 'active')
+
+      if (activeMatches.length === 0) {
+        const localMatches = storage.get('matches') || []
+        activeMatches = localMatches.filter(m => m.status === 'active')
+      }
+
       this.setData({ activeMatches })
+      wx.showToast({ title: '刷新成功', icon: 'success' })
     } catch (e) {
       console.error('Refresh failed:', e)
+      try {
+        const localMatches = storage.get('matches') || []
+        const activeMatches = localMatches.filter(m => m.status === 'active')
+        this.setData({ activeMatches })
+      } catch (e2) {
+        wx.showToast({ title: '刷新失败', icon: 'none' })
+      }
     } finally {
       wx.stopPullDownRefresh()
     }

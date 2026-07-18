@@ -3,7 +3,8 @@
     "pages/active/active",
     "pages/history/history",
     "pages/mine/mine",
-    "pages/my-matches/my-matches"
+    "pages/my-matches/my-matches",
+    "pages/frisbee-vocab/frisbee-vocab"
   ],
   "subpackages": [
     {

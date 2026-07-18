@@ -1,0 +1,64 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="搜索英文 / 中文"
+        value="{{keyword}}"
+        bindinput="onSearchInput"
+        confirm-type="search"
+      />
+      <text wx:if="{{keyword}}" class="clear-icon" bindtap="clearSearch">✕</text>
+    </view>
+  </view>
+
+  <!-- 词汇列表 -->
+  <view class="vocab-list">
+    <view wx:for="{{groups}}" wx:key="letter" class="letter-section" id="letter-{{item.letter}}">
+      <view class="letter-header">{{item.letter}}</view>
+      <view class="word-list">
+        <view wx:for="{{item.words}}" wx:for-item="word" wx:key="en" class="word-item">
+          <view class="word-main">
+            <text class="word-en">{{word.en}}</text>
+            <text class="word-cn">{{word.cn}}</text>
+            <text wx:if="{{word.note}}" class="info-icon" data-title="{{word.en}}" data-content="{{word.note}}" bindtap="showNote">ⓘ</text>
+          </view>
+          <view
+            class="play-btn {{playingWord === word.en ? 'playing' : ''}}"
+            data-word="{{word.en}}"
+            bindtap="playWord"
+          >
+            <text class="play-icon">🔊</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 右侧字母索引 -->
+  <view class="letter-index" wx:if="{{letters.length > 0}}">
+    <view
+      wx:for="{{letters}}"
+      wx:key="*this"
+      class="index-item {{currentLetter === item ? 'active' : ''}}"
+      data-letter="{{item}}"
+      bindtap="scrollToLetter"
+    >{{item}}</view>
+  </view>
+
+  <!-- 说明弹窗 -->
+  <view wx:if="{{showNoteModal}}" class="modal-overlay" bindtap="closeNoteModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">{{noteTitle}}</text>
+        <text class="modal-close" bindtap="closeNoteModal">×</text>
+      </view>
+      <view class="modal-body">
+        <text class="note-text">{{noteContent}}</text>
+      </view>
+    </view>
+  </view>
+</view>

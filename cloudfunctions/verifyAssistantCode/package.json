@@ -1,0 +1,9 @@
+{
+  "name": "verifyAssistantCode",
+  "version": "1.0.0",
+  "description": "验证主理人助理码",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
