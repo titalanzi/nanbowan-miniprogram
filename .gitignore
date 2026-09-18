@@ -50,3 +50,6 @@ cloudfunctions/tts/secret.json
 
 # WorkBuddy 本地工作目录（含私人记忆与临时脚本，非项目源码，不提交）
 .workbuddy/
+
+# CodeBuddy 本地规划目录（工具产物，非项目源码，不提交）
+.codebuddy/
