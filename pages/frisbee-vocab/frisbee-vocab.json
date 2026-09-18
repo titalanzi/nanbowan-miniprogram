@@ -1,4 +1,4 @@
 {
-  "usingComponents": {},
+  "usingComponents": { "t-icon": "tdesign-miniprogram/icon/icon" },
   "navigationBarTitleText": "飞盘词汇"
 }

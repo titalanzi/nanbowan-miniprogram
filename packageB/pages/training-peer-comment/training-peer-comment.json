@@ -1,1 +1,1 @@
-{ "usingComponents": {}, "navigationBarTitleText": "队友互评" }
+{ "usingComponents": { "t-icon": "tdesign-miniprogram/icon/icon" }, "navigationBarTitleText": "队友互评" }

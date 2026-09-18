@@ -9,7 +9,7 @@
 
   <view wx:if="{{!canEdit}}" class="no-permission-card">
     <view class="no-permission-tip">
-      <text class="tip-icon">🔒</text>
+      <t-icon name="lock-on" size="72rpx" color="#98A2B3"></t-icon>
       <text class="tip-text">只有比赛创建者可编辑分组</text>
     </view>
   </view>

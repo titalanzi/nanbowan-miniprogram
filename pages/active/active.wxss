@@ -1,31 +1,37 @@
-/* ===== Banner 轮播 ===== */
+.page {
+  min-height: 100vh;
+  padding: 20rpx;
+  box-sizing: border-box;
+  background: #F3F4F7;
+}
+
+/* 骨架屏 */
+.skeleton {
+  padding: 32rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+/* Banner 轮播 */
+.banner-wrap {
+  position: relative;
+  width: 100%;
+  height: 280rpx;
+  margin-bottom: 24rpx;
+}
 
 .banner {
-  position: relative;
-  width: 100%;
-  height: 280rpx;
-  margin-bottom: 24rpx;
-}
-
-.banner-swiper-wrap {
-  position: relative;
-  width: 100%;
-  height: 280rpx;
-  margin-bottom: 24rpx;
-}
-
-.banner-swiper {
   width: 100%;
   height: 100%;
 }
 
-.banner-image {
+.banner-img {
   width: 100%;
   height: 100%;
   border-radius: 20rpx;
 }
 
-/* 自定义指示点 */
 .banner-dots {
   position: absolute;
   bottom: 16rpx;
@@ -46,110 +52,76 @@
 .dot.active {
   width: 28rpx;
   border-radius: 6rpx;
-  background: #FF6B35;
+  background: #0052D9;
 }
 
-.match-creator {
+/* 快捷功能入口 */
+.quick {
   display: flex;
+  justify-content: space-between;
+  padding: 32rpx 24rpx;
+  margin-bottom: 24rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(17, 24, 39, 0.04);
+}
+
+.quick-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 20rpx;
-  padding: 14rpx;
-  background: #F9FAFB;
-  border-radius: 12rpx;
+  gap: 14rpx;
 }
 
-.creator-avatar {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  margin-right: 16rpx;
-}
-
-.creator-avatar.placeholder {
-  background: #FF6B35;
+.quick-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  background: #ECF2FE;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.avatar-text {
-  color: white;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.creator-name {
-  font-size: 26rpx;
-  color: #667085;
+.quick-label {
+  font-size: 22rpx;
+  color: #475467;
   font-weight: 500;
 }
 
-.creator-info {
+/* 列表 */
+.list {
   display: flex;
-  align-items: center;
-  gap: 8rpx;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
-.vip-icon {
-  width: 32rpx;
-  height: 32rpx;
+.card {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 2rpx 12rpx rgba(17, 24, 39, 0.04);
+  position: relative;
+  transition: transform 0.15s ease;
 }
 
-.match-header {
+.card:active {
+  transform: scale(0.985);
+}
+
+.train-card {
+  border-left: 8rpx solid #0052D9;
+}
+
+.card-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20rpx;
 }
 
-.match-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #101828;
-}
-
-.match-info {
-  display: flex;
-  gap: 20rpx;
-  margin-bottom: 20rpx;
-}
-
-.info-item {
-  font-size: 26rpx;
-  color: #667085;
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-}
-
-.match-groups {
-  display: flex;
-  gap: 12rpx;
-  flex-wrap: wrap;
-  margin-bottom: 20rpx;
-}
-
-.group-tag {
-  color: white;
-  padding: 10rpx 18rpx;
-  border-radius: 20rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-}
-
-.match-enter {
-  text-align: right;
-  font-size: 28rpx;
-  color: #FF6B35;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6rpx;
-}
-
-/* ===== 队训卡片样式 ===== */
-.match-title-wrap {
+.card-title {
   display: flex;
   align-items: center;
   gap: 12rpx;
@@ -157,86 +129,86 @@
   min-width: 0;
 }
 
-.type-icon {
-  font-size: 36rpx;
-  flex-shrink: 0;
+.title-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #101828;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.training-card {
-  border-left: 8rpx solid #8B5CF6;
-  padding-left: 24rpx;
+.creator {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+  padding: 12rpx 16rpx;
+  background: #F7F8FA;
+  border-radius: 14rpx;
 }
 
-.training-placeholder {
-  background: linear-gradient(135deg, #8B5CF6, #6366F1) !important;
+.creator-meta {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
 }
 
-.tag-training {
-  background: #F3F0FF;
-  color: #8B5CF6;
-}
-
-.coach-info {
-  font-size: 24rpx;
-  color: #8B5CF6;
-  margin-top: 6rpx;
+.creator-name {
+  font-size: 26rpx;
+  color: #475467;
   font-weight: 500;
 }
 
-.training-meta {
-  display: flex;
-  gap: 32rpx;
-  margin-bottom: 16rpx;
-  padding: 16rpx 20rpx;
-  background: linear-gradient(135deg, #F5F3FF, #FFFFFF);
-  border-radius: 16rpx;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.meta-icon {
-  font-size: 28rpx;
-}
-
-.meta-text {
-  font-size: 24rpx;
-  color: #6B7280;
-  font-weight: 500;
-}
-
-/* 签到人员头像列表 */
-.attendee-avatars {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16rpx;
-  padding-left: 4rpx;
-}
-
-.attendee-avatar-item {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  border: 2rpx solid #FFFFFF;
-  margin-left: -12rpx;
-  background: #E5E7EB;
-}
-
-.attendee-avatar-item:first-child {
-  margin-left: 0;
-}
-
-.attendee-avatar-item.hidden {
-  display: none;
-}
-
-.attendee-avatar-more {
-  margin-left: 8rpx;
+.coach-tag {
   font-size: 22rpx;
-  color: #6B7280;
+  color: #0052D9;
+  background: #ECF2FE;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.card-info {
+  display: flex;
+  gap: 28rpx;
+  margin-bottom: 16rpx;
+}
+
+.info {
+  font-size: 26rpx;
+  color: #667085;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.groups {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-bottom: 8rpx;
+}
+
+.group {
+  color: #FFFFFF;
+  padding: 8rpx 18rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.enter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8rpx;
+}
+
+.enter-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  color: #0052D9;
+  font-size: 28rpx;
   font-weight: 600;
 }
-

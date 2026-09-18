@@ -1,0 +1,141 @@
+<view class="container">
+  <!-- 顶部固定栏：搜索 + 目录按钮 -->
+  <view class="top-bar">
+    <view class="search-input-wrap">
+      <t-icon name="search" size="28rpx" class="search-icon" color="#98A2B3"></t-icon>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="搜索规则关键词、章节"
+        value="{{keyword}}"
+        bindinput="onSearchInput"
+        confirm-type="search"
+      />
+      <t-icon wx:if="{{keyword}}" name="close" size="28rpx" class="clear-icon" color="#98A2B3" bindtap="clearSearch"></t-icon>
+    </view>
+    <view class="toc-btn" bindtap="openToc">
+      <t-icon name="book" size="36rpx" class="toc-icon" color="#0052D9"></t-icon>
+    </view>
+  </view>
+
+  <!-- 规则主体 -->
+  <view class="rules-list">
+    <block wx:for="{{chapters}}" wx:key="id" wx:for-item="chapter">
+      <view class="chapter-section" id="chapter-{{chapter.id}}">
+        <!-- 章节标题 -->
+        <view class="chapter-header">
+          <text class="chapter-number" wx:if="{{chapter.number}}">{{chapter.number}}.</text>
+          <text class="chapter-title">{{chapter.title}}</text>
+        </view>
+
+        <!-- 关键词标签 -->
+        <view wx:if="{{chapter.keywords.length > 0}}" class="keyword-row">
+          <text wx:for="{{chapter.keywords}}" wx:key="*this" wx:for-item="kw" class="keyword-tag">#{{kw}}</text>
+        </view>
+
+        <!-- 子章节（17/18/19） -->
+        <block wx:if="{{chapter.subChapters}}">
+          <view wx:for="{{chapter.subChapters}}" wx:key="num" wx:for-item="sub" class="sub-chapter">
+            <view class="sub-chapter-header">
+              <text class="sub-chapter-num">{{sub.num}}</text>
+              <text class="sub-chapter-title">{{sub.title}}</text>
+            </view>
+            <view class="section-list">
+              <view wx:for="{{sub.sections}}" wx:key="num" wx:for-item="sec" class="section-item">
+                <view class="section-line">
+                  <text class="section-num">{{sec.num}}</text>
+                  <text class="section-text">{{sec.text}}</text>
+                </view>
+                <view wx:if="{{sec.sub}}" class="sub-section-list">
+                  <view wx:for="{{sec.sub}}" wx:key="num" wx:for-item="subsec" class="sub-section-item">
+                    <text class="sub-section-num">{{subsec.num}}</text>
+                    <text class="sub-section-text">{{subsec.text}}</text>
+                  </view>
+                  <block wx:for="{{sec.sub}}" wx:key="num" wx:for-item="subsec">
+                    <view wx:if="{{subsec.sub}}" class="sub-sub-section-list">
+                      <view wx:for="{{subsec.sub}}" wx:key="num" wx:for-item="subsubsec" class="sub-sub-section-item">
+                        <text class="sub-sub-section-num">{{subsubsec.num}}</text>
+                        <text class="sub-sub-section-text">{{subsubsec.text}}</text>
+                      </view>
+                    </view>
+                  </block>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 名词定义表格 -->
+        <block wx:elif="{{chapter.isGlossary}}">
+          <view class="glossary-list">
+            <view wx:for="{{chapter.terms}}" wx:key="term" wx:for-item="item" class="glossary-item">
+              <text class="glossary-term">{{item.term}}</text>
+              <text class="glossary-def">{{item.definition}}</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 普通条文 -->
+        <block wx:else>
+          <view class="section-list">
+            <view wx:for="{{chapter.sections}}" wx:key="num" wx:for-item="sec" class="section-item">
+              <view class="section-line">
+                <text class="section-num" wx:if="{{sec.num}}">{{sec.num}}</text>
+                <text class="section-text">{{sec.text}}</text>
+              </view>
+              <view wx:if="{{sec.sub}}" class="sub-section-list">
+                <view wx:for="{{sec.sub}}" wx:key="num" wx:for-item="subsec" class="sub-section-item">
+                  <text class="sub-section-num">{{subsec.num}}</text>
+                  <text class="sub-section-text">{{subsec.text}}</text>
+                </view>
+                <block wx:for="{{sec.sub}}" wx:key="num" wx:for-item="subsec">
+                  <view wx:if="{{subsec.sub}}" class="sub-sub-section-list">
+                    <view wx:for="{{subsec.sub}}" wx:key="num" wx:for-item="subsubsec" class="sub-sub-section-item">
+                      <text class="sub-sub-section-num">{{subsubsec.num}}</text>
+                      <text class="sub-sub-section-text">{{subsubsec.text}}</text>
+                    </view>
+                  </view>
+                </block>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view wx:if="{{chapters.length === 0}}" class="empty-tip">
+      <t-icon name="search" size="80rpx" class="empty-icon" color="#C9CDD4"></t-icon>
+      <text class="empty-text">未找到相关规则</text>
+    </view>
+
+    <!-- 底部信息 -->
+    <view class="footer-info">
+      <text>世界飞盘联合会团队飞盘规则（2025-2028）中文版</text>
+      <text class="footer-date">生效日期：2025年1月1日</text>
+    </view>
+  </view>
+
+  <!-- 目录抽屉 -->
+  <view wx:if="{{showToc}}" class="toc-overlay" bindtap="closeToc">
+    <view class="toc-drawer" catchtap="stopPropagation">
+      <view class="toc-header">
+        <text class="toc-title">目录</text>
+        <t-icon name="close" size="40rpx" class="toc-close" color="#9CA3AF" bindtap="closeToc"></t-icon>
+      </view>
+      <scroll-view scroll-y class="toc-scroll" style="height: {{tocScrollHeight}}px;">
+        <view
+          wx:for="{{toc}}"
+          wx:key="id"
+          wx:for-item="item"
+          class="toc-item {{currentChapterId === item.id ? 'active' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="scrollToChapter"
+        >
+          <text class="toc-num" wx:if="{{item.number}}">{{item.number}}.</text>
+          <text class="toc-text">{{item.title}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  },
   "navigationBarTitleText": "教练评分"
 }

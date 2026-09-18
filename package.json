@@ -4,7 +4,6 @@
   "description": "南波万飞盘小程序",
   "dependencies": {
     "@babel/runtime": "^8.0.0",
-    "@vant/weapp": "^1.11.6",
-    "xlsx": "^0.18.5"
+    "tdesign-miniprogram": "^1.0.0"
   }
 }

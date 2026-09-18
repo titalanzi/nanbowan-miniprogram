@@ -1,0 +1,9 @@
+{
+  "name": "deleteTactic",
+  "version": "1.0.0",
+  "description": "Delete current user's tactic from cloud database",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

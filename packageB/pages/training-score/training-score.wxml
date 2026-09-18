@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="empty-state">
-    <text class="empty-icon">⏳</text>
+    <t-icon name="loading" size="72rpx" color="#98A2B3"></t-icon>
     <text class="empty-text">加载中...</text>
   </view>
 
@@ -10,18 +10,80 @@
     <view class="card training-info-card">
       <view class="training-title">{{training.title}}</view>
       <view class="training-meta">
-        <text>📅 {{training.startTime}}</text>
-        <text>📍 {{training.location}}</text>
+        <view class="meta-item">
+          <t-icon name="calendar" size="26rpx" color="#6B7280"></t-icon>
+          <text>{{training.startTime}}</text>
+        </view>
+        <view class="meta-item">
+          <t-icon name="location" size="26rpx" color="#6B7280"></t-icon>
+          <text>{{training.location}}</text>
+        </view>
+      </view>
+      <view class="role-badge">
+        <text wx:if="{{isCoach}}" class="role-tag coach">教练</text>
+        <text wx:if="{{isCaptain && !isCoach}}" class="role-tag captain">队长</text>
       </view>
     </view>
 
-    <view wx:if="{{attendees.length === 0}}" class="empty-state">
-      <text class="empty-icon">👥</text>
-      <text class="empty-text">暂无签到队员</text>
+    <!-- 分组评分（仅教练可见） -->
+    <view wx:if="{{isCoach && groupScoreData.length > 0}}" class="card group-score-card">
+      <view class="section-title">分组综合评价</view>
+      <view wx:for="{{groupScoreData}}" wx:key="groupId" wx:for-index="groupIdx" class="group-score-item">
+        <view class="group-header">
+          <text class="group-name">{{item.groupName}}</text>
+        </view>
+        <view class="dimensions-list">
+          <view wx:for="{{dimensions}}" wx:for-item="dim" wx:key="*this" class="dimension-row">
+            <view class="dim-info">
+              <text class="dim-name">{{dim}}</text>
+              <text class="dim-score">{{groupScoreData[groupIdx].scores[dim]}}分</text>
+            </view>
+            <view class="score-btns">
+              <view wx:for="{{scoreOptions}}" wx:for-item="n" wx:key="*this" class="score-btn {{groupScoreData[groupIdx].scores[dim] === n ? 'active' : ''}}" data-index="{{groupIdx}}" data-dimension="{{dim}}" data-value="{{n}}" bindtap="onGroupScoreTap">{{n}}</view>
+            </view>
+          </view>
+        </view>
+        <view class="score-summary">
+          <view class="summary-item">
+            <text class="summary-label">总分</text>
+            <text class="summary-value">{{groupScoreData[groupIdx].totalScore}}</text>
+          </view>
+          <view class="summary-item">
+            <text class="summary-label">平均分</text>
+            <text class="summary-value">{{groupScoreData[groupIdx].avgScore}}</text>
+          </view>
+        </view>
+        <view class="comment-section">
+          <text class="comment-label">分组评语</text>
+          <textarea
+            class="comment-textarea"
+            placeholder="请输入对该分组的综合评价..."
+            data-index="{{groupIdx}}"
+            bindinput="onGroupCommentInput"
+            bindblur="onGroupCommentBlur"
+            maxlength="200"
+          />
+        </view>
+      </view>
+      <view class="submit-group-score-btn">
+        <button class="btn-secondary" bindtap="submitGroupScores" loading="{{submittingGroupScore}}" disabled="{{submittingGroupScore}}">
+          提交分组评分
+        </button>
+      </view>
     </view>
 
-    <!-- 队员评分卡片 -->
-    <view wx:for="{{scoreData}}" wx:key="userId" wx:for-index="outerIdx" class="card score-card">
+    <!-- 空状态：教练或队长 -->
+    <view wx:if="{{isCoach && groupScoreData.length === 0}}" class="empty-state">
+      <t-icon name="usergroup" size="72rpx" color="#98A2B3"></t-icon>
+      <text class="empty-text">暂无可评分的分组</text>
+    </view>
+    <view wx:if="{{!isCoach && scoreData.length === 0}}" class="empty-state">
+      <t-icon name="usergroup" size="72rpx" color="#98A2B3"></t-icon>
+      <text class="empty-text">{{isCaptain ? '您的分组暂无队员' : '暂无签到队员'}}</text>
+    </view>
+
+    <!-- 队员评分卡片：仅队长可见，教练不可见 -->
+    <view wx:if="{{!isCoach}}" wx:for="{{scoreData}}" wx:key="userId" wx:for-index="outerIdx" class="card score-card">
       <view class="member-header">
         <image class="member-avatar" src="{{item.userAvatarUrl || '/images/mine.png'}}" mode="aspectFill" />
         <text class="member-name">{{item.userNickName}}</text>
@@ -34,8 +96,8 @@
             <text class="dim-name">{{dim}}</text>
             <text class="dim-score">{{scoreData[outerIdx].scores[dim]}}分</text>
           </view>
-          <!-- 教练才显示评分按钮 -->
-          <view wx:if="{{isCoach}}" class="score-btns">
+          <!-- 教练或队长可评分 -->
+          <view wx:if="{{canScore}}" class="score-btns">
             <view wx:for="{{scoreOptions}}" wx:for-item="n" wx:key="*this" class="score-btn {{scoreData[outerIdx].scores[dim] === n ? 'active' : ''}}" data-index="{{outerIdx}}" data-dimension="{{dim}}" data-value="{{n}}" bindtap="onScoreTap">{{n}}</view>
           </view>
         </view>
@@ -53,12 +115,12 @@
         </view>
       </view>
 
-      <!-- 教练评语：教练可编辑，非教练只读展示 -->
-      <view wx:if="{{isCoach}}" class="comment-section">
-        <text class="comment-label">教练评语</text>
+      <!-- 评语：教练/队长可编辑，非评分者只读展示 -->
+      <view wx:if="{{canScore}}" class="comment-section">
+        <text class="comment-label">{{isCoach ? '教练评语' : '队长评语'}}</text>
         <textarea
           class="comment-textarea"
-          placeholder="请输入对该队员的评语..."
+          placeholder="{{isCoach ? '请输入对该队员的评语...' : '请输入对该队员的评语...'}}"
           data-index="{{outerIdx}}"
           bindinput="onCommentInput"
           bindblur="onCommentBlur"
@@ -66,7 +128,7 @@
         />
       </view>
       <view wx:elif="{{scoreData[outerIdx].coachComment}}" class="comment-section">
-        <text class="comment-label">教练评语</text>
+        <text class="comment-label">评语</text>
         <view class="comment-readonly">{{scoreData[outerIdx].coachComment}}</view>
       </view>
     </view>
@@ -74,17 +136,17 @@
     <!-- 底部占位 -->
     <view class="bottom-spacer"></view>
 
-    <!-- 底部固定提交按钮：仅教练可见 -->
-    <view wx:if="{{isCoach}}" class="bottom-bar">
+    <!-- 底部固定提交按钮：仅队长可见（提交队员评分），教练在分组评分区域提交 -->
+    <view wx:if="{{canScore && !isCoach}}" class="bottom-bar">
       <button class="btn-primary submit-btn" bindtap="submitScores" loading="{{submitting}}" disabled="{{submitting}}">
-        提交评分
+        提交队长评分
       </button>
     </view>
   </block>
 
   <!-- 未找到队训 -->
   <view wx:else class="empty-state">
-    <text class="empty-icon">📋</text>
+    <t-icon name="info-circle" size="72rpx" color="#98A2B3"></t-icon>
     <text class="empty-text">未找到该队训</text>
   </view>
 </view>

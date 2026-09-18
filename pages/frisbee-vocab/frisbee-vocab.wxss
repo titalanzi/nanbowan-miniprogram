@@ -58,7 +58,7 @@
 .letter-header {
   font-size: 36rpx;
   font-weight: 700;
-  color: #FF6B35;
+  color: #0052D9;
   padding: 16rpx 0;
 }
 
@@ -103,7 +103,7 @@
 
 .info-icon {
   font-size: 26rpx;
-  color: #FF6B35;
+  color: #0052D9;
   padding: 4rpx 8rpx;
 }
 
@@ -114,17 +114,17 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #FFF3ED;
+  background: #ECF2FE;
   transition: all 0.2s;
 }
 
 .play-btn.playing {
-  background: #FF6B35;
+  background: #0052D9;
 }
 
 .play-icon {
   font-size: 30rpx;
-  color: #FF6B35;
+  color: #0052D9;
 }
 
 .play-btn.playing .play-icon {
@@ -160,7 +160,7 @@
 
 .index-item.active {
   color: #FFFFFF;
-  background: #FF6B35;
+  background: #0052D9;
 }
 
 /* 说明弹窗 */

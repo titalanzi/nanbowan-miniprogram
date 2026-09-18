@@ -1,29 +1,47 @@
 const storage = require('../../utils/storage.js')
 const { syncUserFromCloud } = require('../../utils/sync-helper.js')
 
+const MATCH_PAGE_SIZE = 5
+
 Page({
   data: {
     historyMatches: [],
     historyTrainings: [],
     activeTab: 'match',
     tabs: [
-      { id: 'match', name: '比赛', icon: '🥏' },
-      { id: 'training', name: '队训', icon: '🏃' }
+      { id: 'match', name: '比赛', icon: 'root-list' },
+      { id: 'training', name: '队训', icon: 'usergroup' }
     ],
-    user: {}
+    user: {},
+    // 比赛列表分页状态
+    matchLoading: false,         // 首屏或加载更多进行中
+    matchInitialLoading: false,   // 首屏加载（区分"加载中"与"真无数据"）
+    matchHasMore: true            // 是否还有更多比赛可加载
   },
 
-  _lastSyncTime: 0,
+  _matchSkip: 0,
   _SYNC_INTERVAL: 30000,
+  _lastSyncTime: 0,
+  _refreshing: false,
 
   onLoad: async function () {
     await this.loadUser()
-    await this.syncDataInBackground()
+    this.setData({ matchInitialLoading: true, matchHasMore: true })
+    this._matchSkip = 0
+    await this.loadMatchPage(true)
   },
 
   onShow: async function () {
     await this.loadUser()
-    await this.syncDataInBackground()
+    // 返回页面时仅当比赛为空才补拉首屏，避免破坏已加载的分页状态
+    if (this.data.historyMatches.length === 0 && !this.data.matchInitialLoading) {
+      this._matchSkip = 0
+      this.setData({ matchInitialLoading: true, matchHasMore: true })
+      await this.loadMatchPage(true)
+    }
+    if (this.data.historyTrainings.length === 0) {
+      await this.loadTrainings()
+    }
   },
 
   async loadUser() {
@@ -31,50 +49,54 @@ Page({
     this.setData({ user })
   },
 
-  async syncDataInBackground() {
+  // 加载比赛列表某一页；isFirst=true 时重置为第一页（最近 5 场）
+  async loadMatchPage(isFirst) {
+    if (this.data.matchLoading) return
+    this.setData({ matchLoading: true })
+
     try {
-      // 比赛数据优先使用预拉取缓存
-      const app = getApp()
-      let historyMatches = []
+      const skip = isFirst ? 0 : this._matchSkip
+      const { list, hasMore } = await storage.getMatchesPaged('finished', skip, MATCH_PAGE_SIZE)
 
-      if (app.globalData.preloadedMatches) {
-        historyMatches = app.globalData.preloadedMatches
-          .filter(m => m.status === 'finished')
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        app.globalData.preloadedTime = Date.now()
+      if (isFirst) {
+        this.setData({
+          historyMatches: list,
+          matchHasMore: hasMore,
+          matchInitialLoading: false,
+          matchLoading: false
+        })
+        this._matchSkip = list.length
       } else {
-        const now = Date.now()
-        if (now - this._lastSyncTime < this._SYNC_INTERVAL) {
-          const localMatches = storage.get('matches') || []
-          historyMatches = localMatches
-            .filter(m => m.status === 'finished')
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          this.setData({ historyMatches })
-          // 队训数据也尝试本地
-          await this.loadTrainings()
-          return
-        }
-        this._lastSyncTime = now
-
-        console.log('Loading history matches from cloud...')
-        const cloudMatches = await storage.getMatchesFromCloudOnly()
-        historyMatches = cloudMatches
-          .filter(m => m.status === 'finished')
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        // 去重兜底（理论上 skip 分页不会重复，防止边界重复渲染）
+        const existIds = new Set(this.data.historyMatches.map(m => m.id))
+        const append = list.filter(m => !existIds.has(m.id))
+        this.setData({
+          historyMatches: this.data.historyMatches.concat(append),
+          matchHasMore: hasMore,
+          matchLoading: false
+        })
+        this._matchSkip += list.length
       }
-
-      this.setData({ historyMatches })
-
-      // 并行加载队训数据
-      await this.loadTrainings()
     } catch (e) {
-      console.error('Background sync failed:', e)
+      console.error('Load match page failed:', e)
+      this.setData({ matchLoading: false, matchInitialLoading: false })
+    }
+  },
+
+  // 触底（onReachBottom）或点击"加载更多"时触发下一页
+  loadMoreMatches() {
+    if (!this.data.matchHasMore || this.data.matchLoading) return
+    this.loadMatchPage(false)
+  },
+
+  onReachBottom() {
+    if (this.data.activeTab === 'match') {
+      this.loadMoreMatches()
     }
   },
 
   async loadTrainings() {
     try {
-      console.log('Loading finished trainings from cloud...')
       const trainings = await storage.getTrainingsFromCloud('finished')
       const historyTrainings = trainings
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -90,6 +112,26 @@ Page({
     if (this.data.activeTab === tab) return
     this.setData({ activeTab: tab })
     wx.vibrateShort({ type: 'light' })
+    // 切换到队训且尚无数据时加载
+    if (tab === 'training' && this.data.historyTrainings.length === 0) {
+      this.loadTrainings()
+    }
+  },
+
+  async onPullDownRefresh() {
+    if (this._refreshing) {
+      wx.stopPullDownRefresh()
+      return
+    }
+    this._refreshing = true
+    this._lastSyncTime = 0
+    // 下拉刷新：比赛重置到第一页，队训全量刷新
+    this._matchSkip = 0
+    this.setData({ matchHasMore: true })
+    await this.loadMatchPage(true)
+    await this.loadTrainings()
+    this._refreshing = false
+    wx.stopPullDownRefresh()
   },
 
   goToDetail: function (e) {

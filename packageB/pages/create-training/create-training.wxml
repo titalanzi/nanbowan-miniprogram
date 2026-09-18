@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 基本信息 -->
   <view class="card">
-    <view class="section-title">队训基本信息</view>
+    <view class="section-title"><t-icon name="edit" size="32rpx" color="#0052D9" /> 队训基本信息</view>
 
     <view class="form-item">
       <text class="form-label">队训标题 <text class="required">*</text></text>
@@ -11,21 +11,21 @@
     <view class="form-item">
       <text class="form-label">日期 <text class="required">*</text></text>
       <picker mode="date" value="{{date}}" bindchange="onDateChange">
-        <view class="picker">{{date || '请选择日期'}}</view>
+        <view class="picker {{date ? '' : 'picker-placeholder'}}">{{date || '请选择日期'}}</view>
       </picker>
     </view>
 
     <view class="form-item">
       <text class="form-label">开始时间</text>
       <picker mode="time" value="{{startTime}}" bindchange="onStartTimeChange">
-        <view class="picker">{{startTime}}</view>
+        <view class="picker {{startTime ? '' : 'picker-placeholder'}}">{{startTime || '请选择时间'}}</view>
       </picker>
     </view>
 
     <view class="form-item">
       <text class="form-label">结束时间</text>
       <picker mode="time" value="{{endTime}}" bindchange="onEndTimeChange">
-        <view class="picker">{{endTime}}</view>
+        <view class="picker {{endTime ? '' : 'picker-placeholder'}}">{{endTime || '请选择时间'}}</view>
       </picker>
     </view>
 
@@ -37,25 +37,45 @@
 
   <!-- 队训描述 -->
   <view class="card description-card">
-    <view class="section-title">队训描述</view>
+    <view class="section-title"><t-icon name="edit" size="32rpx" color="#0052D9" /> 队训描述</view>
     <view class="form-item">
       <textarea class="form-textarea" placeholder="可填写训练内容、注意事项等" maxlength="300" bindinput="onDescriptionInput" bindblur="onDescriptionBlur" />
     </view>
   </view>
 
+  <!-- 分组设置 -->
+  <view class="card">
+    <view class="section-title"><t-icon name="usergroup" size="32rpx" color="#0052D9" /> 分组设置</view>
+    <view class="dim-tip" style="margin-bottom: 20rpx;">添加分组后，签到时用户可选择加入哪个分组</view>
+    <view wx:for="{{groups}}" wx:key="id" class="group-item">
+      <input class="form-input group-input" placeholder="如：A组" value="{{item.name}}" bindinput="onGroupNameInput" data-index="{{index}}" maxlength="20" />
+      <view class="group-remove" catchtap="removeGroup" data-index="{{index}}">
+        <t-icon name="close" size="36rpx" color="#EF4444" />
+      </view>
+    </view>
+    <t-button theme="default" variant="dashed" size="medium" bindtap="addGroup" class="add-group-btn">添加分组</t-button>
+  </view>
+
   <!-- 评分维度提示 -->
   <view class="card">
-    <view class="section-title">评分维度</view>
-    <view class="dim-list">
-      <view wx:for="{{['传盘稳定性','接盘成功率','跑动与空间','战术理解','飞盘精神']}}" wx:key="*this" class="dim-tag">{{item}}</view>
+    <view class="section-title"><t-icon name="star" size="32rpx" color="#0052D9" /> 评分维度</view>
+    <view class="dim-section">
+      <view class="dim-section-label">教练评价分组</view>
+      <view class="dim-list">
+        <view wx:for="{{['传盘选择','进攻战术执行度','防守战术执行度','传盘基本功','接盘稳定性']}}" wx:key="*this" class="dim-tag">{{item}}</view>
+      </view>
     </view>
-    <view class="dim-tip">创建后将默认使用以上 5 个评分维度</view>
+    <view class="dim-section">
+      <view class="dim-section-label">队长评价队员</view>
+      <view class="dim-list">
+        <view wx:for="{{['传盘成功率','接盘稳定性','防守执行率']}}" wx:key="*this" class="dim-tag">{{item}}</view>
+      </view>
+    </view>
+    <view class="dim-tip">创建后将默认使用以上维度</view>
   </view>
 
   <!-- 提交按钮 -->
   <view class="submit-btn-wrapper">
-    <button class="submit-btn" bindtap="submitTraining" loading="{{submitting}}" disabled="{{submitting}}">
-      {{submitting ? '提交中...' : '创建队训'}}
-    </button>
+    <t-button theme="primary" block loading="{{submitting}}" bindtap="submitTraining">{{submitting ? '提交中...' : '创建队训'}}</t-button>
   </view>
 </view>

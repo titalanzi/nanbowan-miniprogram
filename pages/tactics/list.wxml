@@ -1,0 +1,53 @@
+<view class="list-page">
+  <!-- 已保存列表 -->
+  <view class="list-content">
+    <view wx:if="{{loading}}" class="loading-state">
+      <text class="loading-text">加载中...</text>
+    </view>
+    <view wx:elif="{{tactics.length === 0}}" class="empty-state">
+      <t-icon name="file" size="96rpx" class="empty-icon" color="#C9CDD4"></t-icon>
+      <text class="empty-text">还没有保存的战术板</text>
+      <text class="empty-hint">点击下方按钮新建第一个战术</text>
+    </view>
+
+    <view wx:else class="tactics-list">
+      <view
+        wx:for="{{tactics}}"
+        wx:key="id"
+        class="tactic-card"
+        bindtap="openTactic"
+        data-id="{{item.id}}"
+      >
+        <view class="tactic-preview">
+          <image class="tactic-icon" src="/images/战术板.png" mode="aspectFit" />
+        </view>
+        <view class="tactic-info">
+          <text class="tactic-name">{{item.name}}</text>
+          <text class="tactic-meta">{{item.stepCount}} 步 · {{item.playerCount}} 人</text>
+          <text class="tactic-time">{{item.updatedAt}}</text>
+        </view>
+        <view class="tactic-actions">
+          <button
+            class="tactic-share-btn"
+            open-type="share"
+            data-id="{{item.id}}"
+            data-name="{{item.name}}"
+          >
+            <image class="share-icon-img" src="/images/转发.png" mode="aspectFit" />
+          </button>
+          <view class="tactic-delete" catchtap="deleteTactic" data-id="{{item.id}}">
+            <image class="delete-icon-img" src="/images/删除.png" mode="aspectFit" />
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部新建按钮 -->
+  <view class="bottom-bar">
+    <button class="btn-new" bindtap="createNew">
+      <text class="btn-icon">+</text>
+      <text class="btn-text">新建战术板</text>
+    </button>
+  </view>
+</view>

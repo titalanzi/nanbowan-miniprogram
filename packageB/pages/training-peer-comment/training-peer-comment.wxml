@@ -2,9 +2,12 @@
   <!-- 顶部训练标题 -->
   <view class="card training-header-card">
     <view class="training-title">{{training.title || '训练详情'}}</view>
-    <view wx:if="{{training.startTime}}" class="training-meta">
-      📅 {{training.startTime}}
-    </view>
+      <view wx:if="{{training.startTime}}" class="training-meta">
+        <view class="meta-item">
+          <t-icon name="calendar" size="26rpx" color="#6B7280"></t-icon>
+          <text>{{training.startTime}}</text>
+        </view>
+      </view>
   </view>
 
   <!-- 队员评价列表 -->

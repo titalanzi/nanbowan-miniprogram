@@ -1,13 +1,23 @@
 <view class="container">
   <!-- 用于生成转发图片的隐藏Canvas -->
   <canvas canvas-id="mvpCanvas" id="mvpCanvas" class="share-canvas" style="width:500px;height:400px;"></canvas>
-  
+
   <view class="card header-card">
     <view class="match-name">{{match.name}}</view>
     <view class="match-meta">
-      <text>📍 {{match.location || '未知地点'}}</text>
-      <text>📅 {{match.date}}</text>
+      <view class="meta-item">
+        <t-icon name="location" size="26rpx" color="#6B7280"></t-icon>
+        <text>{{match.location || '未知地点'}}</text>
+      </view>
+      <view class="meta-item">
+        <t-icon name="calendar" size="26rpx" color="#6B7280"></t-icon>
+        <text>{{match.date}}</text>
+      </view>
     </view>
+    <button class="share-btn" open-type="share">
+      <t-icon name="share" size="28rpx" color="#0052D9"></t-icon>
+      <text>分享榜单</text>
+    </button>
   </view>
 
   <!-- 最终比分 -->
@@ -27,14 +37,39 @@
     </view>
   </view>
 
+  <!-- 羁绊标签区域 -->
+  <view wx:if="{{triggeredBonds.length > 0}}" class="card bond-card">
+    <view class="bond-header">
+      <text class="bond-title">触发羁绊</text>
+    </view>
+    <view class="bond-tags">
+      <view wx:for="{{triggeredBonds}}" wx:key="id"
+            class="bond-tag" catchtap="showBondDetail" data-index="{{index}}">
+        <text class="bond-tag-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- MVP榜单 -->
   <view wx:if="{{mvpRankings.length > 0}}" class="card mvp-card">
     <view class="mvp-header">
-      <text class="mvp-title">🏆 MVP排行榜</text>
+      <text class="mvp-title"><t-icon name="star" size="36rpx" color="#92400E"></t-icon>MVP排行榜</text>
       <text class="mvp-formula">得分+助攻+D盘-烂盘</text>
     </view>
+    <view class="mvp-tabs">
+      <view class="mvp-tab-row">
+        <view wx:for="{{mvpTabsRow1}}" wx:key="key"
+          class="mvp-tab {{mvpTab === item.key ? 'active' : ''}}"
+          bindtap="switchMvpTab" data-tab="{{item.key}}">{{item.name}}</view>
+      </view>
+      <view class="mvp-tab-row mvp-tab-row-teams" wx:if="{{mvpTabsTeams.length}}">
+        <view wx:for="{{mvpTabsTeams}}" wx:key="key"
+          class="mvp-tab {{mvpTab === item.key ? 'active' : ''}}"
+          bindtap="switchMvpTab" data-tab="{{item.key}}">{{item.name}}</view>
+      </view>
+    </view>
     <view class="mvp-list">
-      <view wx:for="{{mvpRankings}}" wx:if="{{index < 3}}" wx:key="memberId" class="mvp-item mvp-rank-{{item.mvpRank}}">
+      <view wx:for="{{currentMvpList}}" wx:key="memberId" class="mvp-item mvp-rank-{{item.mvpRank}}">
         <view class="mvp-rank-badge">
           <image wx:if="{{item.mvpRank === 1}}" class="mvp-icon" src="/images/冠军.png" mode="aspectFit"></image>
           <image wx:elif="{{item.mvpRank === 2}}" class="mvp-icon" src="/images/亚军.png" mode="aspectFit"></image>
@@ -54,13 +89,14 @@
           </view>
         </view>
       </view>
+      <view wx:if="{{currentMvpList.length === 0}}" class="mvp-empty">该维度暂无 MVP 数据</view>
     </view>
   </view>
 
   <!-- 飞盘精神榜 -->
   <view wx:if="{{spiritRankings.length > 0}}" class="card spirit-card">
     <view class="spirit-header">
-      <text class="spirit-title">🤝 飞盘精神榜</text>
+      <text class="spirit-title"><t-icon name="heart" size="36rpx" color="#065F46"></t-icon>飞盘精神榜</text>
     </view>
     <view class="spirit-hint">可点击上方队伍给队内成员投票</view>
     <view class="spirit-list">
@@ -88,7 +124,7 @@
   <!-- Tab切换 -->
   <view class="card">
     <view class="tabs">
-      <view wx:for="{{match.statTypes}}" wx:key="id" 
+      <view wx:for="{{match.statTypes}}" wx:key="id"
         class="tab {{activeTab === item.id ? 'active' : ''}}"
         bindtap="switchTab" data-tab="{{item.id}}">
         <text class="tab-name">{{item.name}}</text>
@@ -131,7 +167,7 @@
       </view>
       <view wx:if="{{match.records.length > 5}}" class="toggle-records-btn" catchtap="toggleRecords">
         <text>{{showAllRecords ? '收起' : '展开全部'}} ({{match.records.length}}条)</text>
-        <text class="toggle-icon">{{showAllRecords ? '↑' : '↓'}}</text>
+        <t-icon name="{{showAllRecords ? 'arrow-up' : 'arrow-down'}}" size="28rpx" color="#0052D9" />
       </view>
     </view>
     <view wx:else class="empty-tip">
@@ -146,19 +182,19 @@
   </view>
 
   <!-- 队伍成员弹窗 -->
-  <van-popup show="{{showTeamModal}}" position="center" custom-style="width: 92%; max-height: 85vh; background: transparent;" bind:close="hideTeamModal">
-    <view class="team-modal-wrapper">
+  <view wx:if="{{showTeamModal}}" class="modal-overlay" bindtap="hideTeamModal">
+    <view class="team-modal-wrapper" catchtap="stopPropagation">
       <!-- 标题栏 -->
       <view class="team-modal-header">
         <view class="team-header-left">
-          <van-icon name="user-group-o" size="20px" color="#fff" />
+          <t-icon name="usergroup" size="36rpx" color="#fff"></t-icon>
           <text class="team-header-title">{{currentTeamName}}</text>
         </view>
         <view class="team-header-right" bindtap="hideTeamModal" hover-class="btn-hover">
-          <van-icon name="cross" size="22px" color="#4F46E5" />
+          <t-icon name="close" size="32rpx" color="#0052D9"></t-icon>
         </view>
       </view>
-      
+
       <!-- 队员列表 -->
       <scroll-view class="team-modal-scroll" scroll-y>
         <view wx:for="{{currentTeamMembers}}" wx:key="id" class="team-member-card">
@@ -166,13 +202,13 @@
           <view class="member-info-section">
             <text class="member-name-text" style="{{item.name === '29' || item.name === '二九' || item.name === '二舅' ? 'color: #FF6B35;' : ''}}">{{item.name}}</text>
             <view class="member-stats-row">
-              <van-tag size="medium" color="#22C55E" text-color="#fff">得分 {{item.score}}</van-tag>
-              <van-tag size="medium" color="#3B82F6" text-color="#fff">助攻 {{item.assist}}</van-tag>
-              <van-tag size="medium" color="#F59E0B" text-color="#fff">D盘 {{item.dDisc}}</van-tag>
-              <van-tag size="medium" color="#EF4444" text-color="#fff">烂盘 {{item.turnover}}</van-tag>
+              <t-tag theme="success" size="medium">得分 {{item.score}}</t-tag>
+              <t-tag theme="primary" size="medium">助攻 {{item.assist}}</t-tag>
+              <t-tag theme="warning" size="medium">D盘 {{item.dDisc}}</t-tag>
+              <t-tag theme="danger" size="medium">烂盘 {{item.turnover}}</t-tag>
             </view>
           </view>
-          
+
           <!-- 投票按钮 -->
           <view class="member-vote-section">
             <view class="vote-btn-wrapper {{item.liked ? 'liked' : ''}}" hover-class="vote-hover" catchtap="toggleLike" data-member-id="{{item.id}}" data-type="like">
@@ -187,5 +223,28 @@
         </view>
       </scroll-view>
     </view>
-  </van-popup>
+  </view>
+</view>
+
+<!-- 羁绊详情弹窗 -->
+<view wx:if="{{showBondModal}}" class="modal-overlay" bindtap="hideBondDetail">
+  <view class="bond-modal-wrapper" catchtap="stopPropagation">
+    <view class="bond-modal-header">
+      <text class="bond-modal-title">{{currentBond.name}}</text>
+      <view class="bond-modal-close" bindtap="hideBondDetail">
+        <t-icon name="close" size="40rpx" color="#9CA3AF"></t-icon>
+      </view>
+    </view>
+    <scroll-view class="bond-modal-body" scroll-y>
+      <image wx:if="{{currentBond.imageUrl}}"
+             src="{{currentBond.imageUrl}}" mode="widthFit"
+             class="bond-modal-image"></image>
+      <view wx:elif="{{currentBond.loadingImage}}" class="bond-image-loading">
+        <text>图片加载中...</text>
+      </view>
+      <view wx:if="{{currentBond.description}}" class="bond-modal-desc">
+        {{currentBond.description}}
+      </view>
+    </scroll-view>
+  </view>
 </view>

@@ -7,11 +7,18 @@ Page({
     training: {},
     attendees: [],
     scoreData: [],
-    dimensions: ['传盘稳定性', '接盘成功率', '跑动与空间', '战术理解', '飞盘精神'],
+    coachDimensions: ['传盘选择', '进攻战术执行度', '防守战术执行度', '传盘基本功', '接盘稳定性'],
+    captainDimensions: ['传盘成功率', '接盘稳定性', '防守执行率'],
+    dimensions: ['传盘成功率', '接盘稳定性', '防守执行率'],
     scoreOptions: [2, 4, 6, 8, 10],
     submitting: false,
     loading: true,
-    isCoach: false
+    isCoach: false,
+    isCaptain: false,
+    captainGroupId: '',
+    canScore: false,
+    groupScoreData: [],
+    submittingGroupScore: false
   },
 
   onLoad: function (options) {
@@ -37,59 +44,131 @@ Page({
       ])
 
       const isCoach = !!(permission && permission.isCoach)
+      const isCaptain = !!(permission && permission.isCaptain)
+      const captainGroupId = permission && permission.captainGroupId || ''
+      const canScore = isCoach || isCaptain
+
+      console.log('=== 评分页面权限调试 ===')
+      console.log('permission:', JSON.stringify(permission))
+      console.log('isCoach:', isCoach, 'isCaptain:', isCaptain, 'canScore:', canScore)
+      console.log('captainGroupId:', captainGroupId)
+      console.log('队员总数:', (data && data.attendees) ? data.attendees.length : 0)
 
       if (data && data.training) {
         const training = data.training
         const attendees = data.attendees || []
-        const dimensions = this.data.dimensions
+        const coachDimensions = this.data.coachDimensions
+        const captainDimensions = this.data.captainDimensions
 
-        // 初始化 scoreData：若 attendee 已有 scores 则回显，否则默认 4 分
-        const scoreData = attendees.map(attendee => {
-          const existingScores = attendee.scores
-          let scores, totalScore, avgScore, coachComment, scoreValues
-
-          if (existingScores && typeof existingScores === 'object') {
-            // 已有评分，回显
-            scores = {}
-            dimensions.forEach(dim => {
-              scores[dim] = Number(existingScores[dim]) || 4
-            })
-            scoreValues = Object.values(scores)
-            totalScore = scoreValues.reduce((sum, s) => sum + (Number(s) || 0), 0)
-            avgScore = Number((totalScore / scoreValues.length).toFixed(1))
-            coachComment = attendee.coachComment || ''
+        // 队员评分：使用 captainDimensions（队长评价队员的维度）
+        let scoreData = []
+        if (!isCoach) {
+          let filteredAttendees = attendees
+          if (isCaptain && captainGroupId) {
+            filteredAttendees = attendees.filter(a => a.groupId === captainGroupId)
+            console.log('队长过滤后队员数:', filteredAttendees.length)
           } else {
-            // 默认 4 分
-            scores = {}
-            dimensions.forEach(dim => {
-              scores[dim] = 4
-            })
-            totalScore = 4 * dimensions.length
-            avgScore = Number((totalScore / dimensions.length).toFixed(1))
-            coachComment = ''
+            console.log('不过滤队员，显示全部')
           }
 
-          return {
-            userId: attendee.userOpenId,
-            userNickName: attendee.nickName || '匿名队员',
-            userAvatarUrl: attendee.avatarUrl || '',
-            scores,
-            totalScore,
-            avgScore,
-            coachComment,
-            hasExistingScore: !!(existingScores && typeof existingScores === 'object')
-          }
-        })
+          scoreData = filteredAttendees.map(attendee => {
+            const existingScores = attendee.scores
+            let scores, totalScore, avgScore, coachComment, scoreValues
+
+            if (existingScores && typeof existingScores === 'object') {
+              scores = {}
+              captainDimensions.forEach(dim => {
+                scores[dim] = Number(existingScores[dim]) || 6
+              })
+              scoreValues = Object.values(scores)
+              totalScore = scoreValues.reduce((sum, s) => sum + (Number(s) || 0), 0)
+              avgScore = Number((totalScore / scoreValues.length).toFixed(1))
+              coachComment = attendee.coachComment || ''
+            } else {
+              scores = {}
+              captainDimensions.forEach(dim => {
+                scores[dim] = 6
+              })
+              totalScore = 6 * captainDimensions.length
+              avgScore = Number((totalScore / captainDimensions.length).toFixed(1))
+              coachComment = ''
+            }
+
+            return {
+              userId: attendee.userOpenId,
+              userNickName: attendee.nickName || '匿名队员',
+              userAvatarUrl: attendee.avatarUrl || '',
+              scores,
+              totalScore,
+              avgScore,
+              coachComment,
+              hasExistingScore: !!(existingScores && typeof existingScores === 'object'),
+              groupId: attendee.groupId || ''
+            }
+          })
+        }
+
+        // 分组评分：使用 coachDimensions（教练评价分组的维度）
+        const groupScoreData = []
+        if (isCoach && Array.isArray(training.groups) && training.groups.length > 0) {
+          const groupScores = training.groupScores || {}
+          training.groups.forEach(group => {
+            const existingGroupScore = groupScores[group.id]
+            let scores, totalScore, avgScore, comment
+
+            if (existingGroupScore && existingGroupScore.scores) {
+              scores = {}
+              coachDimensions.forEach(dim => {
+                scores[dim] = Number(existingGroupScore.scores[dim]) || 6
+              })
+              const scoreValues = Object.values(scores)
+              totalScore = scoreValues.reduce((sum, s) => sum + (Number(s) || 0), 0)
+              avgScore = Number((totalScore / scoreValues.length).toFixed(1))
+              comment = existingGroupScore.comment || ''
+            } else {
+              scores = {}
+              coachDimensions.forEach(dim => {
+                scores[dim] = 6
+              })
+              totalScore = 6 * coachDimensions.length
+              avgScore = Number((totalScore / coachDimensions.length).toFixed(1))
+              comment = ''
+            }
+
+            groupScoreData.push({
+              groupId: group.id,
+              groupName: group.name,
+              scores,
+              totalScore,
+              avgScore,
+              comment
+            })
+          })
+        }
+
+        // 用于显示的 attendees
+        let displayAttendees = attendees
+        if (isCaptain && captainGroupId) {
+          displayAttendees = attendees.filter(a => a.groupId === captainGroupId)
+        }
+
+        // 教练用 coachDimensions，队长用 captainDimensions
+        const dimensions = isCoach ? coachDimensions : captainDimensions
 
         this.setData({
           training,
-          attendees,
+          attendees: displayAttendees,
           scoreData,
+          groupScoreData,
           isCoach,
+          isCaptain,
+          captainGroupId,
+          canScore,
+          dimensions,
           loading: false
         })
       } else {
-        this.setData({ isCoach, loading: false })
+        this.setData({ isCoach, isCaptain, canScore, loading: false })
         wx.showToast({ title: '未找到该队训', icon: 'none' })
       }
     } catch (e) {
@@ -146,9 +225,108 @@ Page({
     }
   },
 
+  // 点击分组评分按钮
+  onGroupScoreTap(e) {
+    const { index, dimension, value } = e.currentTarget.dataset
+    const numValue = Number(value)
+    const groupScoreData = this.data.groupScoreData
+
+    if (!groupScoreData[index] || !groupScoreData[index].scores) return
+
+    groupScoreData[index].scores[dimension] = numValue
+
+    const scoreValues = Object.values(groupScoreData[index].scores)
+    const totalScore = scoreValues.reduce((sum, s) => sum + (Number(s) || 0), 0)
+    const avgScore = Number((totalScore / scoreValues.length).toFixed(1))
+
+    groupScoreData[index].totalScore = totalScore
+    groupScoreData[index].avgScore = avgScore
+
+    this.setData({
+      ['groupScoreData[' + index + '].scores.' + dimension]: numValue,
+      ['groupScoreData[' + index + '].totalScore']: totalScore,
+      ['groupScoreData[' + index + '].avgScore']: avgScore
+    })
+  },
+
+  // 分组评语输入
+  onGroupCommentInput(e) {
+    const { index } = e.currentTarget.dataset
+    const value = e.detail.value
+    if (this.data.groupScoreData[index]) {
+      this.data.groupScoreData[index].comment = value
+    }
+  },
+
+  // 分组评语失焦
+  onGroupCommentBlur(e) {
+    const { index } = e.currentTarget.dataset
+    const value = e.detail.value || ''
+    if (this.data.groupScoreData[index]) {
+      this.data.groupScoreData[index].comment = value
+      this.setData({
+        ['groupScoreData[' + index + '].comment']: value
+      })
+    }
+  },
+
+  // 提交分组评分
+  async submitGroupScores() {
+    const { trainingId, groupScoreData, isCoach } = this.data
+
+    if (!isCoach) {
+      wx.showToast({ title: '无评分权限', icon: 'none' })
+      return
+    }
+
+    if (groupScoreData.length === 0) {
+      wx.showToast({ title: '暂无分组可评分', icon: 'none' })
+      return
+    }
+
+    this.setData({ submittingGroupScore: true })
+    wx.showLoading({ title: '提交中...' })
+
+    try {
+      const groupScores = groupScoreData.map(g => ({
+        groupId: g.groupId,
+        scores: g.scores,
+        comment: g.comment || ''
+      }))
+
+      const result = await wx.cloud.callFunction({
+        name: 'submitScores',
+        data: { trainingId, groupScores }
+      })
+
+      wx.hideLoading()
+
+      if (result.result && result.result.success) {
+        wx.showToast({ title: '分组评分已提交', icon: 'success' })
+        this.setData({ submittingGroupScore: false })
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
+      } else {
+        wx.showToast({ title: (result.result && result.result.error) || '提交失败', icon: 'none' })
+        this.setData({ submittingGroupScore: false })
+      }
+    } catch (e) {
+      wx.hideLoading()
+      console.error('Submit group scores error:', e)
+      this.setData({ submittingGroupScore: false })
+      wx.showToast({ title: '网络错误', icon: 'none' })
+    }
+  },
+
   // 提交评分：调用 submitScores 云函数
   async submitScores() {
-    const { trainingId, scoreData } = this.data
+    const { trainingId, scoreData, canScore } = this.data
+
+    if (!canScore) {
+      wx.showToast({ title: '无评分权限', icon: 'none' })
+      return
+    }
 
     if (scoreData.length === 0) {
       wx.showToast({ title: '暂无队员可评分', icon: 'none' })
@@ -159,7 +337,6 @@ Page({
     wx.showLoading({ title: '提交中...' })
 
     try {
-      // 组装 scores 数组
       const scores = scoreData.map(item => ({
         userOpenId: item.userId,
         scores: item.scores,

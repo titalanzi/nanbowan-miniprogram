@@ -11,6 +11,7 @@ Page({
     coachOpenId: '',
     coachName: '',
     coachAvatar: '',
+    groups: [],           // 分组配置
     user: {},
     submitting: false
   },
@@ -72,9 +73,32 @@ Page({
     this.setData({ endTime: e.detail.value })
   },
 
+  // 添加分组
+  addGroup: function () {
+    const groups = this.data.groups
+    groups.push({ id: 'g_' + Date.now(), name: '' })
+    this.setData({ groups })
+  },
+
+  // 删除分组
+  removeGroup: function (e) {
+    const idx = e.currentTarget.dataset.index
+    const groups = this.data.groups
+    groups.splice(idx, 1)
+    this.setData({ groups })
+  },
+
+  // 分组名称输入
+  onGroupNameInput: function (e) {
+    const idx = e.currentTarget.dataset.index
+    const groups = this.data.groups
+    groups[idx].name = e.detail.value
+    this.setData({ groups })
+  },
+
   // 提交创建队训
   async submitTraining() {
-    const { title, date, startTime, endTime, location, description, user, submitting } = this.data
+    const { title, date, startTime, endTime, location, description, user, submitting, groups } = this.data
 
     // 防止重复提交
     if (submitting) return
@@ -100,6 +124,7 @@ Page({
     }
 
     this.setData({ submitting: true })
+    wx.showLoading({ title: '创建中...', mask: true })
 
     // 组装队训对象
     const training = {
@@ -112,11 +137,15 @@ Page({
       coachOpenId: this.data.coachOpenId,
       coachName: this.data.coachName,
       coachAvatar: this.data.coachAvatar,
+      groups: groups.filter(g => g.name.trim()).map(g => ({ id: g.id, name: g.name.trim() })),
+      coaches: [],
       status: '报名中',
       creatorId: user.id || '',
       creatorName: user.name || '',
       creatorAvatar: user.avatar || '',
-      dimensions: ['传盘稳定性', '接盘成功率', '跑动与空间', '战术理解', '飞盘精神'],
+      dimensions: ['传盘成功率', '接盘稳定性', '防守执行率'],
+      coachDimensions: ['传盘选择', '进攻战术执行度', '防守战术执行度', '传盘基本功', '接盘稳定性'],
+      captainDimensions: ['传盘成功率', '接盘稳定性', '防守执行率'],
       createdAt: new Date().toISOString()
     }
 
@@ -129,6 +158,7 @@ Page({
       // 云函数返回的 training 包含 qrCodeKey、shortCode 等服务端字段
       const result = res && res.result
       if (result && result.success) {
+        wx.hideLoading()
         wx.showToast({ title: '创建成功', icon: 'success' })
         const serverTraining = result.data || training
         setTimeout(() => {
@@ -137,11 +167,13 @@ Page({
           })
         }, 1000)
       } else {
+        wx.hideLoading()
         wx.showToast({ title: (result && result.error) || '创建失败', icon: 'none' })
         this.setData({ submitting: false })
       }
     } catch (err) {
       console.error('createTraining error:', err)
+      wx.hideLoading()
       wx.showToast({ title: '创建失败，请重试', icon: 'none' })
       this.setData({ submitting: false })
     }

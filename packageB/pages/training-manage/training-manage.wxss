@@ -1,0 +1,408 @@
+/* 顶部信息卡片 */
+.info-card {
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
+  border-left: 8rpx solid #0052D9;
+}
+
+.info-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12rpx;
+}
+
+.info-meta {
+  display: flex;
+  gap: 32rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+  margin-bottom: 12rpx;
+}
+
+.info-tip {
+  font-size: 24rpx;
+  color: #0052D9;
+  background: #ECF2FE;
+  padding: 12rpx 20rpx;
+  border-radius: 12rpx;
+  display: inline-block;
+}
+
+/* 分组卡片 */
+.group-card {
+  margin-bottom: 24rpx;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
+  border-bottom: 2rpx solid #F2F4F7;
+}
+
+.group-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.group-icon {
+  font-size: 32rpx;
+}
+
+.group-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.group-count {
+  font-size: 26rpx;
+  color: #6B7280;
+  background: #F3F4F6;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+/* 成员网格列表（参考签到列表布局） */
+.attendee-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 16rpx 8rpx;
+  gap: 16rpx;
+}
+
+.attendee-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 12rpx;
+  background: white;
+  border-radius: 16rpx;
+  min-width: 120rpx;
+  flex: 1;
+  justify-content: center;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: background 0.15s ease;
+}
+
+.attendee-grid-item:active {
+  background: #F9FAFB;
+}
+
+.attendee-grid-item.selected {
+  background: #ECF2FE;
+  box-shadow: 0 2rpx 12rpx rgba(0, 82, 217, 0.15);
+}
+
+.attendee-avatar-wrap {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  padding: 6rpx;
+  background: #E5E7EB;
+  box-sizing: border-box;
+}
+
+.attendee-avatar-wrap.gender-male {
+  background: #0052D9;
+}
+
+.attendee-avatar-wrap.gender-female {
+  background: #EC4899;
+}
+
+.attendee-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #FFFFFF;
+  overflow: hidden;
+}
+
+.attendee-grid-item .attendee-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.attendee-grid-item .attendee-name-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.attendee-grid-item .attendee-name {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #374151;
+  text-align: center;
+  max-width: 140rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attendee-badges {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* 角色标签 */
+.role-badge {
+  font-size: 22rpx;
+  font-weight: 600;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  line-height: 1.4;
+}
+
+.role-badge.coach {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.role-badge.captain {
+  background: #DBEAFE;
+  color: #0052D9;
+}
+
+/* 空分组提示 */
+.empty-group-tip {
+  text-align: center;
+  padding: 32rpx 0;
+  font-size: 26rpx;
+  color: #9CA3AF;
+}
+
+/* 底部占位 */
+.bottom-spacer {
+  height: 60rpx;
+}
+
+/* 操作面板遮罩 */
+.action-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* 操作面板 */
+.action-sheet {
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* 选中成员信息 */
+.action-user-info {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding-bottom: 24rpx;
+  margin-bottom: 24rpx;
+  border-bottom: 2rpx solid #F2F4F7;
+}
+
+.action-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #E5E7EB;
+  flex-shrink: 0;
+}
+
+.action-user-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.action-user-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.action-user-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.action-user-desc {
+  font-size: 24rpx;
+  color: #9CA3AF;
+}
+
+/* 操作项列表 */
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 20rpx;
+  border-radius: 16rpx;
+  background: #F9FAFB;
+  transition: background 0.15s ease;
+}
+
+.action-item:active {
+  background: #F3F4F6;
+}
+
+.action-item.danger {
+  background: #FEF2F2;
+}
+
+.action-item.danger:active {
+  background: #FEE2E2;
+}
+
+.action-item-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.action-icon {
+  font-size: 36rpx;
+}
+
+.action-text {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1F2937;
+}
+
+.action-item.danger .action-text {
+  color: #EF4444;
+}
+
+.action-arrow {
+  font-size: 36rpx;
+  color: #D1D5DB;
+  font-weight: 300;
+}
+
+/* 取消按钮 */
+.action-cancel {
+  margin-top: 24rpx;
+  text-align: center;
+  padding: 28rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #6B7280;
+  background: #F3F4F6;
+  border-radius: 16rpx;
+}
+
+.action-cancel:active {
+  background: #E5E7EB;
+}
+
+/* 分组选择器 */
+.group-picker .picker-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1F2937;
+  text-align: center;
+  padding-bottom: 24rpx;
+  margin-bottom: 16rpx;
+  border-bottom: 2rpx solid #F2F4F7;
+}
+
+.picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 20rpx;
+  border-radius: 16rpx;
+  background: #F9FAFB;
+  transition: background 0.15s ease;
+}
+
+.picker-item:active {
+  background: #F3F4F6;
+}
+
+.picker-item.current {
+  background: #ECF2FE;
+}
+
+.picker-item-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1F2937;
+}
+
+.picker-item.current .picker-item-name {
+  color: #0052D9;
+}
+
+.picker-item-tag {
+  font-size: 24rpx;
+  color: #0052D9;
+  background: #D4E2FB;
+  padding: 4rpx 16rpx;
+  border-radius: 12rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #9CA3AF;
+}

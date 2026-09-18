@@ -1,0 +1,17 @@
+<view class="ag-wrap">
+  <view class="ag-header">
+    <text class="ag-title">{{docTitle}}</text>
+    <text class="ag-meta">生效日期：{{effectiveDate}}　版本：v1.0</text>
+  </view>
+
+  <view class="ag-intro">{{intro}}</view>
+
+  <view class="ag-section" wx:for="{{sections}}" wx:for-item="sec" wx:key="h">
+    <text class="ag-h">{{sec.h}}</text>
+    <text class="ag-p" wx:for="{{sec.p}}" wx:for-item="para" wx:key="*this">{{para}}</text>
+  </view>
+
+  <view class="ag-footer">
+    <text class="ag-footer-link" bindtap="openWxPrivacy">查看微信《小程序用户隐私保护指引》</text>
+  </view>
+</view>

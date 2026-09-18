@@ -4,7 +4,12 @@
     "pages/history/history",
     "pages/mine/mine",
     "pages/my-matches/my-matches",
-    "pages/frisbee-vocab/frisbee-vocab"
+    "pages/frisbee-vocab/frisbee-vocab",
+    "pages/frisbee-rules/frisbee-rules",
+    "pages/agreement/agreement",
+    "pages/tactics/index",
+    "pages/tactics/list",
+    "pages/tactics/view"
   ],
   "subpackages": [
     {
@@ -24,7 +29,8 @@
         "pages/training-score/training-score",
         "pages/training-checkin/training-checkin",
         "pages/my-trainings/my-trainings",
-        "pages/training-peer-comment/training-peer-comment"
+        "pages/training-peer-comment/training-peer-comment",
+        "pages/training-manage/training-manage"
       ]
     }
   ],
@@ -36,7 +42,7 @@
   },
   "tabBar": {
     "color": "#98A2B3",
-    "selectedColor": "#FF6B35",
+    "selectedColor": "#0052D9",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
@@ -60,6 +66,7 @@
       }
     ]
   },
-  "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json",
+  "__usePrivacyCheck__": true
 }

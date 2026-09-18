@@ -3,6 +3,9 @@
   font-weight: 700;
   color: #111827;
   margin-bottom: 28rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
 }
 
 .required {
@@ -20,9 +23,13 @@
   transition: all 0.2s ease;
 }
 
+.picker-placeholder {
+  color: #9CA3AF;
+}
+
 .picker:active {
-  border-color: #FF6B35;
-  background: #FFF7ED;
+  border-color: #0052D9;
+  background: #F2F6FF;
 }
 
 .description-card {
@@ -47,26 +54,36 @@
 }
 
 .form-textarea:focus {
-  border-color: #FF6B35;
+  border-color: #0052D9;
   background: white;
 }
 
 /* 评分维度展示 */
+.dim-section {
+  margin-bottom: 20rpx;
+}
+
+.dim-section-label {
+  font-size: 26rpx;
+  color: #6B7280;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
 .dim-list {
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
-  margin-bottom: 16rpx;
 }
 
 .dim-tag {
   padding: 12rpx 24rpx;
-  background: linear-gradient(135deg, #F3E8FF, #FFFFFF);
-  color: #8B5CF6;
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
+  color: #0052D9;
   font-size: 26rpx;
   font-weight: 600;
   border-radius: 20rpx;
-  border: 2rpx solid #E9D5FF;
+  border: 2rpx solid #D4E2FB;
 }
 
 .dim-tip {
@@ -75,26 +92,37 @@
   line-height: 1.6;
 }
 
+/* 分组设置 */
+.group-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.group-input {
+  flex: 1;
+}
+
+.group-remove {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FEF2F2;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.add-group-btn {
+  margin-top: 8rpx;
+  background: transparent !important;
+  border-color: #0052D9 !important;
+  color: #0052D9 !important;
+}
+
 /* 提交按钮 */
 .submit-btn-wrapper {
   padding: 32rpx 0 64rpx;
-}
-
-.submit-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
-  color: white;
-  border: none;
-  border-radius: 48rpx;
-  padding: 28rpx 48rpx;
-  font-size: 34rpx;
-  font-weight: 700;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
-  letter-spacing: 4rpx;
-}
-
-.submit-btn[disabled] {
-  opacity: 0.6;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
-  color: white;
 }

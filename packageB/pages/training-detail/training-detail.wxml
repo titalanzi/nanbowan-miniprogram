@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="empty-state">
-    <text class="empty-icon">⏳</text>
+    <t-icon name="loading" size="56rpx" color="#9CA3AF" />
     <text class="empty-text">加载中...</text>
   </view>
 
@@ -13,8 +13,14 @@
         <text class="tag {{training.status === '已结束' ? 'tag-finished' : 'tag-active'}}">{{training.status}}</text>
       </view>
       <view class="training-meta">
-        <text class="meta-item">📅 {{training.startTime}}</text>
-        <text class="meta-item">📍 {{training.location}}</text>
+        <view class="meta-item">
+          <t-icon name="calendar" size="26rpx" color="#6B7280"></t-icon>
+          <text>{{training.startTime}}</text>
+        </view>
+        <view class="meta-item">
+          <t-icon name="location" size="26rpx" color="#6B7280"></t-icon>
+          <text>{{training.location}}</text>
+        </view>
       </view>
       <view wx:if="{{training.description}}" class="training-desc">{{training.description}}</view>
     </view>
@@ -24,7 +30,9 @@
       <view class="section-title">教练</view>
       <view class="coach-info">
         <image wx:if="{{training.coachAvatar}}" class="coach-avatar" src="{{training.coachAvatar}}" mode="aspectFill" />
-        <view wx:else class="coach-avatar coach-avatar-placeholder">👨‍🏫</view>
+        <view wx:else class="coach-avatar coach-avatar-placeholder">
+          <t-icon name="user-circle" size="44rpx" color="#9CA3AF" />
+        </view>
         <text class="coach-name">{{training.coachName || '未指定'}}</text>
         <view wx:if="{{training.coachOpenId && permission.canEdit && training.status !== '已结束'}}" class="coach-actions">
           <text class="coach-change-btn" bindtap="openCoachPicker">更换</text>
@@ -37,16 +45,37 @@
 
     <!-- 签到列表 -->
     <view class="card">
-      <view class="section-title">签到列表 ({{attendees.length}})</view>
-      <view wx:if="{{attendees.length > 0}}" class="attendee-list">
-        <view wx:for="{{attendees}}" wx:key="userOpenId" class="attendee-item">
-          <image class="attendee-avatar" src="{{item.avatarUrl || '/images/mine.png'}}" mode="aspectFill" />
-          <view class="attendee-info">
-            <view class="attendee-name-wrap">
-              <text class="attendee-name">{{item.nickName || '匿名队员'}}</text>
-              <text wx:if="{{item.userOpenId === training.coachOpenId}}" class="coach-badge">教练</text>
+      <view class="section-header">
+        <text class="section-title">签到列表 ({{attendees.length}})</text>
+        <view wx:if="{{permission.canEdit && training.status !== '已结束' && attendees.length > 0}}" class="manage-link" bindtap="goToManage">调整人员</view>
+      </view>
+      <view wx:if="{{groupedAttendees && groupedAttendees.length > 0}}" class="attendee-list">
+        <view wx:for="{{groupedAttendees}}" wx:key="groupId" class="group-section">
+          <view class="group-header">
+            <text class="group-name">{{item.groupName}}</text>
+            <view class="group-count">
+              <text class="count-number">{{item.attendees.length}}</text>
+              <text class="count-unit">人</text>
+              <view wx:if="{{item.maleCount > 0 || item.femaleCount > 0}}" class="gender-count">
+                <image wx:if="{{item.maleCount > 0}}" class="gender-icon-mini" src="/images/男.png" mode="aspectFit"></image>
+                <text wx:if="{{item.maleCount > 0}}" class="gender-num">{{item.maleCount}}</text>
+                <image wx:if="{{item.femaleCount > 0}}" class="gender-icon-mini" src="/images/女.png" mode="aspectFit"></image>
+                <text wx:if="{{item.femaleCount > 0}}" class="gender-num">{{item.femaleCount}}</text>
+              </view>
             </view>
-            <text class="attendee-time">签到时间: {{item.checkInTimeText}}</text>
+          </view>
+          <view class="attendee-grid">
+            <view wx:for="{{item.attendees}}" wx:for-item="attendee" wx:key="attendee.userOpenId" class="attendee-item">
+              <view class="attendee-avatar-wrap {{attendee.gender === 'male' ? 'gender-male' : ''}} {{attendee.gender === 'female' ? 'gender-female' : ''}}">
+                <image class="attendee-avatar" src="{{attendee.avatarUrl || '/images/mine.png'}}" mode="aspectFill" />
+              </view>
+              <view class="attendee-info">
+                <view class="attendee-name-wrap">
+                  <text class="attendee-name">{{attendee.nickName || '匿名队员'}}</text>
+                  <text wx:if="{{attendee.isCoach}}" class="coach-badge">教练</text>
+                </view>
+              </view>
+            </view>
           </view>
         </view>
       </view>
@@ -54,9 +83,49 @@
     </view>
 
     <!-- 评分详情 -->
-    <view wx:if="{{training.status === '已结束' && training.scoreCompleted}}" class="card">
-      <view class="section-title">评分详情</view>
-      <view wx:if="{{attendees.length > 0}}" class="score-list">
+    <view wx:if="{{training.status === '已结束'}}" class="card">
+      <view class="section-header">
+        <text class="section-title">评分详情</text>
+        <button
+          wx:if="{{(permission.canEdit || permission.isCaptain) && attendees.length > 0}}"
+          class="manage-link"
+          bindtap="goToScore"
+        >
+          {{training.scoreCompleted ? '修改评分' : '开始评分'}}
+        </button>
+      </view>
+
+      <!-- 分组评分 -->
+      <view wx:if="{{groupScoreList.length > 0}}" class="group-score-section">
+        <text class="sub-title">分组评分</text>
+        <view class="group-score-list">
+          <view wx:for="{{groupScoreList}}" wx:key="groupId" class="group-score-item">
+            <view class="group-score-header">
+              <text class="group-score-name">{{item.groupName}}</text>
+              <view wx:if="{{item.hasScore}}" class="group-score-avg">
+                <text class="avg-num">{{item.avgScore}}</text>
+                <text class="avg-label">分</text>
+              </view>
+              <view wx:else class="group-score-avg no-score">
+                <text class="avg-label">未评分</text>
+              </view>
+            </view>
+            <view wx:if="{{item.hasScore}}" class="dimension-tags">
+              <view wx:for="{{coachDimensions}}" wx:for-item="dim" wx:key="*this" class="dimension-tag">
+                <text class="dim-label">{{dim}}</text>
+                <text class="dim-value">{{item.scores[dim] || 0}}</text>
+              </view>
+            </view>
+            <view wx:if="{{item.comment}}" class="coach-comment">
+              <text class="comment-label">教练评语：</text>
+              <text class="comment-text">{{item.comment}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{training.scoreCompleted && attendees.length > 0}}" class="score-list">
+        <text class="sub-title">队员评分</text>
         <view wx:for="{{attendees}}" wx:key="userOpenId" class="score-item">
           <view class="score-item-header">
             <image class="score-avatar" src="{{item.avatarUrl || '/images/mine.png'}}" mode="aspectFill" />
@@ -78,50 +147,122 @@
           </view>
         </view>
       </view>
-      <view wx:else class="empty-tip">暂无评分</view>
+      <view wx:if="{{training.scoreCompleted && attendees.length === 0}}" class="empty-tip">暂无评分</view>
+      <view wx:if="{{!training.scoreCompleted}}" class="empty-tip">
+        <t-icon name="edit" size="56rpx" color="#9CA3AF" />
+        <text class="empty-text">{{(permission.canEdit || permission.isCoach || permission.isCaptain) ? '点击上方开始评分' : '待评分中...'}}</text>
+      </view>
     </view>
 
     <!-- 操作按钮区 -->
     <view wx:if="{{training.status !== '已结束'}}" class="footer-wrapper">
-      <view wx:if="{{isJoined}}" class="joined-tip">✓ 您已加入本次队训</view>
-      <button wx:if="{{!isJoined && !permission.canEdit}}" class="btn-primary" bindtap="joinTraining">加入队训</button>
+      <view wx:if="{{isJoined}}" class="joined-tip">
+        <t-icon name="check" size="32rpx" color="#10B981" /> 您已加入本次队训
+      </view>
+      <button wx:if="{{!isJoined}}" class="btn-primary" bindtap="joinTraining">加入队训</button>
       <button wx:if="{{permission.canEdit}}" class="btn-primary" open-type="share">分享队训</button>
-      <button wx:if="{{permission.canEdit}}" class="btn-secondary" bindtap="goToScore">开始评分</button>
+      <button wx:if="{{permission.canEdit || permission.isCaptain}}" class="btn-secondary" bindtap="goToScore">{{training.scoreCompleted ? '修改评分' : '开始评分'}}</button>
       <button wx:if="{{permission.canEdit}}" class="btn-outline" bindtap="endTraining">结束队训</button>
       <button wx:if="{{!permission.canEdit}}" class="btn-outline" open-type="share">分享给队友</button>
     </view>
   </block>
 
-  <!-- 加入队训弹窗（注册） -->
+  <!-- 完善资料弹窗 -->
+  <view wx:if="{{showProfileModal}}" class="modal-overlay" bindtap="closeProfileModal">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-header">
+        <text class="modal-title">完善资料</text>
+        <view class="modal-close" bindtap="closeProfileModal">
+          <t-icon name="close" size="40rpx" color="#9CA3AF" />
+        </view>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">昵称 <text class="required-mark">*</text></text>
+          <input class="form-input" type="nickname" placeholder="点击获取微信昵称或手动输入" value="{{joinName}}" bindinput="onJoinNameInput" bindnickname="onNickname" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">头像 <text class="required-mark">*</text></text>
+          <view class="avatar-pick-area">
+            <view class="avatar-preview avatar-circle">
+              <image wx:if="{{joinAvatar}}" class="avatar-img" src="{{joinAvatar}}" mode="aspectFill"></image>
+              <t-icon wx:else name="user-circle" size="64rpx" color="#98A2B3" />
+            </view>
+            <view class="avatar-pick-actions">
+              <button class="wx-btn choose-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">选择头像</button>
+            </view>
+            <text class="avatar-tip">点击按钮选择微信头像</text>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">性别 <text class="required-mark">*</text></text>
+          <view class="gender-options">
+            <view class="gender-option {{joinGender === 'male' ? 'active' : ''}}" bindtap="onJoinGenderSelect" data-gender="male">
+              <image class="gender-icon" src="/images/男.png" mode="aspectFit"></image>
+              <text>男</text>
+            </view>
+            <view class="gender-option {{joinGender === 'female' ? 'active' : ''}}" bindtap="onJoinGenderSelect" data-gender="female">
+              <image class="gender-icon" src="/images/女.png" mode="aspectFit"></image>
+              <text>女</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeProfileModal">取消</button>
+        <button class="btn-primary" bindtap="submitProfile" disabled="{{!joinName || !joinAvatar || !joinGender || uploadingAvatar}}">
+          {{uploadingAvatar ? '上传中...' : '保存'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加入队训弹窗（选择分组/身份） -->
   <view wx:if="{{showJoinModal}}" class="modal-overlay" bindtap="closeJoinModal">
     <view class="modal-content" catchtap="noop">
       <view class="modal-header">
         <text class="modal-title">加入队训</text>
-        <text class="modal-close" bindtap="closeJoinModal">✕</text>
+        <view class="modal-close" bindtap="closeJoinModal">
+          <t-icon name="close" size="40rpx" color="#9CA3AF" />
+        </view>
       </view>
       <view class="modal-body">
-        <view class="modal-desc">请填写您的信息以加入本次队训</view>
-
-        <view class="avatar-section">
-          <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-            <image wx:if="{{joinAvatar}}" class="avatar-img" src="{{joinAvatar}}" mode="aspectFill" />
-            <view wx:else class="avatar-placeholder">
-              <text class="avatar-placeholder-icon">📷</text>
-              <text class="avatar-placeholder-text">选择头像</text>
+        <view class="form-item">
+          <text class="form-label">选择加入方式 <text class="required-mark">*</text></text>
+          <view class="role-options">
+            <view class="role-section">
+              <view class="role-option {{joinRole === '_unassigned' ? 'active' : ''}}" bindtap="onJoinRoleSelect" data-role="_unassigned">
+                <view class="role-radio">
+                  <view class="radio-inner {{joinRole === '_unassigned' ? 'checked' : ''}}"></view>
+                </view>
+                <text class="role-text">待分配</text>
+              </view>
+              <view wx:for="{{training.groups || []}}" wx:key="id" class="role-option {{joinRole === item.id ? 'active' : ''}}" bindtap="onJoinRoleSelect" data-role="{{item.id}}">
+                <view class="role-radio">
+                  <view class="radio-inner {{joinRole === item.id ? 'checked' : ''}}"></view>
+                </view>
+                <text class="role-text">{{item.name}}</text>
+              </view>
             </view>
-          </button>
-          <view wx:if="{{uploadingAvatar}}" class="uploading-tip">上传中...</view>
+            <view class="role-divider">
+              <view class="divider-line"></view>
+              <text class="divider-text">其他</text>
+              <view class="divider-line"></view>
+            </view>
+            <view class="role-section">
+              <view class="role-option {{joinRole === '_coach' ? 'active' : ''}}" bindtap="onJoinRoleSelect" data-role="_coach">
+                <view class="role-radio">
+                  <view class="radio-inner {{joinRole === '_coach' ? 'checked' : ''}}"></view>
+                </view>
+                <text class="role-text">以教练身份加入</text>
+              </view>
+            </view>
+          </view>
         </view>
-
-        <input class="name-input"
-          type="nickname"
-          placeholder="请输入昵称"
-          placeholder-class="input-placeholder"
-          value="{{joinName}}"
-          bindinput="onJoinNameInput"
-          bindnicknamereview="onNickname" />
-
-        <button class="btn-primary join-modal-btn" bindtap="submitJoin" disabled="{{!joinName || uploadingAvatar || joining}}">
+      </view>
+      <view class="modal-footer">
+        <button class="btn-secondary" bindtap="closeJoinModal">取消</button>
+        <button class="btn-primary" bindtap="submitGroup" disabled="{{!joinRole || joining}}">
           {{joining ? '加入中...' : '确认加入'}}
         </button>
       </view>
@@ -133,7 +274,9 @@
     <view class="modal-content coach-picker-content" catchtap="noop">
       <view class="modal-header">
         <text class="modal-title">指定教练</text>
-        <text class="modal-close" bindtap="closeCoachPicker">✕</text>
+        <view class="modal-close" bindtap="closeCoachPicker">
+          <t-icon name="close" size="40rpx" color="#9CA3AF" />
+        </view>
       </view>
       <view class="coach-picker-body">
         <view class="coach-picker-tip">从已加入的队员中选择教练</view>
@@ -148,9 +291,5 @@
     </view>
   </view>
 
-  <!-- 未找到队训 -->
-  <view wx:else class="empty-state">
-    <text class="empty-icon">📋</text>
-    <text class="empty-text">未找到该队训</text>
-  </view>
+  <!-- 成员管理弹窗已移至独立页面 -->
 </view>

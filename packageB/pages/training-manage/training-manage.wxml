@@ -1,0 +1,166 @@
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="empty-state">
+    <t-icon name="loading" size="72rpx" color="#98A2B3"></t-icon>
+    <text class="empty-text">加载中...</text>
+  </view>
+
+  <block wx:elif="{{training.id}}">
+    <!-- 顶部信息 -->
+    <view class="card info-card">
+      <view class="info-title">{{training.title}}</view>
+      <view class="info-meta">
+        <text>共 {{attendees.length}} 人</text>
+        <text wx:if="{{training.groups && training.groups.length > 0}}">{{training.groups.length}} 个分组</text>
+      </view>
+      <view class="info-tip">点击成员可调整分组、设置队长等</view>
+    </view>
+
+    <!-- 分组成员列表 -->
+    <view wx:if="{{groupedAttendees && groupedAttendees.length > 0}}" class="groups-wrapper">
+      <view wx:for="{{groupedAttendees}}" wx:key="groupId" class="card group-card">
+        <view class="group-header">
+          <view class="group-title-wrap">
+            <t-icon name="usergroup" size="32rpx" color="#6B7280"></t-icon>
+            <text class="group-name">{{item.groupName}}</text>
+          </view>
+          <text class="group-count">{{item.attendees.length}}人</text>
+        </view>
+
+        <view wx:if="{{item.attendees.length > 0}}" class="attendee-grid">
+          <view
+            wx:for="{{item.attendees}}"
+            wx:for-item="attendee"
+            wx:key="attendee.userOpenId"
+            class="attendee-grid-item {{selectedUserOpenId === attendee.userOpenId ? 'selected' : ''}}"
+            bindtap="onAttendeeTap"
+            data-openid="{{attendee.userOpenId}}"
+            data-name="{{attendee.nickName}}"
+            data-avatar="{{attendee.avatarUrl}}"
+            data-group-id="{{attendee.groupId}}"
+            data-is-coach="{{attendee.isCoach}}"
+            data-is-captain="{{attendee.isCaptain}}"
+          >
+            <view class="attendee-avatar-wrap {{attendee.gender === 'male' ? 'gender-male' : ''}} {{attendee.gender === 'female' ? 'gender-female' : ''}}">
+              <image class="attendee-avatar" src="{{attendee.avatarUrl || '/images/mine.png'}}" mode="aspectFill" />
+            </view>
+            <view class="attendee-info">
+              <view class="attendee-name-wrap">
+                <text class="attendee-name">{{attendee.nickName || '匿名队员'}}</text>
+              </view>
+              <view class="attendee-badges">
+                <text wx:if="{{attendee.isCoach}}" class="role-badge coach">教练</text>
+                <text wx:if="{{attendee.isCaptain}}" class="role-badge captain">队长</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view wx:else class="empty-group-tip">该分组暂无成员</view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-state">
+      <t-icon name="usergroup" size="72rpx" color="#98A2B3"></t-icon>
+      <text class="empty-text">暂无签到队员</text>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="bottom-spacer"></view>
+  </block>
+
+  <!-- 未找到队训 -->
+  <view wx:else class="empty-state">
+    <t-icon name="info-circle" size="72rpx" color="#98A2B3"></t-icon>
+    <text class="empty-text">未找到该队训</text>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view wx:if="{{showActionSheet}}" class="action-overlay" bindtap="closeActionSheet">
+    <view class="action-sheet" catchtap="noop">
+      <!-- 选中成员信息 -->
+      <view class="action-user-info">
+        <image class="action-avatar" src="{{selectedUserAvatar || '/images/mine.png'}}" mode="aspectFill" />
+        <view class="action-user-detail">
+          <view class="action-user-name-wrap">
+            <text class="action-user-name">{{selectedUserName}}</text>
+            <text wx:if="{{selectedIsCoach}}" class="role-badge coach">教练</text>
+            <text wx:if="{{selectedIsCaptain}}" class="role-badge captain">队长</text>
+          </view>
+          <text class="action-user-desc">点击下方操作进行调整</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮列表 -->
+      <view class="action-list">
+        <!-- 移动到其他分组 -->
+        <view wx:if="{{training.groups && training.groups.length > 0}}" class="action-item" bindtap="openGroupPicker">
+          <view class="action-item-left">
+            <t-icon name="swap" size="40rpx" color="#0052D9"></t-icon>
+            <text class="action-text">移动到其他分组</text>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" color="#D0D5DD"></t-icon>
+        </view>
+
+        <!-- 设置为队长 -->
+        <view wx:if="{{!selectedIsCoach && selectedGroupId && selectedGroupId !== '_unassigned'}}" class="action-item" bindtap="doSetCaptain">
+          <view class="action-item-left">
+            <t-icon name="star" size="40rpx" color="#F59E0B"></t-icon>
+            <text class="action-text">{{selectedIsCaptain ? '取消队长' : '设置为队长'}}</text>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" color="#D0D5DD"></t-icon>
+        </view>
+
+        <!-- 移除教练身份 -->
+        <view wx:if="{{selectedIsCoach}}" class="action-item danger" bindtap="doRemoveCoachRole">
+          <view class="action-item-left">
+            <t-icon name="close" size="40rpx" color="#EF4444"></t-icon>
+            <text class="action-text">移除教练身份</text>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" color="#D0D5DD"></t-icon>
+        </view>
+
+        <!-- 移除成员 -->
+        <view class="action-item danger" bindtap="doRemoveAttendee">
+          <view class="action-item-left">
+            <t-icon name="delete" size="40rpx" color="#EF4444"></t-icon>
+            <text class="action-text">移出队训</text>
+          </view>
+          <t-icon name="chevron-right" size="36rpx" color="#D0D5DD"></t-icon>
+        </view>
+      </view>
+
+      <!-- 取消按钮 -->
+      <view class="action-cancel" bindtap="closeActionSheet">取消</view>
+    </view>
+  </view>
+
+  <!-- 分组选择器 -->
+  <view wx:if="{{showGroupPicker}}" class="action-overlay" bindtap="closeGroupPicker">
+    <view class="action-sheet group-picker" catchtap="noop">
+      <view class="picker-title">选择目标分组</view>
+      <view class="picker-list">
+        <view
+          wx:for="{{training.groups}}"
+          wx:key="id"
+          class="picker-item {{selectedGroupId === item.id ? 'current' : ''}}"
+          bindtap="onGroupSelect"
+          data-group-id="{{item.id}}"
+        >
+          <text class="picker-item-name">{{item.name}}</text>
+          <text wx:if="{{selectedGroupId === item.id}}" class="picker-item-tag">当前</text>
+        </view>
+        <view
+          wx:if="{{training.groups && training.groups.length > 0}}"
+          class="picker-item {{selectedGroupId === '_unassigned' || !selectedGroupId ? 'current' : ''}}"
+          bindtap="onGroupSelect"
+          data-group-id="_unassigned"
+        >
+          <text class="picker-item-name">未分配</text>
+          <text wx:if="{{!selectedGroupId || selectedGroupId === '_unassigned'}}" class="picker-item-tag">当前</text>
+        </view>
+      </view>
+      <view class="action-cancel" bindtap="closeGroupPicker">取消</view>
+    </view>
+  </view>
+</view>

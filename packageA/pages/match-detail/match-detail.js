@@ -1,6 +1,7 @@
 const storage = require('../../../utils/storage.js')
 const app = getApp()
 const { checkPermissionFromCloud, calculateGroupStats } = require('../../../utils/sync-helper.js')
+const { calculateMatchBonds, getBondImageTempUrl } = require('../../utils/bond-helper.js')
 
 Page({
   data: {
@@ -21,19 +22,45 @@ Page({
     showTeamModal: false,
     currentTeamMembers: [],
     currentTeamName: '',
-    showAllRecords: false
+    showAllRecords: false,
+    triggeredBonds: [],
+    showBondModal: false,
+    currentBond: {},
+    mvpTab: 'total',
+    mvpMale: [],
+    mvpFemale: [],
+    mvpTeamsMap: {},
+    mvpTabsRow1: [],
+    mvpTabsTeams: [],
+    currentMvpList: []
   },
 
   onLoad: async function (options) {
     if (options.id) {
       this.setData({ matchId: options.id })
     }
-    
+
     // 获取当前用户ID
     const user = await storage.get('user') || {}
     this.setData({ currentUserId: user.id || 'anonymous' })
-    
-    await this.checkPermission()
+
+    this._firstLoad = true
+    // 并行执行权限校验和数据加载
+    await Promise.all([
+      this.checkPermission(),
+      this.loadMatchFast()
+    ])
+    if (wx.showShareMenu) {
+      wx.showShareMenu({ menus: ['shareAppMessage'] })
+    }
+  },
+
+  onShow: async function () {
+    if (this._firstLoad) {
+      this._firstLoad = false
+      return
+    }
+    // 重新进入页面，只加载最新比赛数据
     await this.loadMatchFast()
   },
 
@@ -46,18 +73,11 @@ Page({
   async loadMatchFast() {
     const matchId = this.data.matchId
     if (!matchId) return
-    
-    // 优先尝试从本地获取
-    const matches = await storage.get('matches') || []
-    let match = matches.find(m => m.id === matchId)
-    
-    // 如果本地没有，从云端获取
-    if (!match) {
-      console.log('Loading match from cloud...')
-      const cloudMatches = await storage.getMatchesFromCloudOnly()
-      match = cloudMatches.find(m => m.id === matchId)
-    }
-    
+
+    // 直接从云端查询单场比赛数据
+    console.log('Loading match from cloud...')
+    const match = await storage.getMatchByIdFromCloud(matchId)
+
     if (match) {
       if (!match.records) match.records = []
       if (!match.votes) match.votes = {}
@@ -71,12 +91,60 @@ Page({
       this.calculateMVPRankings()
       this.loadVotes()
       this.calculateSpiritRankings()
-      
+      await this.updateTriggeredBonds(match)
+
       // 预生成MVP截图
       setTimeout(() => {
         this.preGenerateMVPScreenshot()
       }, 500)
     }
+  },
+
+  // 计算并更新当前比赛触发的羁绊（确保缓存已加载）
+  async updateTriggeredBonds(match) {
+    let bonds = storage.getBonds()
+    if (!bonds || bonds.length === 0) {
+      console.log('Bonds cache is empty, syncing from cloud...')
+      bonds = await storage.syncBonds()
+    }
+    const triggeredBonds = calculateMatchBonds(match)
+    console.log('Triggered bonds:', triggeredBonds)
+    this.setData({ triggeredBonds })
+  },
+
+  // 点击羁绊标签，弹出详情弹窗并懒加载图片
+  showBondDetail: function (e) {
+    const index = e.currentTarget.dataset.index
+    const bond = this.data.triggeredBonds[index]
+    if (!bond) return
+
+    this.setData({
+      showBondModal: true,
+      currentBond: {
+        name: bond.name,
+        description: bond.description,
+        imageUrl: '',
+        loadingImage: !!bond.imageFileId
+      }
+    })
+
+    // 懒加载图片：点击标签后才获取云存储临时URL
+    if (bond.imageFileId) {
+      getBondImageTempUrl(bond.imageFileId).then(url => {
+        if (url) {
+          this.setData({ 'currentBond.imageUrl': url, 'currentBond.loadingImage': false })
+        } else {
+          this.setData({ 'currentBond.loadingImage': false })
+        }
+      })
+    }
+  },
+
+  hideBondDetail: function () {
+    this.setData({
+      showBondModal: false,
+      currentBond: {}
+    })
   },
 
   async syncMatchInBackground(matchId) {
@@ -218,7 +286,73 @@ Page({
       return { ...member, mvpRank: currentRank }
     }).filter(m => m.mvpScore > 0)
 
-    this.setData({ mvpRankings: rankings })
+    // 构建 memberId -> gender 映射（来自分组队员）
+    const memberGender = {}
+    if (match.groups) {
+      match.groups.forEach(g => {
+        ;(g.members || []).forEach(m => {
+          if (m && m.id) memberGender[m.id] = m.gender || ''
+        })
+      })
+    }
+
+    // 为子榜单重新计算名次（处理并列）
+    const assignRanks = (list) => {
+      let rank = 1
+      let prev = null
+      return list.map((m, i) => {
+        if (prev !== null && m.mvpScore < prev) rank = i + 1
+        prev = m.mvpScore
+        return Object.assign({}, m, { mvpRank: rank })
+      })
+    }
+
+    const mvpMale = assignRanks(rankings.filter(m => memberGender[m.memberId] === 'male')).slice(0, 3)
+    const mvpFemale = assignRanks(rankings.filter(m => memberGender[m.memberId] === 'female')).slice(0, 3)
+
+    const mvpTeamsMap = {}
+    const mvpTabsTeams = []
+    if (match.groups) {
+      match.groups.forEach(g => {
+        const list = assignRanks(rankings.filter(m => m.groupId === g.id)).slice(0, 3)
+        if (list.length) {
+          mvpTeamsMap[g.id] = list
+          mvpTabsTeams.push({ key: g.id, name: g.name })
+        }
+      })
+    }
+
+    // 第一行固定：总榜 / 男生榜 / 女生榜
+    const mvpTabsRow1 = [
+      { key: 'total', name: '总榜' },
+      { key: 'male', name: '男生榜' },
+      { key: 'female', name: '女生榜' }
+    ]
+
+    // 默认展示总榜前3（保持不变）
+    const currentMvpList = rankings.slice(0, 3)
+
+    this.setData({
+      mvpRankings: rankings,
+      mvpMale,
+      mvpFemale,
+      mvpTeamsMap,
+      mvpTabsRow1,
+      mvpTabsTeams,
+      mvpTab: 'total',
+      currentMvpList
+    })
+  },
+
+  switchMvpTab: function (e) {
+    const tab = e.currentTarget.dataset.tab
+    const { mvpRankings, mvpMale, mvpFemale, mvpTeamsMap } = this.data
+    let list = []
+    if (tab === 'total') list = mvpRankings.slice(0, 3)
+    else if (tab === 'male') list = mvpMale
+    else if (tab === 'female') list = mvpFemale
+    else list = mvpTeamsMap[tab] || []
+    this.setData({ mvpTab: tab, currentMvpList: list })
   },
 
   loadVotes: function() {
@@ -374,14 +508,6 @@ Page({
   },
 
   async saveMatch(match) {
-    const matches = await storage.get('matches') || []
-    const index = matches.findIndex(m => m.id === match.id)
-    if (index !== -1) {
-      matches[index] = match
-      await storage.set('matches', matches)
-    }
-    
-    // 同步到云端
     try {
       if (wx.cloud && wx.cloud.callFunction) {
         await wx.cloud.callFunction({
@@ -467,11 +593,15 @@ Page({
         if (res.confirm) {
           const newMatch = { ...match, status: 'active', updatedAt: new Date().toISOString() }
           
-          const matches = await storage.get('matches') || []
-          const index = matches.findIndex(m => m.id === match.id)
-          if (index !== -1) {
-            matches[index] = newMatch
-            await storage.set('matches', matches)
+          try {
+            if (wx.cloud && wx.cloud.callFunction) {
+              await wx.cloud.callFunction({
+                name: 'syncMatch',
+                data: { match: newMatch }
+              })
+            }
+          } catch (e) {
+            console.log('Failed to sync match:', e)
           }
           
           wx.showToast({
@@ -517,31 +647,12 @@ Page({
     wx.showLoading({ title: '删除中...' })
     
     try {
-      const matches = await storage.get('matches') || []
-      const newMatches = matches.map(m => {
-        if (m.id === match.id) {
-          return { ...m, status: 'deleted', updatedAt: new Date().toISOString() }
-        }
-        return m
-      })
-      
-      // 先标记为已删除，防止被云端恢复
-      storage.addDeletedMatchId(match.id)
-      
-      // 先更新云端数据为已删除状态
-      try {
-        if (wx.cloud && wx.cloud.callFunction) {
-          await wx.cloud.callFunction({
-            name: 'deleteMatch',
-            data: { matchId: match.id }
-          })
-        }
-      } catch (e) {
-        console.log('Failed to update cloud:', e)
+      if (wx.cloud && wx.cloud.callFunction) {
+        await wx.cloud.callFunction({
+          name: 'deleteMatch',
+          data: { matchId: match.id }
+        })
       }
-      
-      // 再更新本地数据
-      await storage.set('matches', newMatches)
       
       wx.hideLoading()
       wx.showToast({
@@ -589,7 +700,7 @@ Page({
     }
     
     return {
-      title: '南波万飞盘 - 比赛详情',
+      title: (match && match.name ? match.name + ' · ' : '') + '比赛榜单 MVP 排行',
       path: `/packageA/pages/match-detail/match-detail?id=${this.data.matchId}`,
       imageUrl: app.globalData.shareAvatar
     }
@@ -635,7 +746,7 @@ Page({
       ctx.setFillStyle('#FFFFFF')
       ctx.setFontSize(28)
       ctx.setTextAlign('center')
-      ctx.fillText('🏆 MVP排行榜', width / 2, 46)
+      ctx.fillText('MVP排行榜', width / 2, 46)
       
       // 绘制比赛名称
       ctx.setFillStyle('#92400E')

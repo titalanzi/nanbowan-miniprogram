@@ -5,7 +5,7 @@
   </view>
 
   <view wx:if="{{myMatches.length === 0}}" class="empty-state">
-    <text class="empty-icon">📋</text>
+    <t-icon name="info-circle" size="100rpx" class="empty-icon" color="#C9CDD4"></t-icon>
     <text class="empty-text">暂无创建的比赛</text>
     <text class="empty-text">点击右上角按钮创建比赛</text>
   </view>
@@ -19,12 +19,12 @@
         </view>
       </view>
       <view class="match-info">
-        <text class="info-item">📅 {{item.date}}</text>
-        <text class="info-item">📍 {{item.location || '未知地点'}}</text>
+        <view class="meta-item"><t-icon name="calendar" size="26rpx" color="#6B7280"></t-icon><text class="info-item">{{item.date}}</text></view>
+        <view class="meta-item"><t-icon name="location" size="26rpx" color="#6B7280"></t-icon><text class="info-item">{{item.location || '未知地点'}}</text></view>
       </view>
       <view class="match-stats">
-        <text class="stat-text">👥 {{item.groups.length}}支队伍</text>
-        <text class="stat-text">📝 {{item.records.length}}条记录</text>
+        <view class="meta-item"><t-icon name="usergroup" size="26rpx" color="#9CA3AF"></t-icon><text class="stat-text">{{item.groups.length}}支队伍</text></view>
+        <view class="meta-item"><t-icon name="edit" size="26rpx" color="#9CA3AF"></t-icon><text class="stat-text">{{item.records.length}}条记录</text></view>
       </view>
     </view>
   </view>

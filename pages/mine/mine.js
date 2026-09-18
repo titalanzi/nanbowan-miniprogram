@@ -1,18 +1,22 @@
 const storage = require('../../utils/storage.js')
-const { verifyAssistantCode } = require('../../utils/sync-helper.js')
+const { verifyAssistantCode, syncUserFromCloud } = require('../../utils/sync-helper.js')
 
 Page({
   data: {
     user: {},
     inputName: '',
     inputAvatar: '',        // 微信头像/相册上传后得到的 cloud://fileID（或临时路径兜底）
+    inputGender: '',        // 注册用性别
+    agreed: false,          // 是否已主动勾选同意协议（默认 false，不得默认勾选）
     showRegisterModal: false,
     registerCode: '',
     showEditModal: false,
     editName: '',
     editAvatar: '',
+    editGender: '',         // 编辑用性别
     uploadingAvatar: false, // 头像上传中状态
-    lastSyncTime: 0
+    lastSyncTime: 0,
+    needGenderSetup: false   // 是否需要补填性别
   },
 
   onLoad: async function () {
@@ -22,7 +26,37 @@ Page({
 
   onShow: async function () {
     await this.loadUserFast()
-    this.syncUserInBackground()
+
+    const { user } = this.data
+    // 已注册用户若 gender 为空，先直接拉取云端数据，避免误弹（云端可能已有 gender）
+    if (user && user.id && user.registered && !user.gender) {
+      let cloudGender = ''
+      try {
+        if (typeof wx.cloud !== 'undefined' && wx.cloud.callFunction) {
+          const result = await wx.cloud.callFunction({ name: 'getUserFromCloud' })
+          if (result && result.result && result.result.success && result.result.data) {
+            const cloudUser = result.result.data
+            cloudGender = cloudUser.gender || ''
+            if (cloudGender) {
+              const mergedUser = { ...user, gender: cloudGender }
+              if (cloudUser.name) mergedUser.name = cloudUser.name
+              if (cloudUser.avatar) mergedUser.avatar = cloudUser.avatar
+              this.setData({ user: mergedUser, lastSyncTime: Date.now() })
+            }
+          }
+        }
+      } catch (e) {
+        console.log('Fetch cloud gender failed:', e)
+      }
+
+      // 同步后仍无 gender，自动弹出编辑弹窗补填
+      const updatedUser = this.data.user
+      if (updatedUser && updatedUser.id && updatedUser.registered && !updatedUser.gender) {
+        this._openEditModal(updatedUser)
+      }
+    } else {
+      this.syncUserInBackground()
+    }
   },
 
   async loadUserFast() {
@@ -32,8 +66,24 @@ Page({
 
   async syncUserInBackground() {
     const user = this.data.user
-    if (!user.id) return
-    
+    // 本地无用户数据：尝试从云端恢复（缓存清除后重新进入场景）
+    if (!user.id) {
+      try {
+        const restoredUser = await syncUserFromCloud()
+        if (restoredUser && restoredUser.id) {
+          this.setData({ user: restoredUser })
+          // 触发全局转发头像更新
+          const app = getApp()
+          if (app.loadUserForShare) {
+            app.loadUserForShare()
+          }
+        }
+      } catch (e) {
+        console.log('Restore user from cloud failed:', e)
+      }
+      return
+    }
+
     const now = Date.now()
     if (now - this.data.lastSyncTime < 300000) {
       return
@@ -50,16 +100,17 @@ Page({
       
       if (result && result.result && result.result.success && result.result.data) {
         const cloudUser = result.result.data
+        const DEFAULT_AVATAR = 'cloud://cloudbase-d1gy9zpsb97f7c289.636c-cloudbase-d1gy9zpsb97f7c289-1438962250/avatars/morentouxiang.jpg'
         const mergedUser = {
           ...user,
           name: cloudUser.name || user.name,
-          avatar: cloudUser.avatar || user.avatar,
+          avatar: cloudUser.avatar || user.avatar || DEFAULT_AVATAR,
+          gender: cloudUser.gender || user.gender || '',
           role: cloudUser.role || user.role,
           registered: true
         }
         
         if (JSON.stringify(mergedUser) !== JSON.stringify(user)) {
-          storage.setLocal('user', mergedUser)
           this.setData({ user: mergedUser })
         }
         
@@ -72,6 +123,11 @@ Page({
 
   onNameInput: function (e) {
     this.setData({ inputName: e.detail.value })
+  },
+
+  // 注册区域性别选择
+  onInputGenderSelect: function (e) {
+    this.setData({ inputGender: e.currentTarget.dataset.gender })
   },
 
   // 微信头像选择：chooseAvatar 返回临时文件，上传云存储后得到 cloud://fileID
@@ -103,77 +159,29 @@ Page({
     }
   },
 
-  // 从相册/相机上传自定义头像：选图 → 1:1裁剪 → 压缩 → 上传
-  chooseFromAlbum: function (e) {
-    const source = e.currentTarget.dataset.source || 'input'
-    const self = this
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
-      fail: function () {},
-      success: function (res) {
-        const tempPath = res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath
-        if (!tempPath) return
-        // 第一步：打开裁剪页，锁定 1:1 比例
-        wx.cropImage({
-          src: tempPath,
-          cropScale: '1:1',
-          success: async function (cropRes) {
-            const croppedPath = cropRes.tempFilePath
-            if (!croppedPath) {
-              // 裁剪失败兜底：用原图上传
-              self._uploadAndSetAvatar(tempPath, source)
-              return
-            }
-            // 第二步：压缩裁剪后的图片，保证文件不大于 200KB
-            self.setData({ uploadingAvatar: true })
-            try {
-              const compressedPath = await storage.compressImage(croppedPath, 200)
-              const user = self.data.user
-              const fileID = await storage.uploadAvatarToCloud(compressedPath, user.openid)
-              const key = source === 'edit' ? 'editAvatar' : 'inputAvatar'
-              self.setData({ [key]: fileID, uploadingAvatar: false })
-            } catch (err) {
-              console.error('chooseFromAlbum upload failed:', err)
-              self.setData({ uploadingAvatar: false })
-              wx.showToast({ title: '上传失败，请重试', icon: 'none' })
-            }
-          },
-          fail: function () {
-            // 裁剪取消或失败，用原图上传兜底
-            self._uploadAndSetAvatar(tempPath, source)
-          }
-        })
-      }
-    })
-  },
-
-  // 兜底上传（裁剪取消/失败时直接上传原图）
-  _uploadAndSetAvatar: function (tempPath, source) {
-    const self = this
-    self.setData({ uploadingAvatar: true })
-    const doUpload = async () => {
-      try {
-        const user = self.data.user
-        const fileID = await storage.uploadAvatarToCloud(tempPath, user.openid)
-        const key = source === 'edit' ? 'editAvatar' : 'inputAvatar'
-        self.setData({ [key]: fileID, uploadingAvatar: false })
-      } catch (err) {
-        console.error('_uploadAndSetAvatar failed:', err)
-        self.setData({ uploadingAvatar: false })
-        wx.showToast({ title: '上传失败，请重试', icon: 'none' })
-      }
-    }
-    doUpload()
-  },
-
   register: function() {
-    const { inputName, inputAvatar } = this.data
+    const { inputName, inputAvatar, inputGender } = this.data
+
+    // 合规要求：必须由用户主动勾选同意，不得默认同意
+    if (!this.data.agreed) {
+      wx.showToast({
+        title: '请先阅读并勾选同意协议',
+        icon: 'none',
+        duration: 2500
+      })
+      return
+    }
+
     if (!inputName.trim()) {
       wx.showToast({
         title: '请输入昵称',
+        icon: 'none'
+      })
+      return
+    }
+    if (!inputGender) {
+      wx.showToast({
+        title: '请选择性别',
         icon: 'none'
       })
       return
@@ -198,25 +206,28 @@ Page({
         }
 
         const userId = 'user_' + Date.now()
+        const DEFAULT_AVATAR = 'cloud://cloudbase-d1gy9zpsb97f7c289.636c-cloudbase-d1gy9zpsb97f7c289-1438962250/avatars/morentouxiang.jpg'
         const user = {
           id: userId,
           name: inputName.trim(),
-          avatar: inputAvatar || '',
+          avatar: inputAvatar || DEFAULT_AVATAR,
+          gender: inputGender,
           openid: openid,
           registered: true,
-          role: 'normal'
+          role: 'normal',
+          // 合规留痕：记录用户主动同意协议的时间与版本
+          agreedAt: Date.now(),
+          agreementVersion: 'v1.0'
         }
-        
+
         await storage.set('user', user)
-        
+
         // 更新全局转发头像
         const app = getApp()
         app.globalData.shareAvatar = user.avatar
-        
-        this.syncToCloud(user)
-        
+
         wx.hideLoading()
-        this.setData({ user, inputName: '', inputAvatar: '' })
+        this.setData({ user, inputName: '', inputAvatar: '', inputGender: '', agreed: false })
         wx.showToast({
           title: '注册成功',
           icon: 'success'
@@ -232,19 +243,6 @@ Page({
     }
 
     doRegister()
-  },
-
-  async syncToCloud(user) {
-    try {
-      if (wx.cloud && wx.cloud.callFunction) {
-        await wx.cloud.callFunction({
-          name: 'syncUser',
-          data: { user }
-        })
-      }
-    } catch (e) {
-      console.log('Failed to sync user to cloud, saved locally')
-    }
   },
 
   createMatch: function () {
@@ -331,9 +329,21 @@ Page({
     })
   },
 
+  goTactics: function () {
+    wx.navigateTo({
+      url: '/pages/tactics/list'
+    })
+  },
+
   goFrisbeeVocab: function () {
     wx.navigateTo({
       url: '/pages/frisbee-vocab/frisbee-vocab'
+    })
+  },
+
+  goFrisbeeRules: function () {
+    wx.navigateTo({
+      url: '/pages/frisbee-rules/frisbee-rules'
     })
   },
 
@@ -350,18 +360,39 @@ Page({
 
   showEditModal: function () {
     const { user } = this.data
+
+    // 进入编辑弹窗前，主动触发隐私授权
+    // 不检查 needAuthorization，直接调用 requirePrivacyAuthorize
+    // 已授权会直接 success，未授权会弹出官方授权弹窗
+    if (wx.requirePrivacyAuthorize) {
+      wx.requirePrivacyAuthorize({
+        success: () => {
+          this._openEditModal(user)
+        },
+        fail: () => {
+          wx.showToast({ title: '需同意隐私协议才能修改头像', icon: 'none' })
+        }
+      })
+    } else {
+      this._openEditModal(user)
+    }
+  },
+
+  _openEditModal(user) {
     this.setData({
       showEditModal: true,
       editName: user.name || '',
-      editAvatar: user.avatar || ''
+      editAvatar: user.avatar || '',
+      editGender: user.gender || ''
     })
   },
 
   closeEditModal: function () {
-    this.setData({ 
+    this.setData({
       showEditModal: false,
       editName: '',
-      editAvatar: ''
+      editAvatar: '',
+      editGender: ''
     })
   },
 
@@ -369,11 +400,23 @@ Page({
     this.setData({ editName: e.detail.value })
   },
 
+  // 性别选择
+  onGenderSelect: function (e) {
+    this.setData({ editGender: e.currentTarget.dataset.gender })
+  },
+
   saveUserInfo: function() {
-    const { editName, editAvatar, user } = this.data
+    const { editName, editAvatar, editGender, user } = this.data
     if (!editName.trim()) {
       wx.showToast({
         title: '请输入昵称',
+        icon: 'none'
+      })
+      return
+    }
+    if (!editGender) {
+      wx.showToast({
+        title: '请选择性别',
         icon: 'none'
       })
       return
@@ -386,26 +429,26 @@ Page({
         const updatedUser = {
           ...user,
           name: editName.trim(),
-          avatar: editAvatar || user.avatar || ''
+          avatar: editAvatar || user.avatar || '',
+          gender: editGender
         }
 
         await storage.set('user', updatedUser)
-        
+
         // 更新该用户创建的所有比赛中的发起人信息
         await this.updateMatchesCreatorInfo(updatedUser)
-        
-        this.syncToCloud(updatedUser)
-        
+
         // 更新全局转发头像
         const app = getApp()
         app.globalData.shareAvatar = updatedUser.avatar
-        
+
         wx.hideLoading()
-        this.setData({ 
+        this.setData({
           user: updatedUser,
           showEditModal: false,
           editName: '',
-          editAvatar: ''
+          editAvatar: '',
+          editGender: ''
         })
         wx.showToast({
           title: '修改成功',
@@ -496,7 +539,6 @@ Page({
         wx.showLoading({ title: '更新中...' })
         const newUser = { ...user, role: 'assistant' }
         await storage.set('user', newUser)
-        this.syncToCloud(newUser)
         wx.hideLoading()
         
         this.setData({
@@ -526,6 +568,19 @@ Page({
 
   stopPropagation: function () {
     // 阻止事件冒泡
+  },
+
+  // 勾选/取消勾选同意协议：由用户主动操作，默认不勾选
+  toggleAgreement: function () {
+    this.setData({ agreed: !this.data.agreed })
+  },
+
+  // 查看《用户服务协议》/《隐私政策》全文
+  goAgreement: function (e) {
+    const type = e.currentTarget.dataset.type === 'privacy' ? 'privacy' : 'service'
+    wx.navigateTo({
+      url: '/pages/agreement/agreement?type=' + type
+    })
   },
 
   onShareAppMessage: function () {

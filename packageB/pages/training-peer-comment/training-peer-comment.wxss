@@ -11,8 +11,16 @@
 }
 
 .training-meta {
+  display: flex;
+  justify-content: center;
   font-size: 26rpx;
   color: #6B7280;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 /* 队员评价列表 */
@@ -24,8 +32,8 @@
 
 /* 评价卡片：紫色边框 */
 .comment-card {
-  border: 2rpx solid #8B5CF6;
-  background: linear-gradient(135deg, #FAF5FF, #FFFFFF);
+  border: 2rpx solid #0052D9;
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
   overflow: visible;
   transition: none;
 }
@@ -53,7 +61,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
 }
 
 .avatar-text {
@@ -87,7 +95,7 @@
 }
 
 .comment-textarea:focus {
-  border-color: #8B5CF6;
+  border-color: #0052D9;
 }
 
 .placeholder-style {
@@ -118,14 +126,14 @@
 
 .submit-btn {
   width: 100%;
-  background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   color: #FFFFFF;
   border: none;
   border-radius: 20rpx;
   padding: 26rpx 0;
   font-size: 32rpx;
   font-weight: 600;
-  box-shadow: 0 6rpx 20rpx rgba(139, 92, 246, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(0, 82, 217, 0.3);
   transition: background 0.2s ease, box-shadow 0.2s ease;
   line-height: 1.4;
 }

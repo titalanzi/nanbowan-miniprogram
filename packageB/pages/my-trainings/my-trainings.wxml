@@ -9,7 +9,7 @@
         scores="{{radarScores}}"
         dimensions="{{dimensions}}"
         max-value="{{10}}"
-        theme-color="#8B5CF6"
+        theme-color="#0052D9"
       />
       <view class="overall-score">
         <text class="score-label">综合平均分</text>
@@ -19,7 +19,7 @@
 
     <!-- 无评分数据：展示空状态 -->
     <view wx:else class="radar-empty-state">
-      <text class="empty-icon">📊</text>
+      <t-icon name="chart" size="100rpx" class="empty-icon" color="#C9CDD4"></t-icon>
       <text class="empty-text">{{loading ? '加载中...' : '暂无评分数据'}}</text>
       <text class="empty-sub-text">完成训练评分后展示</text>
     </view>
@@ -43,11 +43,11 @@
           <text wx:if="{{item.myScore.avgScore}}" class="training-score">{{item.myScore.avgScore}}</text>
         </view>
         <view class="training-info">
-          <text class="info-item">📅 {{item.training.formattedTime || item.training.startTime || '未知时间'}}</text>
-          <text class="info-item">👨‍🏫 {{item.training.coachName || '未知教练'}}</text>
+          <view class="meta-item"><t-icon name="calendar" size="26rpx" color="#6B7280"></t-icon><text class="info-item">{{item.training.formattedTime || item.training.startTime || '未知时间'}}</text></view>
+          <view class="meta-item"><t-icon name="user-circle" size="26rpx" color="#6B7280"></t-icon><text class="info-item">{{item.training.coachName || '未知教练'}}</text></view>
         </view>
         <view wx:if="{{item.myScore.coachComment}}" class="coach-comment">
-          💬 {{item.myScore.coachComment}}
+          <t-icon name="chat" size="26rpx" color="#6B7280"></t-icon><text>{{item.myScore.coachComment}}</text>
         </view>
       </view>
     </view>

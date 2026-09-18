@@ -1,0 +1,26 @@
+<view class="view-page">
+  <!-- 顶部紫色导航栏 -->
+  <view class="top-bar" style="padding-top: {{statusBarHeight + 5}}px;">
+    <view class="top-left" bindtap="onBack">
+      <t-icon name="chevron-left" size="40rpx" class="back-icon" color="#101828"></t-icon>
+    </view>
+    <view class="top-center">
+      <text class="title-text">打开战术</text>
+    </view>
+    <view class="top-right"></view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="center-state">
+    <view class="spinner"></view>
+    <text class="state-text">{{progressText}}</text>
+    <text class="state-hint">正在为你复制战术，请稍候</text>
+  </view>
+
+  <!-- 加载失败 -->
+  <view wx:elif="{{loadError}}" class="center-state">
+    <t-icon name="error-circle" size="80rpx" class="state-icon" color="#EF4444"></t-icon>
+    <text class="state-text">{{errorMsg}}</text>
+    <button class="retry-btn" bindtap="onRetry">返回我的战术</button>
+  </view>
+</view>

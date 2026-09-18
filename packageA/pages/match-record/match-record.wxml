@@ -2,8 +2,14 @@
   <view class="card header-card">
     <view class="match-name">{{match.name}}</view>
     <view class="match-meta">
-      <text>📍 {{match.location || '未知地点'}}</text>
-      <text>📅 {{match.date}}</text>
+      <view class="meta-item">
+        <t-icon name="location" size="26rpx" color="#6B7280"></t-icon>
+        <text>{{match.location || '未知地点'}}</text>
+      </view>
+      <view class="meta-item">
+        <t-icon name="calendar" size="26rpx" color="#6B7280"></t-icon>
+        <text>{{match.date}}</text>
+      </view>
     </view>
   </view>
 
@@ -22,7 +28,21 @@
       </view>
     </view>
     <view class="view-members-btn" bindtap="showGroupMembers">
-      👥 查看分组成员
+      <t-icon name="usergroup" size="28rpx" color="#fff"></t-icon>
+      <text>查看分组成员</text>
+    </view>
+  </view>
+
+  <!-- 羁绊标签区域 -->
+  <view wx:if="{{triggeredBonds.length > 0}}" class="card bond-card">
+    <view class="bond-header">
+      <text class="bond-title">触发羁绊</text>
+    </view>
+    <view class="bond-tags">
+      <view wx:for="{{triggeredBonds}}" wx:key="id"
+            class="bond-tag" catchtap="showBondDetail" data-index="{{index}}">
+        <text class="bond-tag-name">{{item.name}}</text>
+      </view>
     </view>
   </view>
 
@@ -64,7 +84,7 @@
 
   <view wx:if="{{!canEdit}}" class="card">
     <view class="no-permission-tip">
-      <text class="tip-icon">🔒</text>
+      <t-icon name="lock-on" class="tip-icon" size="80rpx" color="#9CA3AF" />
       <text class="tip-text">只有比赛创建者可编辑记录</text>
     </view>
   </view>
@@ -82,7 +102,9 @@
           <text>{{record.memberName}}</text>
           <view class="record-stat" style="background-color: {{record.statColor}}">{{record.statName}}</view>
         </view>
-        <view wx:if="{{canEdit}}" class="record-delete" bindtap="deleteRecord" data-recordid="{{record.id}}">×</view>
+        <view wx:if="{{canEdit}}" class="record-delete" bindtap="deleteRecord" data-recordid="{{record.id}}">
+          <t-icon name="close" size="32rpx" color="#EF4444"></t-icon>
+        </view>
       </view>
     </scroll-view>
     <view wx:else class="empty-tip">
@@ -100,8 +122,13 @@
 <view wx:if="{{showTeamStatsModal}}" class="modal-overlay" bindtap="hideTeamStatsModal">
   <view class="team-stats-modal-content" catchtap="stopPropagation">
     <view class="modal-header">
-      <view class="modal-title-text">📊 {{currentTeamName}} - 队员数据</view>
-      <view class="modal-close" bindtap="hideTeamStatsModal">✕</view>
+      <view class="modal-title">
+        <t-icon name="dashboard" size="32rpx" color="#111827"></t-icon>
+        <text class="modal-title-text">{{currentTeamName}} - 队员数据</text>
+      </view>
+      <view class="modal-close" bindtap="hideTeamStatsModal">
+        <t-icon name="close" size="40rpx" color="#9CA3AF"></t-icon>
+      </view>
     </view>
     <scroll-view class="team-stats-scroll" scroll-y>
       <view wx:for="{{currentTeamMembers}}" wx:key="id" class="team-stats-item">
@@ -123,29 +150,33 @@
 </view>
 
 <!-- 分组成员弹窗 -->
-<van-popup show="{{showGroupMembersModal}}" position="center" round custom-style="width: 94%; max-height: 92vh;" bind:close="hideGroupMembers">
-  <view class="members-modal-wrapper">
+<view wx:if="{{showGroupMembersModal}}" class="modal-overlay" bindtap="hideGroupMembers">
+  <view class="members-modal-wrapper" catchtap="stopPropagation">
     <!-- 标题栏（含比赛信息） -->
     <view class="modal-header-bar">
       <view class="header-left">
         <text class="header-title">{{match.name}}</text>
         <text class="header-divider">·</text>
-        <text class="header-meta">📍 {{match.location || '未知地点'}}</text>
-        <text class="header-divider">·</text>
-        <text class="header-meta">📅 {{match.date}}</text>
+        <view class="header-meta-row">
+          <t-icon name="location" size="22rpx" color="#fff"></t-icon>
+          <text class="header-meta">{{match.location || '未知地点'}}</text>
+          <text class="header-divider">·</text>
+          <t-icon name="calendar" size="22rpx" color="#fff"></t-icon>
+          <text class="header-meta">{{match.date}}</text>
+        </view>
       </view>
       <view class="header-right" bindtap="hideGroupMembers" hover-class="btn-hover">
-        <van-icon name="cross" size="22px" color="#FF6B35" />
+        <t-icon name="close" size="32rpx" color="#0052D9"></t-icon>
       </view>
     </view>
-    
+
     <!-- 分组列表 -->
     <scroll-view class="groups-scroll-area" scroll-y>
       <view wx:for="{{match.groups}}" wx:key="id" class="group-card">
         <!-- 分组头部 -->
         <view class="group-header-bar" style="background-color: {{item.color}}">
           <view class="group-left">
-            <van-icon name="user-o" size="18px" color="#fff" />
+            <t-icon name="user-circle" size="32rpx" color="#fff"></t-icon>
             <text class="group-name-text">{{item.name}}</text>
           </view>
           <view class="group-right">
@@ -158,7 +189,7 @@
             </view>
           </view>
         </view>
-        
+
         <!-- 成员列表 -->
         <view class="members-grid">
           <view wx:for="{{item.members}}" wx:key="id" wx:for-item="member" class="member-tag-item" hover-class="member-hover">
@@ -169,26 +200,49 @@
             <image class="member-gender-img" src="{{member.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
           </view>
           <view wx:if="{{!item.members || item.members.length === 0}}" class="empty-placeholder">
-            <van-icon name="info-o" size="16px" color="#9CA3AF" />
+            <t-icon name="info-circle" size="28rpx" color="#9CA3AF"></t-icon>
             <text class="empty-text">暂无成员</text>
           </view>
         </view>
       </view>
     </scroll-view>
-    
+
     <!-- 底部提示 -->
     <view class="footer-tip-bar">
       <view class="footer-left">
-        <van-icon name="photo-o" size="14px" color="#9CA3AF" />
+        <t-icon name="image" size="24rpx" color="#9CA3AF"></t-icon>
         <text class="footer-tip-text">截图此页面分享到群里</text>
       </view>
       <view class="download-image-btn" bindtap="downloadGroupImage">
-        <van-icon name="down" size="14px" color="#fff" />
+        <t-icon name="arrow-down" size="24rpx" color="#fff"></t-icon>
         <text class="download-image-text">保存图片</text>
       </view>
     </view>
   </view>
-</van-popup>
+</view>
 
 <!-- 隐藏 canvas 用于绘制分组图片 -->
 <canvas type="2d" id="groupShareCanvas" class="share-canvas"></canvas>
+
+<!-- 羁绊详情弹窗 -->
+<view wx:if="{{showBondModal}}" class="modal-overlay" bindtap="hideBondDetail">
+  <view class="bond-modal-wrapper" catchtap="stopPropagation">
+    <view class="bond-modal-header">
+      <text class="bond-modal-title">{{currentBond.name}}</text>
+      <view class="bond-modal-close" bindtap="hideBondDetail">
+        <t-icon name="close" size="40rpx" color="#9CA3AF"></t-icon>
+      </view>
+    </view>
+    <scroll-view class="bond-modal-body" scroll-y>
+      <image wx:if="{{currentBond.imageUrl}}"
+             src="{{currentBond.imageUrl}}" mode="widthFit"
+             class="bond-modal-image"></image>
+      <view wx:elif="{{currentBond.loadingImage}}" class="bond-image-loading">
+        <text>图片加载中...</text>
+      </view>
+      <view wx:if="{{currentBond.description}}" class="bond-modal-desc">
+        {{currentBond.description}}
+      </view>
+    </scroll-view>
+  </view>
+</view>

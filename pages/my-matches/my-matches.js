@@ -15,30 +15,15 @@ Page({
 
   async loadMyMatchesFast() {
     const user = await storage.get('user') || {}
-    const allMatches = await storage.get('matches') || []
-    const myMatches = allMatches
+    const cloudMatches = await storage.getMatchesFromCloudOnly()
+    const myMatches = cloudMatches
       .filter(m => m.creatorId === user.id)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     
     this.setData({ myMatches })
-    
-    this.syncMatchesInBackground()
   },
 
-  async syncMatchesInBackground() {
-    try {
-      const cloudMatches = await storage.syncMatches()
-      if (cloudMatches && cloudMatches.length > 0) {
-        const user = await storage.get('user') || {}
-        const myMatches = cloudMatches
-          .filter(m => m.creatorId === user.id)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        this.setData({ myMatches })
-      }
-    } catch (e) {
-      console.log('Background sync completed')
-    }
-  },
+  
 
   goToCreate: function () {
     wx.navigateTo({

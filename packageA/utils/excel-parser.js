@@ -80,6 +80,7 @@ function parseExcelData(worksheet) {
       id: 'import_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       name: finalName,
       gender: gender,
+      level: null,
       originalName: name
     })
   }

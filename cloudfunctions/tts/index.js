@@ -1,16 +1,15 @@
 const cloud = require('wx-server-sdk')
+const crypto = require('crypto')
 
 cloud.init({ env: 'cloudbase-d1gy9zpsb97f7c289' })
 
-// 从本地配置文件读取密钥
+const db = cloud.database()
+
 let secret = {}
 try {
   secret = require('./secret.json')
-} catch (_) {
-  // secret.json 不存在时回退到环境变量
-}
+} catch (_) {}
 
-// 调用腾讯云 TTS API（直接用 https 请求，避免 SDK 体积过大在云函数中安装失败）
 exports.main = async (event, context) => {
   const { text } = event
   if (!text || typeof text !== 'string') {
@@ -23,41 +22,68 @@ exports.main = async (event, context) => {
     return { success: false, message: '未配置 TENCENT_SECRET_ID / TENCENT_SECRET_KEY' }
   }
 
+  // 用词汇 hash 作为缓存键，同一词映射到同一文件
+  const hash = crypto.createHash('md5').update(text.toLowerCase()).digest('hex')
+  const cacheKey = `tts_${hash}`
+
   try {
+    // 1. 先查缓存表，看该词汇是否已有音频
+    const cacheRes = await db.collection('tts_cache').doc(cacheKey).get()
+    if (cacheRes && cacheRes.data && cacheRes.data.fileID) {
+      // 缓存命中，直接返回永久有效的 fileID
+      return {
+        success: true,
+        audioUrl: cacheRes.data.fileID,
+        fromCache: true
+      }
+    }
+  } catch (e) {
+    // 缓存不存在，继续生成
+  }
+
+  try {
+    // 2. 调用腾讯云 TTS 生成音频
     const audioBase64 = await callTencentTTS(text, secretId, secretKey)
     if (!audioBase64) {
       return { success: false, message: '语音合成未返回音频' }
     }
 
     const buffer = Buffer.from(audioBase64, 'base64')
-    const fileName = `tts/${Date.now()}.mp3`
+    // 用 hash 作为文件名，同一词汇始终存到同一位置
+    const cloudPath = `tts/${hash}.mp3`
 
+    // 3. 上传到云存储
     const uploadRes = await cloud.uploadFile({
-      cloudPath: fileName,
+      cloudPath: cloudPath,
       fileContent: buffer
     })
 
-    const urlRes = await cloud.getTempFileURL({
-      fileList: [uploadRes.fileID]
-    })
+    const fileID = uploadRes.fileID
 
-    const tempFileURL = urlRes.fileList && urlRes.fileList[0] && urlRes.fileList[0].tempFileURL
-    if (!tempFileURL) {
-      return { success: false, message: '获取音频链接失败' }
+    // 4. 存入缓存表
+    try {
+      await db.collection('tts_cache').doc(cacheKey).set({
+        data: {
+          word: text,
+          fileID: fileID,
+          hash: hash,
+          createdAt: db.serverDate()
+        }
+      })
+    } catch (cacheErr) {
+      console.error('Save tts cache failed:', cacheErr)
     }
 
-    return { success: true, audioUrl: tempFileURL }
+    return {
+      success: true,
+      audioUrl: fileID,
+      fromCache: false
+    }
   } catch (err) {
     console.error('TTS error:', err)
     return { success: false, message: err.message || '语音合成失败' }
   }
 }
-
-/**
- * 直接通过 HTTPS + 签名调用腾讯云 TTS API
- * 无需安装 tencentcloud-sdk-nodejs，云函数内更轻量稳定
- */
-const crypto = require('crypto')
 
 function callTencentTTS(text, secretId, secretKey) {
   return new Promise((resolve, reject) => {
@@ -69,8 +95,8 @@ function callTencentTTS(text, secretId, secretKey) {
       Volume: 0,
       Speed: 0,
       ModelType: 1,
-      VoiceType: 1050,       // 1050 = 英文女声，自然好听
-      PrimaryLanguage: 2,    // 2 = 英文
+      VoiceType: 1050,
+      PrimaryLanguage: 2,
       SampleRate: 16000,
       Codec: 'mp3'
     })
@@ -83,7 +109,6 @@ function callTencentTTS(text, secretId, secretKey) {
     const version = '2019-08-23'
     const algorithm = 'TC3-HMAC-SHA256'
 
-    // 步骤1：拼接规范请求串
     const httpRequestMethod = 'POST'
     const canonicalUri = '/'
     const canonicalQueryString = ''
@@ -92,18 +117,15 @@ function callTencentTTS(text, secretId, secretKey) {
     const hashedPayload = crypto.createHash('sha256').update(payload).digest('hex')
     const canonicalRequest = `${httpRequestMethod}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${hashedPayload}`
 
-    // 步骤2：拼接待签名字符串
     const credentialScope = `${date}/${service}/tc3_request`
     const hashedCanonicalRequest = crypto.createHash('sha256').update(canonicalRequest).digest('hex')
     const stringToSign = `${algorithm}\n${timestamp}\n${credentialScope}\n${hashedCanonicalRequest}`
 
-    // 步骤3：计算签名
     const kDate = crypto.createHmac('sha256', `TC3${secretKey}`).update(date).digest()
     const kService = crypto.createHmac('sha256', kDate).update(service).digest()
     const kSigning = crypto.createHmac('sha256', kService).update('tc3_request').digest()
     const signature = crypto.createHmac('sha256', kSigning).update(stringToSign).digest('hex')
 
-    // 步骤4：拼接 Authorization
     const authorization = `${algorithm} Credential=${secretId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`
 
     const options = {

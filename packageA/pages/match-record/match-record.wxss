@@ -11,15 +11,17 @@
 
 .match-meta {
   display: flex;
+  flex-direction: row;
   justify-content: center;
-  gap: 36rpx;
+  align-items: center;
+  gap: 40rpx;
   font-size: 26rpx;
   color: #6B7280;
 }
 
 .score-card {
   padding: 36rpx 24rpx;
-  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
 }
 
 .score-wrapper {
@@ -50,7 +52,7 @@
   font-size: 80rpx;
   font-weight: 800;
   color: #111827;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -128,8 +130,8 @@
 }
 
 .member-option.selected {
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
+  box-shadow: 0 6rpx 20rpx rgba(0, 82, 217, 0.3);
 }
 
 .member-option.selected .member-number,
@@ -352,14 +354,17 @@
 
 .view-members-btn {
   margin-top: 24rpx;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
   padding: 16rpx 32rpx;
-  background: linear-gradient(135deg, #10B981, #059669);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   color: white;
   font-size: 26rpx;
   font-weight: 600;
   border-radius: 32rpx;
-  box-shadow: 0 6rpx 20rpx rgba(16, 185, 129, 0.25);
+  box-shadow: 0 6rpx 20rpx rgba(0, 82, 217, 0.25);
 }
 
 .modal-overlay {
@@ -389,7 +394,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 24rpx;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   flex-shrink: 0;
   gap: 16rpx;
 }
@@ -399,6 +404,8 @@
   align-items: center;
   gap: 8rpx;
   flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
   overflow: hidden;
 }
 
@@ -409,8 +416,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex-shrink: 0;
-  max-width: 200rpx;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .header-divider {
@@ -425,6 +432,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.header-meta-row {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 0;
 }
 
 .header-right {
@@ -592,7 +608,7 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 24rpx;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   border-radius: 28rpx;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
 }
@@ -617,6 +633,18 @@
 }
 
 /* 队伍队员数据弹窗 */
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.modal-title-text {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
 .team-stats-modal-content {
   width: 92%;
   max-height: 85vh;
@@ -714,4 +742,115 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 24rpx 60rpx rgba(0, 0, 0, 0.18);
+}
+
+/* ========== 羁绊功能样式 ========== */
+.bond-card {
+  padding: 24rpx 28rpx;
+}
+
+.bond-header {
+  margin-bottom: 16rpx;
+}
+
+.bond-title {
+  font-size: 26rpx;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.bond-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.bond-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 12rpx 28rpx;
+  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 12rpx rgba(139, 92, 246, 0.3);
+  transition: transform 0.15s;
+}
+
+.bond-tag:active {
+  transform: scale(0.95);
+}
+
+.bond-tag-name {
+  font-size: 26rpx;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* 羁绊详情弹窗 */
+.bond-modal-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 88%;
+  max-width: 640rpx;
+  max-height: 80vh;
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  box-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 32rpx;
+}
+
+.bond-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #EDF0F5;
+  margin-bottom: 24rpx;
+}
+
+.bond-modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.bond-modal-close {
+  font-size: 32rpx;
+  color: #9CA3AF;
+  padding: 8rpx;
+}
+
+.bond-modal-body {
+  max-height: 60vh;
+}
+
+.bond-modal-image {
+  width: 100%;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.bond-image-loading {
+  height: 300rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F3F4F6;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+  color: #9CA3AF;
+  font-size: 26rpx;
+}
+
+.bond-modal-desc {
+  font-size: 28rpx;
+  color: #4B5563;
+  line-height: 1.6;
+}
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
 }

@@ -21,15 +21,15 @@
     <view class="section-header">
       <view class="section-title">分组设置</view>
     </view>
-    
+
     <!-- 模式切换 -->
     <view class="mode-tabs">
       <view class="mode-tab {{groupMode === 'manual' ? 'active' : ''}}" bindtap="switchGroupMode" data-mode="manual">
-        <van-icon name="edit" size="16px" />
+        <t-icon name="edit" size="32rpx" color="{{groupMode === 'manual' ? '#fff' : '#6B7280'}}" />
         <text>手动模式</text>
       </view>
       <view class="mode-tab {{groupMode === 'random' ? 'active' : ''}}" bindtap="switchGroupMode" data-mode="random">
-        <van-icon name="shuffle" size="16px" />
+        <t-icon name="swap" size="32rpx" color="{{groupMode === 'random' ? '#fff' : '#6B7280'}}" />
         <text>随机分配</text>
       </view>
     </view>
@@ -90,11 +90,11 @@
         <view class="step-desc">先录入所有参赛队员的姓名和性别</view>
         <view class="step-btn-group two-btn">
           <view class="add-player-btn" bindtap="showAddPlayerModal">
-            <van-icon name="plus" size="18px" color="#fff" />
+            <t-icon name="add" size="36rpx" color="#fff" />
             <text>添加队员</text>
           </view>
           <view class="import-btn" bindtap="importQuhuolist" disabled="{{isImporting}}">
-            <van-icon name="upload" size="18px" color="#FF6B35" />
+            <t-icon name="upload" size="36rpx" color="#0052D9" />
             <text>导入取伙名单</text>
           </view>
         </view>
@@ -102,22 +102,23 @@
           还没有队员，点击上方按钮添加
         </view>
         <view wx:else class="player-list">
-          <view wx:for="{{allPlayers}}" wx:key="id" class="player-item">
+          <view wx:for="{{allPlayers}}" wx:key="id" class="player-item" style="--level-color: {{item.levelColor}}">
             <view class="player-info">
               <view class="player-avatar" style="background: {{item.gender === 'male' ? '#DBEAFE' : '#FCE7F3'}}">
                 <image class="player-gender-icon" src="{{item.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
               </view>
               <text class="player-name">{{item.name}}</text>
             </view>
+            <input class="ip-level-input player-level-slot" type="number" value="{{item.level}}" bindinput="updatePlayerLevel" bindblur="onPlayerLevelBlur" data-index="{{index}}" placeholder="等级" />
             <view class="player-delete" bindtap="removePlayer" data-index="{{index}}">
-              <van-icon name="cross" size="18px" color="#EF4444" />
+              <t-icon name="close" size="36rpx" color="#EF4444" />
             </view>
           </view>
         </view>
         <view wx:if="{{allPlayers.length > 0}}" class="player-stats">
-          <van-tag size="medium" type="primary">共 {{allPlayers.length}} 人</van-tag>
-          <van-tag size="medium" type="success">男 {{maleCount}} 人</van-tag>
-          <van-tag size="medium" type="danger">女 {{femaleCount}} 人</van-tag>
+          <t-tag theme="primary" variant="light" size="medium">共 {{allPlayers.length}} 人</t-tag>
+          <t-tag theme="success" variant="light" size="medium">男 {{maleCount}} 人</t-tag>
+          <t-tag theme="danger" variant="light" size="medium">女 {{femaleCount}} 人</t-tag>
         </view>
         <view class="step-btn-group">
           <button class="btn-primary step-btn {{allPlayers.length >= 4 ? '' : 'disabled'}}" bindtap="gotoRandomStep2">下一步：创建队伍</button>
@@ -127,6 +128,9 @@
       <!-- Step 2: 创建队伍 -->
       <view wx:if="{{randomStep === 2}}" class="random-step-content">
         <view class="step-desc">设置每支队伍的队长和固定队员</view>
+        <view wx:if="{{showManualTeamHint}}" class="team-hint">
+          未检测到"恰好4人等级为1"，已切换为手工建队：请手动添加队伍并选择队长（若想自动建 A/B/C/D 四队，请在导入名单里给恰好4人填等级 1）
+        </view>
         <view wx:if="{{randomGroups.length === 0}}" class="empty-tip">
           请至少添加2支队伍
         </view>
@@ -140,10 +144,10 @@
               </view>
               <view class="rg-actions">
                 <text class="rg-action" bindtap="editRandomGroup" data-index="{{index}}">
-                  <van-icon name="edit" size="14px" /> 编辑
+                  <t-icon name="edit" size="28rpx" color="#6B7280" /> 编辑
                 </text>
                 <text class="rg-action delete" bindtap="deleteRandomGroup" data-index="{{index}}">
-                  <van-icon name="delete" size="14px" /> 删除
+                  <t-icon name="delete" size="28rpx" color="#EF4444" /> 删除
                 </text>
               </view>
             </view>
@@ -151,7 +155,7 @@
               <view class="rg-captain-row">
                 <text class="rg-label">队长</text>
                 <view wx:if="{{item.captainName}}" class="rg-captain">
-                  <text class="captain-icon">👑</text>
+                  <t-icon name="star" size="28rpx" color="#F59E0B" />
                   <text>{{item.captainName}}</text>
                 </view>
                 <view wx:else class="rg-empty">未设置</view>
@@ -167,7 +171,7 @@
           </view>
         </view>
         <view class="add-group-btn-random" bindtap="addRandomGroup">
-          <van-icon name="plus-circle" size="18px" color="#FF6B35" />
+          <t-icon name="add" size="36rpx" color="#0052D9" />
           <text>添加队伍</text>
         </view>
         <view class="step-btn-group two-btn">
@@ -180,7 +184,7 @@
       <view wx:if="{{randomStep === 3}}" class="random-step-content">
         <view class="step-desc">分配完成，可重新随机或手动调整</view>
         <view class="shuffle-btn {{isShuffling ? 'shuffling' : ''}}" bindtap="reRandom">
-          <van-icon name="replay" size="18px" color="#FF6B35" />
+          <t-icon name="refresh" size="36rpx" color="#0052D9" />
           <text>重新随机</text>
         </view>
         <view wx:if="{{assignedGroups.length > 0}}" class="assign-result-list">
@@ -216,7 +220,7 @@
           <text wx:else class="step-desc-selected">已选中【{{selectedMember.name}}】，点击目标队伍完成移动</text>
         </view>
         <view wx:if="{{selectedMember}}" class="cancel-select-bar" bindtap="cancelSelection">
-          <van-icon name="cross" size="14px" color="#FF6B35" />
+          <t-icon name="close" size="28rpx" color="#0052D9" />
           <text>取消选择</text>
         </view>
         <view class="drag-container">
@@ -224,7 +228,8 @@
             class="drag-group {{selectedFromGroup === index ? 'from-group' : ''}}"
             data-group-index="{{index}}"
             bindtap="moveMemberToGroup">
-            <view class="dg-header" style="background: {{item.color}}">
+            <view class="dg-header">
+              <view class="dg-color-bar" style="background: {{item.color}}"></view>
               <text class="dg-name">{{item.name}}</text>
               <view class="dg-stats">
                 <text class="dg-count">{{item.members.length}}人</text>
@@ -264,13 +269,18 @@
         <view class="stat-detail">
           <text class="stat-name">{{item.name}}</text>
         </view>
-        <view wx:if="{{index > 2}}" class="delete-stat" bindtap="deleteStat" data-index="{{index}}">×</view>
+        <view wx:if="{{index > 3}}" class="delete-stat" bindtap="deleteStat" data-index="{{index}}"><t-icon name="close" size="28rpx" color="#fff" /></view>
       </view>
     </view>
   </view>
 
   <view class="create-btn-wrapper">
-    <button class="btn-primary create-btn" bindtap="createMatch">创建比赛</button>
+    <button class="btn-primary create-btn {{isCreating ? 'btn-loading' : ''}}" bindtap="createMatch" disabled="{{isCreating}}">
+      <view wx:if="{{isCreating}}" class="btn-loading-icon">
+        <t-icon name="refresh" size="36rpx" color="#fff" class="rotating" />
+      </view>
+      <text>{{isCreating ? '创建中...' : '创建比赛'}}</text>
+    </button>
   </view>
 
   <!-- 添加/编辑分组弹窗 -->
@@ -278,7 +288,7 @@
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{editingGroupIndex !== null ? '编辑分组' : '添加分组'}}</text>
-        <text class="modal-close" bindtap="closeGroupModal">×</text>
+        <view class="modal-close" bindtap="closeGroupModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
         <view class="form-item">
@@ -288,7 +298,7 @@
         <view class="form-item">
           <text class="form-label">分组颜色</text>
           <view class="color-options">
-            <view wx:for="{{colorOptions}}" wx:key="*this" 
+            <view wx:for="{{colorOptions}}" wx:key="*this"
               class="color-option {{inputGroupColor === item ? 'selected' : ''}}"
               style="background-color: {{item}}"
               bindtap="selectGroupColor"
@@ -309,7 +319,7 @@
     <view class="modal-content member-modal" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{groups[currentGroupIndex].name}} - 成员管理</text>
-        <text class="modal-close" bindtap="closeMemberModal">×</text>
+        <view class="modal-close" bindtap="closeMemberModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
         <view class="add-member-btn" bindtap="showAddMemberModal">
@@ -342,7 +352,7 @@
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">添加成员</text>
-        <text class="modal-close" bindtap="closeAddMemberModal">×</text>
+        <view class="modal-close" bindtap="closeAddMemberModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
         <view class="form-item">
@@ -352,12 +362,12 @@
         <view class="form-item">
           <text class="form-label">性别</text>
           <view class="gender-options">
-            <view class="gender-option {{inputMemberGender === 'male' ? 'selected' : ''}}" 
+            <view class="gender-option {{inputMemberGender === 'male' ? 'selected' : ''}}"
               bindtap="selectMemberGender" data-gender="male">
               <image class="gender-icon" src="/images/男.png" mode="aspectFit"></image>
               <text class="gender-text">男</text>
             </view>
-            <view class="gender-option {{inputMemberGender === 'female' ? 'selected' : ''}}" 
+            <view class="gender-option {{inputMemberGender === 'female' ? 'selected' : ''}}"
               bindtap="selectMemberGender" data-gender="female">
               <image class="gender-icon" src="/images/女.png" mode="aspectFit"></image>
               <text class="gender-text">女</text>
@@ -377,7 +387,7 @@
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">添加统计类型</text>
-        <text class="modal-close" bindtap="closeStatModal">×</text>
+        <view class="modal-close" bindtap="closeStatModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
         <view class="form-item">
@@ -387,7 +397,7 @@
         <view class="form-item">
           <text class="form-label">统计颜色</text>
           <view class="color-options">
-            <view wx:for="{{colorOptions}}" wx:key="*this" 
+            <view wx:for="{{colorOptions}}" wx:key="*this"
               class="color-option {{inputStatColor === item ? 'selected' : ''}}"
               style="background-color: {{item}}"
               bindtap="selectStatColor"
@@ -408,7 +418,7 @@
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">添加队员</text>
-        <text class="modal-close" bindtap="closeAddPlayerModal">×</text>
+        <view class="modal-close" bindtap="closeAddPlayerModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
         <view class="form-item">
@@ -418,12 +428,12 @@
         <view class="form-item">
           <text class="form-label">性别</text>
           <view class="gender-options">
-            <view class="gender-option {{inputPlayerGender === 'male' ? 'selected' : ''}}" 
+            <view class="gender-option {{inputPlayerGender === 'male' ? 'selected' : ''}}"
               bindtap="selectPlayerGender" data-gender="male">
               <image class="gender-icon" src="/images/男.png" mode="aspectFit"></image>
               <text class="gender-text">男</text>
             </view>
-            <view class="gender-option {{inputPlayerGender === 'female' ? 'selected' : ''}}" 
+            <view class="gender-option {{inputPlayerGender === 'female' ? 'selected' : ''}}"
               bindtap="selectPlayerGender" data-gender="female">
               <image class="gender-icon" src="/images/女.png" mode="aspectFit"></image>
               <text class="gender-text">女</text>
@@ -443,7 +453,7 @@
     <view class="modal-content member-modal" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{editingRandomGroupIndex !== null ? '编辑队伍' : '添加队伍'}}</text>
-        <text class="modal-close" bindtap="closeGroupConfigModal">×</text>
+        <view class="modal-close" bindtap="closeGroupConfigModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
         <view class="form-item">
@@ -453,7 +463,7 @@
         <view class="form-item">
           <text class="form-label">队伍颜色</text>
           <view class="color-options">
-            <view wx:for="{{colorOptions}}" wx:key="*this" 
+            <view wx:for="{{colorOptions}}" wx:key="*this"
               class="color-option {{groupConfigColor === item ? 'selected' : ''}}"
               style="background-color: {{item}}"
               bindtap="selectGroupConfigColor"
@@ -466,7 +476,7 @@
           <view class="picker-btn" bindtap="openPlayerPicker" data-mode="captain">
             <text wx:if="{{groupConfigCaptainName}}" class="picker-value">{{groupConfigCaptainName}}</text>
             <text wx:else class="picker-placeholder">请选择队长</text>
-            <van-icon name="arrow" size="14px" color="#9CA3AF" />
+            <t-icon name="chevron-right" size="28rpx" color="#9CA3AF" />
           </view>
         </view>
         <view class="form-item">
@@ -474,7 +484,7 @@
           <view class="picker-btn" bindtap="openPlayerPicker" data-mode="fixed">
             <text wx:if="{{groupConfigFixedIds.length > 0}}" class="picker-value">已选 {{groupConfigFixedIds.length}} 人</text>
             <text wx:else class="picker-placeholder">选择固定队员</text>
-            <van-icon name="arrow" size="14px" color="#9CA3AF" />
+            <t-icon name="chevron-right" size="28rpx" color="#9CA3AF" />
           </view>
           <view wx:if="{{groupConfigFixedNames.length > 0}}" class="selected-fixed-list">
             <text wx:for="{{groupConfigFixedNames}}" wx:key="*this" class="fixed-chip">{{item}}</text>
@@ -493,7 +503,7 @@
     <view class="modal-content member-modal" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{pickerMode === 'captain' ? '选择队长' : '选择固定队员'}}</text>
-        <text class="modal-close" bindtap="closePlayerPicker">×</text>
+        <view class="modal-close" bindtap="closePlayerPicker"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="picker-hint">
         <text wx:if="{{pickerMode === 'captain'}}">单选，只能选择一名队长</text>
@@ -504,7 +514,7 @@
           暂无可选队员
         </view>
         <view wx:else class="picker-player-list">
-          <view wx:for="{{availablePlayers}}" wx:key="id" 
+          <view wx:for="{{availablePlayers}}" wx:key="id"
             class="picker-player-item {{item.isSelected ? 'selected' : ''}} {{item.disabled ? 'disabled' : ''}}"
             bindtap="togglePlayerSelect" data-id="{{item.id}}" data-disabled="{{item.disabled}}">
             <view class="pp-info">
@@ -515,7 +525,7 @@
             </view>
             <view wx:if="{{item.disabled}}" class="pp-disabled-tag">已选</view>
             <view wx:elif="{{item.isSelected}}" class="pp-check">
-              <van-icon name="success" size="20px" color="#10B981" />
+              <t-icon name="check" size="40rpx" color="#10B981" />
             </view>
             <view wx:else class="pp-circle"></view>
           </view>
@@ -533,24 +543,25 @@
     <view class="modal-content import-modal" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">导入取伙名单预览</text>
-        <text class="modal-close" bindtap="cancelImport">×</text>
+        <view class="modal-close" bindtap="cancelImport"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
-      <view class="modal-body">
+      <scroll-view id="importScrollBody" class="modal-body" scroll-y enable-flex scroll-with-animation scroll-top="{{importScrollTop}}" bindscroll="onImportScroll">
         <view wx:if="{{importPlayers.length === 0}}" class="empty-tip">
           没有数据
         </view>
         <view wx:else class="import-player-list">
-          <view wx:for="{{importPlayers}}" wx:key="id" class="import-player-item">
+          <view wx:for="{{importPlayers}}" wx:key="id" class="import-player-item" id="ip-item-{{index}}" style="--level-color: {{item.levelColor}}">
             <view class="ip-gender" bindtap="toggleImportPlayerGender" data-index="{{index}}">
               <image class="ip-gender-icon" src="{{item.gender === 'female' ? '/images/女.png' : '/images/男.png'}}" mode="aspectFit"></image>
             </view>
-            <input class="ip-name-input" value="{{item.name}}" bindinput="updateImportPlayer" data-index="{{index}}" data-field="name" placeholder="输入姓名" />
+            <input class="ip-name-input" value="{{item.name}}" bindinput="updateImportPlayer" data-index="{{index}}" data-field="name" placeholder="输入姓名" adjust-position="{{false}}" bindfocus="onImportFocus" bindblur="onImportBlur" />
+            <input class="ip-level-input" type="number" value="{{item.level}}" bindinput="updateImportPlayerLevel" data-index="{{index}}" placeholder="等级" adjust-position="{{false}}" bindfocus="onImportFocus" bindblur="onImportBlur" />
             <view class="ip-delete" bindtap="removeImportPlayer" data-index="{{index}}">
-              <van-icon name="cross" size="18px" color="#EF4444" />
+              <t-icon name="close" size="36rpx" color="#EF4444" />
             </view>
           </view>
         </view>
-      </view>
+      </scroll-view>
       <view class="modal-footer">
         <button class="btn-secondary" bindtap="cancelImport">取消</button>
         <button class="btn-primary" bindtap="confirmImport">确认导入</button>

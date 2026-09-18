@@ -124,9 +124,20 @@ async function callCloudFunction(name, data = {}, timeoutMs = 10000) {
 }
 
 async function getUserFromCloud() {
-  const result = await callCloudFunction('getUserFromCloud')
-  if (result.success && result.data) {
-    return result.data
+  try {
+    const result = await callCloudFunction('getUserFromCloud')
+    if (result && result.success && result.data) {
+      const user = result.data
+      if (!user.id && user._id) {
+        user.id = user._id
+      }
+      console.log('getUserFromCloud - 获取用户成功, id:', user.id)
+      return user
+    } else {
+      console.log('getUserFromCloud - 返回结果:', JSON.stringify(result))
+    }
+  } catch (e) {
+    console.error('getUserFromCloud error:', e)
   }
   return null
 }
@@ -224,26 +235,18 @@ async function syncMatchToCloud(match) {
   return result.success
 }
 
-// ============ 智能 set：自动云端双写 ============
+// ============ 纯云端 set：直接同步到云端 ============
 
 async function set(key, value) {
-  setLocal(key, value)
-
-  // 对 user 和 matches 自动异步同步到云端
   if (key === 'user') {
-    syncUserToCloud(value).catch(err => {
-      console.error('Auto sync user failed:', err)
-    })
+    await syncUserToCloud(value)
   } else if (key === 'matches' && Array.isArray(value) && value.length > 0) {
-    // 只同步最近更新的比赛（避免全量同步）
     const recentMatches = value.filter(m =>
       m.updatedAt &&
-      (Date.now() - new Date(m.updatedAt).getTime() < 60000) // 1分钟内有更新的
+      (Date.now() - new Date(m.updatedAt).getTime() < 60000)
     )
     for (const match of recentMatches) {
-      syncMatchToCloud(match).catch(err => {
-        console.error('Auto sync match failed:', match.id, err)
-      })
+      await syncMatchToCloud(match)
     }
   }
 
@@ -259,54 +262,16 @@ async function syncMatches() {
         name: 'getMatchesFromCloud'
       }), 3000)
 
-      if (result && result.result && result.result.success && result.result.data.length > 0) {
+      if (result && result.result && result.result.success) {
         const cloudMatches = result.result.data
         console.log('Cloud matches count:', cloudMatches.length)
-
-        const localMatches = getLocal('matches') || []
-        const deletedMatchIds = getDeletedMatchIds()
-        const mergedMatches = [...localMatches]
-
-        for (const cloudMatch of cloudMatches) {
-          if (deletedMatchIds.indexOf(cloudMatch.id) !== -1) {
-            continue
-          }
-
-          const localMatchIndex = mergedMatches.findIndex(m => m.id === cloudMatch.id)
-          if (localMatchIndex === -1) {
-            if (cloudMatch.status !== 'finished' && cloudMatch.status !== 'deleted') {
-              mergedMatches.push(cloudMatch)
-            }
-          } else {
-            const localMatch = mergedMatches[localMatchIndex]
-
-            if (localMatch.status === 'finished' || localMatch.status === 'deleted') {
-              continue
-            }
-
-            if (cloudMatch.status === 'finished' || cloudMatch.status === 'deleted') {
-              mergedMatches[localMatchIndex] = cloudMatch
-              continue
-            }
-
-            const localUpdated = localMatch.updatedAt ? new Date(localMatch.updatedAt).getTime() : 0
-            const cloudUpdated = cloudMatch.updatedAt ? new Date(cloudMatch.updatedAt).getTime() : 0
-
-            if (cloudUpdated > localUpdated) {
-              mergedMatches[localMatchIndex] = cloudMatch
-            }
-          }
-        }
-
-        console.log('Merged matches count:', mergedMatches.length)
-        setLocal('matches', mergedMatches)
-        return mergedMatches
+        return cloudMatches.filter(m => m.status !== 'deleted')
       }
     }
   } catch (e) {
     console.log('Cloud sync error:', e)
   }
-  return getLocal('matches') || []
+  return []
 }
 
 async function getMatchesFromCloudOnly() {
@@ -319,14 +284,7 @@ async function getMatchesFromCloudOnly() {
 
       if (result && result.result && result.result.success) {
         console.log('Got matches from cloud, count:', result.result.data.length)
-        const deletedMatchIds = getDeletedMatchIds()
-        const matches = result.result.data.filter(m =>
-          m.status !== 'deleted' && deletedMatchIds.indexOf(m.id) === -1
-        )
-        if (matches.length > 0) {
-          setLocal('matches', matches)
-        }
-        return matches
+        return result.result.data.filter(m => m.status !== 'deleted')
       } else {
         console.log('Cloud function returned unsuccessful:', result)
       }
@@ -337,6 +295,80 @@ async function getMatchesFromCloudOnly() {
     console.error('Cloud sync error:', e)
   }
   return []
+}
+
+// 按状态从云端获取比赛（云端过滤，减少数据传输）
+async function getMatchesFromCloudByStatus(status) {
+  try {
+    if (isCloudAvailable()) {
+      console.log('Calling getMatchesFromCloud function with status:', status)
+      const result = await withTimeout(wx.cloud.callFunction({
+        name: 'getMatchesFromCloud',
+        data: { status }
+      }), 10000)
+
+      if (result && result.result && result.result.success) {
+        console.log('Got matches from cloud, count:', result.result.data.length)
+        return result.result.data.filter(m => m.status !== 'deleted')
+      } else {
+        console.log('Cloud function returned unsuccessful:', result)
+      }
+    } else {
+      console.log('wx.cloud not available')
+    }
+  } catch (e) {
+    console.error('Cloud sync error:', e)
+  }
+  return []
+}
+
+// 分页获取比赛（status 过滤 + skip/limit），返回 { list, hasMore }
+// hasMore 基于云端返回的原始条数判断：等于 limit 说明可能还有下一页
+async function getMatchesPaged(status, skip = 0, limit = 5) {
+  try {
+    if (isCloudAvailable()) {
+      const result = await withTimeout(wx.cloud.callFunction({
+        name: 'getMatchesFromCloud',
+        data: { status, skip, limit }
+      }), 10000)
+
+      if (result && result.result && result.result.success) {
+        const raw = (result.result.data) || []
+        const list = raw.filter(m => m.status !== 'deleted')
+        return { list, hasMore: raw.length >= limit }
+      } else {
+        console.log('getMatchesPaged cloud returned unsuccessful:', result)
+      }
+    } else {
+      console.log('wx.cloud not available')
+    }
+  } catch (e) {
+    console.error('getMatchesPaged error:', e)
+  }
+  return { list: [], hasMore: false }
+}
+
+// 按 ID 从云端查询单场比赛数据
+async function getMatchByIdFromCloud(matchId) {
+  try {
+    if (isCloudAvailable()) {
+      console.log('Calling getMatchById function...', matchId)
+      const result = await withTimeout(wx.cloud.callFunction({
+        name: 'getMatchById',
+        data: { matchId }
+      }), 10000)
+
+      if (result && result.result && result.result.success) {
+        console.log('Got match from cloud:', matchId)
+        return result.result.data
+      } else {
+        console.log('Cloud function returned unsuccessful:', result)
+      }
+    }
+  } catch (e) {
+    console.error('getMatchById error:', e)
+  }
+  return null
 }
 
 // ============ 队训数据同步 ============
@@ -415,6 +447,118 @@ async function getTrainingDetailFromCloud(trainingId) {
   return null
 }
 
+// ============ Banner 缓存管理 ============
+
+const BANNER_CACHE_KEY = 'banners_cache'
+const BANNER_CACHE_TTL = 604800000
+
+function getBannersCache() {
+  try {
+    const data = wx.getStorageSync(STORAGE_PREFIX + BANNER_CACHE_KEY)
+    return data ? JSON.parse(data) : null
+  } catch (e) {
+    console.error('Get banners cache error:', e)
+    return null
+  }
+}
+
+function setBannersCache(banners) {
+  try {
+    const cache = {
+      data: banners,
+      timestamp: Date.now()
+    }
+    wx.setStorageSync(STORAGE_PREFIX + BANNER_CACHE_KEY, JSON.stringify(cache))
+    return true
+  } catch (e) {
+    console.error('Set banners cache error:', e)
+    return false
+  }
+}
+
+function isBannersCacheValid() {
+  const cache = getBannersCache()
+  if (!cache || !cache.data || cache.data.length === 0) {
+    return false
+  }
+  return Date.now() - cache.timestamp < BANNER_CACHE_TTL
+}
+
+function getCachedBanners() {
+  const cache = getBannersCache()
+  return cache && cache.data ? cache.data : []
+}
+
+function clearBannersCache() {
+  try {
+    wx.removeStorageSync(STORAGE_PREFIX + BANNER_CACHE_KEY)
+    return true
+  } catch (e) {
+    console.error('Clear banners cache error:', e)
+    return false
+  }
+}
+
+// ============ 羁绊配置缓存 ============
+
+const BONDS_CACHE_KEY = 'bonds_cache'
+const BONDS_CACHE_TTL = 86400000 // 24小时
+
+function getBondsCache() {
+  try {
+    const data = wx.getStorageSync(STORAGE_PREFIX + BONDS_CACHE_KEY)
+    return data ? JSON.parse(data) : null
+  } catch (e) {
+    console.error('Get bonds cache error:', e)
+    return null
+  }
+}
+
+function setBondsCache(bonds) {
+  try {
+    const cache = {
+      data: bonds,
+      timestamp: Date.now()
+    }
+    wx.setStorageSync(STORAGE_PREFIX + BONDS_CACHE_KEY, JSON.stringify(cache))
+    return true
+  } catch (e) {
+    console.error('Set bonds cache error:', e)
+    return false
+  }
+}
+
+function isBondsCacheValid() {
+  const cache = getBondsCache()
+  if (!cache || !cache.data) return false
+  return Date.now() - cache.timestamp < BONDS_CACHE_TTL
+}
+
+function getBonds() {
+  const cache = getBondsCache()
+  return cache && cache.data ? cache.data : []
+}
+
+async function syncBonds() {
+  try {
+    if (!isCloudAvailable()) {
+      return getBonds()
+    }
+    const result = await withTimeout(wx.cloud.callFunction({
+      name: 'getBonds'
+    }), 5000)
+
+    if (result && result.result && result.result.success) {
+      setBondsCache(result.result.data)
+      return result.result.data
+    }
+    return getBonds()
+  } catch (e) {
+    console.log('syncBonds failed, use cache:', e)
+    return getBonds()
+  }
+}
+
 // ============ 节流工具 ============
 
 const throttleMap = {}
@@ -429,12 +573,31 @@ function throttledAsync(key, fn, minIntervalMs) {
   return fn()
 }
 
+// ============ 纯云端 get ============
+
+async function get(key) {
+  if (key === 'user') {
+    return getUserFromCloud() || {}
+  } else if (key === 'matches') {
+    return getMatchesFromCloudOnly()
+  }
+  return getLocal(key)
+}
+
+// ============ 战术板 ============
+
+async function saveTacticToCloud(tacticData, code) {
+  return await callCloudFunction('saveTactic', { tacticData, code })
+}
+
+async function getTacticFromCloud(code) {
+  return await callCloudFunction('getTactic', { code })
+}
+
 // ============ 导出 ============
 
 module.exports = {
-  get: function (key) {
-    return getLocal(key)
-  },
+  get,
 
   set,
 
@@ -459,6 +622,9 @@ module.exports = {
   // 比赛同步
   syncMatches,
   getMatchesFromCloudOnly,
+  getMatchesFromCloudByStatus,
+  getMatchesPaged,
+  getMatchByIdFromCloud,
 
   // 队训同步
   syncTrainingToCloud,
@@ -471,5 +637,21 @@ module.exports = {
   clearDeletedMatchIds,
 
   // 节流
-  throttledAsync
+  throttledAsync,
+
+  // Banner 缓存
+  isBannersCacheValid,
+  getCachedBanners,
+  setBannersCache,
+  clearBannersCache,
+
+  // 羁绊配置缓存
+  syncBonds,
+  getBonds,
+  isBondsCacheValid,
+  setBondsCache,
+
+  // 战术板
+  saveTacticToCloud,
+  getTacticFromCloud
 }

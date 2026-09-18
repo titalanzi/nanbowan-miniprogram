@@ -1,0 +1,225 @@
+.list-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #F8F9FB;
+}
+
+.list-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 160rpx 48rpx;
+}
+
+/* 加载状态 */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 160rpx 48rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #9CA3AF;
+}
+
+.empty-icon {
+  font-size: 96rpx;
+  margin-bottom: 32rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #9CA3AF;
+}
+
+/* 战术列表 */
+.tactics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.tactic-card {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  gap: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease;
+}
+
+.tactic-card:active {
+  transform: scale(0.98);
+}
+
+.tactic-preview {
+  width: 120rpx;
+  height: 120rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tactic-icon {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 16rpx;
+  background: #F3F4F6;
+}
+
+.tactic-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.tactic-name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactic-meta {
+  font-size: 24rpx;
+  color: #6B7280;
+}
+
+.tactic-time {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+.tactic-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.tactic-share-btn {
+  width: 56rpx;
+  height: 56rpx;
+  min-width: 0;
+  min-height: 0;
+  max-width: 56rpx;
+  max-height: 56rpx;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 12rpx;
+  background: #ECF2FE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+  line-height: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-size: 0;
+  letter-spacing: 0;
+  word-spacing: 0;
+  text-indent: 0;
+}
+
+.tactic-share-btn::after {
+  border: none;
+}
+
+.tactic-share-btn:active {
+  transform: scale(0.9);
+  background: #D4E2FB;
+}
+
+.share-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.tactic-delete {
+  width: 56rpx;
+  height: 56rpx;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-radius: 12rpx;
+  background: #FEF2F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.tactic-delete:active {
+  transform: scale(0.9);
+}
+
+.delete-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+/* 底部按钮 */
+.bottom-bar {
+  flex-shrink: 0;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-top: 1rpx solid #E4E7EC;
+}
+
+.btn-new {
+  width: 100%;
+  height: 96rpx;
+  background: linear-gradient(135deg, #0052D9, #366EF4);
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 700;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  border: none;
+}
+
+.btn-new::after {
+  border: none;
+}
+
+.btn-icon {
+  font-size: 40rpx;
+  font-weight: 300;
+}
+
+.btn-text {
+  font-size: 32rpx;
+}

@@ -26,20 +26,25 @@ page {
 }
 
 .btn-primary {
-  background: #FF6B35;
+  background: #0052D9;
   color: white;
   border: none;
   border-radius: 16rpx;
   padding: 28rpx 48rpx;
   font-size: 32rpx;
   font-weight: 600;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.25);
+  box-shadow: 0 4rpx 16rpx rgba(0, 82, 217, 0.25);
   transition: all 0.2s ease;
 }
 
 .btn-primary:active {
   transform: scale(0.96);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(0, 82, 217, 0.3);
+}
+
+.btn-primary[disabled] {
+  opacity: 0.7;
+  transform: none;
 }
 
 .btn-secondary {
@@ -53,7 +58,7 @@ page {
 }
 
 .btn-primary-small {
-  background: #FF6B35;
+  background: #0052D9;
   color: white;
   border: none;
   border-radius: 12rpx;
@@ -106,9 +111,9 @@ page {
 }
 
 .form-input:focus {
-  border-color: #FF6B35;
+  border-color: #0052D9;
   background: white;
-  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.08);
+  box-shadow: 0 0 0 4rpx rgba(0, 82, 217, 0.08);
 }
 
 .modal-overlay {

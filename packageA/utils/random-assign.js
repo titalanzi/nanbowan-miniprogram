@@ -12,17 +12,19 @@ function shuffleArray(arr) {
   return result
 }
 
-// 执行随机分配
+// 执行随机分配（分层均衡：按实力等级分层轮转均分，等级优先、性别尽力；无等级者随机补）
 function performRandomAssign({ randomGroups, allPlayers }) {
-  const malePlayers = allPlayers.filter(p => p.gender === 'male')
-  const femalePlayers = allPlayers.filter(p => p.gender === 'female')
-
   const assignedGroups = randomGroups.map(g => ({
     id: g.id,
     name: g.name,
     color: g.color,
+    captainId: g.captainId,
+    captainName: g.captainName,
+    fixedMemberIds: g.fixedMemberIds || [],
     members: []
   }))
+
+  const groupCount = assignedGroups.length
 
   // 1. 先放入队长和固定队员
   const usedIds = []
@@ -45,85 +47,54 @@ function performRandomAssign({ randomGroups, allPlayers }) {
     }
   })
 
-  // 2. 计算每队已有男女数，剩余需要分配的男女总数
-  const remainingMale = malePlayers.filter(p => usedIds.indexOf(p.id) === -1)
-  const remainingFemale = femalePlayers.filter(p => usedIds.indexOf(p.id) === -1)
+  // 2. 剩余队员，按实力等级分层
+  const remaining = allPlayers.filter(p => usedIds.indexOf(p.id) === -1)
+  const isLeveled = p => p.level != null && p.level !== '' && !isNaN(Number(p.level))
+  const leveledPlayers = remaining.filter(isLeveled)
+  const unleveledPlayers = remaining.filter(p => !isLeveled(p))
 
-  const groupCount = assignedGroups.length
-  const totalMale = malePlayers.length
-  const totalFemale = femalePlayers.length
-
-  const targetMalePerGroup = Math.floor(totalMale / groupCount)
-  const targetFemalePerGroup = Math.floor(totalFemale / groupCount)
-  const extraMaleCount = totalMale % groupCount
-  const extraFemaleCount = totalFemale % groupCount
-
-  const maleNeeds = []
-  const femaleNeeds = []
-  for (let i = 0; i < groupCount; i++) {
-    const curMale = assignedGroups[i].members.filter(m => m.gender === 'male').length
-    const curFemale = assignedGroups[i].members.filter(m => m.gender === 'female').length
-    maleNeeds.push(Math.max(0, targetMalePerGroup - curMale))
-    femaleNeeds.push(Math.max(0, targetFemalePerGroup - curFemale))
-  }
-
-  const shuffledMale = shuffleArray([...remainingMale])
-  const shuffledFemale = shuffleArray([...remainingFemale])
-
-  // 3. 按需分配男生
-  let maleIdx = 0
-  for (let i = 0; i < groupCount && maleIdx < shuffledMale.length; i++) {
-    for (let j = 0; j < maleNeeds[i] && maleIdx < shuffledMale.length; j++) {
-      assignedGroups[i].members.push({ ...shuffledMale[maleIdx], isCaptain: false, isFixed: false })
-      maleIdx++
-    }
-  }
-
-  // 4. 按需分配女生
-  let femaleIdx = 0
-  for (let i = 0; i < groupCount && femaleIdx < shuffledFemale.length; i++) {
-    for (let j = 0; j < femaleNeeds[i] && femaleIdx < shuffledFemale.length; j++) {
-      assignedGroups[i].members.push({ ...shuffledFemale[femaleIdx], isCaptain: false, isFixed: false })
-      femaleIdx++
-    }
-  }
-
-  // 5. 分配余数男生
-  const extraMaleIndices = shuffleArray([...Array(groupCount).keys()]).slice(0, extraMaleCount)
-  extraMaleIndices.forEach(i => {
-    if (maleIdx < shuffledMale.length) {
-      assignedGroups[i].members.push({ ...shuffledMale[maleIdx], isCaptain: false, isFixed: false })
-      maleIdx++
-    }
+  // 按等级分组，等级升序
+  const levelMap = {}
+  leveledPlayers.forEach(p => {
+    const key = String(Number(p.level))
+    if (!levelMap[key]) levelMap[key] = []
+    levelMap[key].push(p)
   })
+  const sortedLevels = Object.keys(levelMap).sort((a, b) => Number(a) - Number(b))
 
-  // 6. 分配余数女生
-  const extraFemaleIndices = shuffleArray([...Array(groupCount).keys()]).slice(0, extraFemaleCount)
-  extraFemaleIndices.forEach(i => {
-    if (femaleIdx < shuffledFemale.length) {
-      assignedGroups[i].members.push({ ...shuffledFemale[femaleIdx], isCaptain: false, isFixed: false })
-      femaleIdx++
-    }
-  })
-
-  // 7. 分配剩余
-  const randomExtraIndices = shuffleArray([...Array(groupCount).keys()])
-  let extraPtr = 0
-  while (maleIdx < shuffledMale.length) {
-    assignedGroups[randomExtraIndices[extraPtr % groupCount]].members.push({ ...shuffledMale[maleIdx], isCaptain: false, isFixed: false })
-    maleIdx++
-    extraPtr++
+  // 3. 分层轮转分配：每层内随机打散，再尽量均匀分到各队（等级优先，性别尽力）
+  const distribute = (players) => {
+    const shuffled = shuffleArray([...players])
+    const levelCountPerGroup = assignedGroups.map(() => 0) // 本层已放入数
+    shuffled.forEach(p => {
+      // 候选：本层人数最少的队；并列时选该性别人数较少的队（性别尽力）
+      let best = -1
+      let bestLevel = Infinity
+      let bestGender = Infinity
+      for (let i = 0; i < groupCount; i++) {
+        const lc = levelCountPerGroup[i]
+        const gc = assignedGroups[i].members.filter(m => m.gender === p.gender).length
+        if (lc < bestLevel || (lc === bestLevel && gc < bestGender)) {
+          bestLevel = lc
+          bestGender = gc
+          best = i
+        }
+      }
+      if (best < 0) best = 0
+      assignedGroups[best].members.push({ ...p, isCaptain: false, isFixed: false })
+      levelCountPerGroup[best]++
+    })
   }
-  extraPtr = 0
-  while (femaleIdx < shuffledFemale.length) {
-    assignedGroups[randomExtraIndices[extraPtr % groupCount]].members.push({ ...shuffledFemale[femaleIdx], isCaptain: false, isFixed: false })
-    femaleIdx++
-    extraPtr++
-  }
 
+  sortedLevels.forEach(lv => distribute(levelMap[lv]))
+  // 4. 无等级的队员整体随机补入（保持性别尽力均衡）
+  distribute(unleveledPlayers)
+
+  // 5. 统计
   assignedGroups.forEach(g => {
     g.maleCount = g.members.filter(m => m.gender === 'male').length
     g.femaleCount = g.members.filter(m => m.gender === 'female').length
+    g.memberCount = g.members.length
   })
 
   return assignedGroups

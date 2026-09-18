@@ -1,0 +1,9 @@
+{
+  "name": "getTacticList",
+  "version": "1.0.0",
+  "description": "Get current user's tactic list from cloud database",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

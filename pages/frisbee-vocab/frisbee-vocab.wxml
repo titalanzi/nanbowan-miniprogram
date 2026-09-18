@@ -2,7 +2,7 @@
   <!-- 搜索栏 -->
   <view class="search-bar">
     <view class="search-input-wrap">
-      <text class="search-icon">🔍</text>
+      <t-icon name="search" size="28rpx" class="search-icon" color="#98A2B3"></t-icon>
       <input
         class="search-input"
         type="text"
@@ -11,7 +11,7 @@
         bindinput="onSearchInput"
         confirm-type="search"
       />
-      <text wx:if="{{keyword}}" class="clear-icon" bindtap="clearSearch">✕</text>
+      <t-icon wx:if="{{keyword}}" name="close" size="28rpx" class="clear-icon" color="#98A2B3" bindtap="clearSearch"></t-icon>
     </view>
   </view>
 
@@ -31,7 +31,7 @@
             data-word="{{word.en}}"
             bindtap="playWord"
           >
-            <text class="play-icon">🔊</text>
+            <t-icon name="sound" size="30rpx" class="play-icon" color="#0052D9"></t-icon>
           </view>
         </view>
       </view>
@@ -54,7 +54,7 @@
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">{{noteTitle}}</text>
-        <text class="modal-close" bindtap="closeNoteModal">×</text>
+        <t-icon name="close" size="40rpx" class="modal-close" color="#9CA3AF" bindtap="closeNoteModal"></t-icon>
       </view>
       <view class="modal-body">
         <text class="note-text">{{noteContent}}</text>

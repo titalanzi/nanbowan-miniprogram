@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "编辑分组",
-  "usingComponents": {}
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon"
+  }
 }

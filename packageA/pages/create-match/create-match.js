@@ -59,7 +59,11 @@ Page({
     // 导入取伙名单
     showImportPreview: false,
     importPlayers: [],
-    isImporting: false
+    isImporting: false,
+    importScrollTop: 0,
+
+    // 创建比赛
+    isCreating: false
   },
 
   onLoad: async function () {
@@ -69,11 +73,43 @@ Page({
                     (today.getMonth() + 1).toString().padStart(2, '0') + '-' + 
                     today.getDate().toString().padStart(2, '0')
     this.setData({ matchDate: dateStr })
+
+    // 监听键盘高度，供导入预览弹窗聚焦时计算最小滚动距离
+    try {
+      this.windowHeight = (wx.getWindowInfo ? wx.getWindowInfo().windowHeight : wx.getSystemInfoSync().windowHeight) || 667
+    } catch (err) {
+      this.windowHeight = 667
+    }
+    this.keyboardHeight = 0
+    const that = this
+    this._kbHandler = function (res) { that.keyboardHeight = (res && res.height) || 0 }
+    wx.onKeyboardHeightChange(this._kbHandler)
+  },
+
+  onUnload: function () {
+    if (this._kbHandler) {
+      wx.offKeyboardHeightChange(this._kbHandler)
+      this._kbHandler = null
+    }
   },
 
   async checkPermission() {
-    const user = storage.get('user') || {}
-    if (!user || !user.id) {
+    try {
+      const user = await storage.get('user') || {}
+      console.log('checkPermission - 获取用户:', JSON.stringify(user))
+      if (!user || !user.id) {
+        console.log('checkPermission - 用户未注册，id:', user ? user.id : 'null')
+        wx.showModal({
+          title: '提示',
+          content: '请先注册',
+          showCancel: false,
+          success: () => {
+            wx.switchTab({ url: '/pages/mine/mine' })
+          }
+        })
+      }
+    } catch (e) {
+      console.error('checkPermission error:', e)
       wx.showModal({
         title: '提示',
         content: '请先注册',
@@ -103,7 +139,7 @@ Page({
       showGroupModal: true,
       editingGroupIndex: null,
       inputGroupName: '',
-      inputGroupColor: '#FF6B35'
+      inputGroupColor: this.data.colorOptions[this.data.groups.length % this.data.colorOptions.length]
     })
   },
 
@@ -299,6 +335,11 @@ Page({
 
   // ========== 创建比赛 ==========
   async createMatch() {
+    // 防止重复点击
+    if (this.data.isCreating) {
+      return
+    }
+
     const { matchName, matchLocation, matchDate, groups, statTypes } = this.data
 
     if (!matchName.trim()) {
@@ -317,36 +358,67 @@ Page({
       return
     }
 
-    const user = storage.get('user') || {}
+    // 显示加载状态
+    this.setData({ isCreating: true })
+    wx.showLoading({ title: '创建中...', mask: true })
 
-    const match = {
-      id: 'match_' + Date.now(),
-      name: matchName.trim(),
-      status: 'active',
-      location: matchLocation.trim() || '',
-      date: matchDate,
-      groups: groups,
-      statTypes: statTypes,
-      records: [],
-      creatorId: user.id || '',
-      creatorName: user.name || '',
-      creatorAvatar: user.avatar || '',
-      createdAt: new Date().toISOString()
-    }
+    try {
+      const user = await storage.get('user') || {}
+      console.log('createMatch - 用户信息:', JSON.stringify(user))
 
-    const matches = storage.get('matches') || []
-    matches.push(match)
-    storage.set('matches', matches)
+      if (!user || !user.id) {
+        wx.hideLoading()
+        this.setData({ isCreating: false })
+        wx.showModal({
+          title: '提示',
+          content: '请先注册',
+          showCancel: false,
+          success: () => {
+            wx.switchTab({ url: '/pages/mine/mine' })
+          }
+        })
+        return
+      }
 
-    this.syncToCloud(match)
+      const match = {
+        id: 'match_' + Date.now(),
+        name: matchName.trim(),
+        status: 'active',
+        location: matchLocation.trim() || '',
+        date: matchDate,
+        groups: groups,
+        statTypes: statTypes,
+        records: [],
+        creatorId: user.id || '',
+        creatorName: user.name || '',
+        creatorAvatar: user.avatar || '',
+        createdAt: new Date().toISOString()
+      }
 
-    wx.showToast({ title: '创建成功', icon: 'success' })
+      await this.syncToCloud(match)
 
-    setTimeout(() => {
-      wx.redirectTo({
-        url: '/packageA/pages/match-record/match-record?id=' + match.id
+      // 标记比赛列表已变更，返回首页时强制刷新（无需手动下拉）
+      const app = getApp()
+      if (app.globalData) app.globalData.matchListDirty = true
+
+      wx.hideLoading()
+      this.setData({ isCreating: false })
+      wx.showToast({ title: '创建成功', icon: 'success' })
+
+      setTimeout(() => {
+        wx.redirectTo({
+          url: '/packageA/pages/match-record/match-record?id=' + match.id
+        })
+      }, 1000)
+    } catch (error) {
+      console.error('创建比赛失败:', error)
+      wx.hideLoading()
+      this.setData({ isCreating: false })
+      wx.showToast({
+        title: '创建失败，请重试',
+        icon: 'none'
       })
-    }, 1000)
+    }
   },
 
   async syncToCloud(match) {
@@ -395,7 +467,8 @@ Page({
     const newPlayer = {
       id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       name: inputPlayerName.trim(),
-      gender: inputPlayerGender
+      gender: inputPlayerGender,
+      level: ''
     }
     const newPlayers = [newPlayer, ...allPlayers]
     this.setData({
@@ -411,6 +484,38 @@ Page({
     allPlayers.splice(index, 1)
     this.setData({ allPlayers })
     this.updatePlayerStats()
+  },
+
+  // 录入人员页：修改成员等级，沿用全局"每等级最多4个"规则
+  // 录入页等级输入：仅校验+变色，不排序（避免打字过程中列表跳动打断输入）
+  updatePlayerLevel: function (e) {
+    const { index } = e.currentTarget.dataset
+    const raw = e.detail.value
+    const allPlayers = [...this.data.allPlayers]
+    const target = allPlayers[index]
+    const trimmed = (raw == null ? '' : String(raw)).replace(/[^0-9]/g, '')
+    const num = trimmed === '' ? '' : Number(trimmed)
+
+    if (num !== '') {
+      const sameCount = allPlayers.filter(
+        (p, i) => i !== index && p.level !== '' && p.level != null && Number(p.level) === num
+      ).length
+      if (sameCount >= 4) {
+        wx.showToast({ title: '该等级已满（最多4个）', icon: 'none' })
+        this.setData({ allPlayers: this.decorateLevels(allPlayers) })
+        return
+      }
+    }
+
+    target.level = num
+    this.setData({ allPlayers: this.decorateLevels(allPlayers) })
+  },
+
+  // 录入页等级输入框失焦后，按等级统一排序（等级升序→性别→原序）
+  onPlayerLevelBlur: function () {
+    this.setData({
+      allPlayers: this.decorateLevels(this.sortImportPlayers(this.data.allPlayers))
+    })
   },
 
   updatePlayerStats: function () {
@@ -436,7 +541,7 @@ Page({
       wx.showToast({ title: '未找到有效数据', icon: 'none' })
     } else {
       this.setData({
-        importPlayers: result.players,
+        importPlayers: this.decorateLevels(this.sortImportPlayers(result.players)),
         showImportPreview: true
       })
     }
@@ -454,11 +559,70 @@ Page({
     this.setData({ importPlayers })
   },
 
+  // 复合排序：等级升序(空值最后) -> 性别(男前女后) -> 原导入顺序
+  sortImportPlayers: function (players) {
+    const genderRank = p => (p.gender === 'male' ? 0 : 1)
+    const levelRank = p => {
+      const lv = p.level
+      if (lv == null || lv === '' || isNaN(Number(lv))) return Number.MAX_SAFE_INTEGER
+      return Number(lv)
+    }
+    const withOrder = players.map((p, i) => ({ p, i }))
+    withOrder.sort((a, b) => {
+      const la = levelRank(a.p)
+      const lb = levelRank(b.p)
+      if (la !== lb) return la - lb
+      const ga = genderRank(a.p)
+      const gb = genderRank(b.p)
+      if (ga !== gb) return ga - gb
+      return a.i - b.i
+    })
+    return withOrder.map(x => x.p)
+  },
+
+  // 等级 -> 边框颜色：用于一眼区分同等级成员（空=灰，数字按色板循环）
+  levelToColor: function (level) {
+    if (level === '' || level == null || isNaN(Number(level))) return '#E5E7EB'
+    const palette = ['#A8767A', '#C99E7A', '#D6C6A8', '#A3B18A', '#8FB0AB', '#7E9CA8', '#8290B0', '#9A8AA0', '#C9A9A6', '#B08968']
+    const n = Number(level)
+    return palette[(n - 1) % palette.length]
+  },
+
+  // 给每个成员附加 levelColor 字段（不改变顺序）
+  decorateLevels: function (players) {
+    return players.map(p => Object.assign({}, p, { levelColor: this.levelToColor(p.level) }))
+  },
+
+  // 实力等级输入：全局每等级最多4个，超限拦截并回退
+  updateImportPlayerLevel: function (e) {
+    const { index } = e.currentTarget.dataset
+    const raw = e.detail.value
+    const importPlayers = [...this.data.importPlayers]
+    const target = importPlayers[index]
+    const trimmed = (raw == null ? '' : String(raw)).replace(/[^0-9]/g, '')
+    const num = trimmed === '' ? '' : Number(trimmed)
+
+    if (num !== '') {
+      const sameCount = importPlayers.filter(
+        (p, i) => i !== index && p.level !== '' && p.level != null && Number(p.level) === num
+      ).length
+      if (sameCount >= 4) {
+        wx.showToast({ title: '该等级已满（最多4个）', icon: 'none' })
+        // 不改值，回退（保持原 level）
+        this.setData({ importPlayers })
+        return
+      }
+    }
+
+    target.level = num
+    this.setData({ importPlayers: this.decorateLevels(this.sortImportPlayers(importPlayers)) })
+  },
+
   toggleImportPlayerGender: function (e) {
     const { index } = e.currentTarget.dataset
     const importPlayers = [...this.data.importPlayers]
     importPlayers[index].gender = importPlayers[index].gender === 'male' ? 'female' : 'male'
-    this.setData({ importPlayers })
+    this.setData({ importPlayers: this.decorateLevels(this.sortImportPlayers(importPlayers)) })
   },
 
   removeImportPlayer: function (e) {
@@ -468,14 +632,52 @@ Page({
     this.setData({ importPlayers })
   },
 
+  // 滚动事件：同步当前滚动位置，供聚焦计算使用
+  onImportScroll: function (e) {
+    this.data.importScrollTop = e.detail.scrollTop
+  },
+
+  // 输入框聚焦：adjust-position=false 已关闭整页位移；这里只滚动【最小必要距离】，
+  // 把当前行推到键盘上方即可，而不是滚到弹窗绝对顶部（避免最底部成员点输入时整段翻到最顶）。
+  onImportFocus: function (e) {
+    const { index } = e.currentTarget.dataset
+    const that = this
+    const kh = that.keyboardHeight || 250
+    wx.createSelectorQuery().in(this)
+      .select('#importScrollBody').boundingClientRect()
+      .select('#ip-item-' + index).boundingClientRect()
+      .exec(function (res) {
+        if (!res || res.length < 2 || !res[0] || !res[1]) return
+        const bodyRect = res[0]
+        const itemRect = res[1]
+        const S = that.data.importScrollTop
+        const winH = that.windowHeight || 667
+        const keyboardTop = winH - kh
+        const margin = 16
+        // 仅当输入框底部被键盘遮挡时才滚动，滚动量 = 需要抬升的距离（不滚到顶）
+        const needed = itemRect.bottom - (keyboardTop - margin)
+        let target = S
+        if (needed > 0) target = S + needed
+        target = Math.max(0, Math.round(target))
+        if (target !== S) {
+          that.setData({ importScrollTop: target })
+        }
+      })
+  },
+
+  onImportBlur: function () {
+    // 失焦后保持当前滚动位置即可，无需回滚
+  },
+
   confirmImport: function () {
     const { importPlayers, allPlayers } = this.data
     const newPlayers = importPlayers.map(p => ({
       id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       name: p.name,
-      gender: p.gender
+      gender: p.gender,
+      level: (p.level === '' || p.level == null) ? '' : p.level
     }))
-    const updatedPlayers = [...newPlayers, ...allPlayers]
+    const updatedPlayers = this.decorateLevels([...newPlayers, ...allPlayers])
     this.setData({
       allPlayers: updatedPlayers,
       showImportPreview: false,
@@ -498,7 +700,36 @@ Page({
       wx.showToast({ title: '至少需要4名队员', icon: 'none' })
       return
     }
-    this.setData({ randomStep: 2 })
+    // 是否自动建队提示：仅当"恰好4个等级为1"才会自动建队
+    const level1Count = this.data.allPlayers.filter(p => Number(p.level) === 1).length
+    this.setData({
+      randomStep: 2,
+      autoTeamEnabled: level1Count === 4,
+      showManualTeamHint: level1Count !== 4
+    })
+    this.autoCreateTeamsIfNeeded()
+  },
+
+  // 自动建队：恰好4人等级为1时，默认建 A/B/C/D 四队，4人各当一队队长（仅预填，可改）
+  autoCreateTeamsIfNeeded: function () {
+    const { randomGroups, allPlayers, colorOptions } = this.data
+    if (randomGroups.length > 0) return // 已手动建队则不覆盖
+    const level1 = allPlayers.filter(p => Number(p.level) === 1)
+    if (level1.length !== 4) return // 严格：恰好4个等级为1才自动建队，否则手工
+
+    const teamNames = ['A队', 'B队', 'C队', 'D队']
+    const newGroups = level1.map((cap, i) => ({
+      id: 'auto_group_' + Date.now() + '_' + i,
+      name: teamNames[i],
+      color: colorOptions[i % colorOptions.length],
+      captainId: cap.id,
+      captainName: cap.name,
+      fixedMemberIds: [],
+      fixedNames: [],
+      memberCount: 1
+    }))
+    this.setData({ randomGroups: newGroups })
+    this.updateRandomGroupStats()
   },
 
   gotoRandomStep1: function () {

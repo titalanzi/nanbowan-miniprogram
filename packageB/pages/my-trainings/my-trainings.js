@@ -3,7 +3,7 @@ const storage = require('../../../utils/storage.js')
 Page({
   data: {
     radarScores: [],
-    dimensions: ["传盘稳定性", "接盘成功率", "跑动与空间", "战术理解", "飞盘精神"],
+    dimensions: ["传盘成功率", "接盘稳定性", "防守执行率"],
     trainings: [],
     overallAvg: 0,
     hasScores: false,

@@ -1,0 +1,9 @@
+{
+  "name": "initIndexes",
+  "version": "1.0.0",
+  "description": "Initialize database indexes",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

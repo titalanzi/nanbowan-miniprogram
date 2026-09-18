@@ -15,17 +15,20 @@ exports.main = async (event, context) => {
     }
     const training = trainingRes.data[0]
 
-    // 校验 trainings.coachOpenId 不为空（必须有教练）
-    if (!training.coachOpenId) {
-      return { success: false, error: '该训练尚未分配教练，无法结束' }
+    const isCreator = OPENID === training.creatorOpenId
+    const coaches = Array.isArray(training.coaches) ? training.coaches : []
+    const isCoach = OPENID === training.coachOpenId || coaches.some(c => c.openid === OPENID)
+
+    let isAssistant = false
+    const userRes = await db.collection('users').where({ openid: OPENID }).get()
+    if (userRes.data.length > 0) {
+      isAssistant = userRes.data[0].role === 'assistant'
     }
 
-    // 校验调用者是创建者或教练
-    if (OPENID !== training.creatorOpenId && OPENID !== training.coachOpenId) {
-      return { success: false, error: '无权限：只有创建者或教练可以结束训练' }
+    if (!isCreator && !isCoach && !isAssistant) {
+      return { success: false, error: '无权限：只有创建者、教练或主理人助理可以结束训练' }
     }
 
-    // 更新 status = '已结束'
     await db.collection('trainings').where({ id: trainingId }).update({
       data: { status: '已结束', updatedAt: new Date().toISOString() }
     })

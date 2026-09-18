@@ -5,7 +5,7 @@
       <view wx:for="{{tabs}}" wx:key="id"
         class="tab {{activeTab === item.id ? 'active' : ''}}"
         bindtap="switchTab" data-tab="{{item.id}}">
-        <text class="tab-icon">{{item.icon}}</text>
+        <t-icon name="{{item.icon}}" size="44rpx" color="{{activeTab === item.id ? '#ffffff' : '#6B7280'}}" />
         <text class="tab-name">{{item.name}}</text>
         <text class="tab-indicator" wx:if="{{activeTab === item.id}}"></text>
       </view>
@@ -14,45 +14,66 @@
 
   <!-- 比赛列表 -->
   <view wx:if="{{activeTab === 'match'}}">
-    <view wx:if="{{historyMatches.length === 0}}" class="empty-state">
-      <text class="empty-icon">📋</text>
-      <text class="empty-text">暂无比赛记录</text>
+    <!-- 首屏加载中 -->
+    <view wx:if="{{matchInitialLoading}}" class="loading-state">
+      <t-loading theme="circular" size="48rpx" />
+      <text class="loading-text">加载中...</text>
     </view>
 
-    <view wx:else>
-      <view wx:for="{{historyMatches}}" wx:key="id" class="card" bindtap="goToDetail" data-id="{{item.id}}">
-        <view class="match-header">
-          <view class="match-title">{{item.name}}</view>
-          <view class="tag tag-finished">已结束</view>
-        </view>
-        <view class="match-creator">
-          <image wx:if="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
-          <view wx:else class="creator-avatar placeholder">
-            <text class="avatar-text">{{item.creatorName ? item.creatorName.charAt(0) : '?'}}</text>
-          </view>
-          <view class="creator-info">
-            <text class="creator-name">发起人：{{item.creatorName || '未知'}}</text>
-            <image wx:if="{{user.role === 'assistant'}}" class="vip-icon" src="/images/VIP.png" mode="aspectFit"></image>
-          </view>
-        </view>
-        <view class="match-info">
-          <text class="info-item">📍 {{item.location || '未知地点'}}</text>
-          <text class="info-item">📅 {{item.date}}</text>
-        </view>
-        <view class="match-groups">
-          <view wx:for="{{item.groups}}" wx:key="id" wx:for-item="group" class="group-tag" style="background-color: {{group.color}}">
-            {{group.name}}
-          </view>
-        </view>
-        <view class="match-enter">查看详情</view>
+    <block wx:else>
+      <view wx:if="{{historyMatches.length === 0}}" class="empty-state">
+        <t-icon name="root-list" size="96rpx" color="#C9CDD4" />
+        <text class="empty-text">暂无比赛记录</text>
       </view>
-    </view>
+
+      <block wx:else>
+        <view wx:for="{{historyMatches}}" wx:key="id" class="card" bindtap="goToDetail" data-id="{{item.id}}">
+          <view class="match-header">
+            <view class="match-title">{{item.name}}</view>
+            <t-tag theme="default" variant="light" size="medium">已结束</t-tag>
+          </view>
+          <view class="match-creator">
+            <image wx:if="{{item.creatorAvatar}}" src="{{item.creatorAvatar}}" class="creator-avatar" mode="aspectFill"></image>
+            <view wx:else class="creator-avatar placeholder">
+              <text class="avatar-text">{{item.creatorName ? item.creatorName.charAt(0) : '?'}}</text>
+            </view>
+            <view class="creator-info">
+              <text class="creator-name">发起人：{{item.creatorName || '未知'}}</text>
+              <image wx:if="{{user.role === 'assistant'}}" class="vip-icon" src="/images/VIP.png" mode="aspectFit"></image>
+            </view>
+          </view>
+          <view class="match-info">
+            <view class="info-item"><t-icon name="location" size="28rpx" color="#8A94A6" /><text>{{item.location || '未知地点'}}</text></view>
+            <view class="info-item"><t-icon name="calendar" size="28rpx" color="#8A94A6" /><text>{{item.date}}</text></view>
+          </view>
+          <view class="match-groups">
+            <view wx:for="{{item.groups}}" wx:key="id" wx:for-item="group" class="group-tag" style="background-color: {{group.color}}">
+              {{group.name}}
+            </view>
+          </view>
+          <view class="match-enter">
+            <text>查看详情</text>
+            <t-icon name="chevron-right" size="32rpx" color="#8A94A6" />
+          </view>
+        </view>
+
+        <!-- 分页加载更多 -->
+        <view class="load-more-area">
+          <view wx:if="{{matchLoading && historyMatches.length > 0}}" class="load-tip">
+            <t-loading theme="circular" size="28rpx" />
+            <text>加载中...</text>
+          </view>
+          <view wx:elif="{{!matchHasMore}}" class="load-tip ended">— 没有更多了 —</view>
+          <t-button wx:else theme="default" variant="outline" size="medium" bindtap="loadMoreMatches" class="load-more-btn">点击加载更多</t-button>
+        </view>
+      </block>
+    </block>
   </view>
 
   <!-- 队训列表 -->
   <view wx:if="{{activeTab === 'training'}}">
     <view wx:if="{{historyTrainings.length === 0}}" class="empty-state">
-      <text class="empty-icon">🏃</text>
+      <t-icon name="usergroup" size="96rpx" color="#C9CDD4" />
       <text class="empty-text">暂无队训记录</text>
     </view>
 
@@ -60,10 +81,10 @@
       <view wx:for="{{historyTrainings}}" wx:key="id" class="card training-card" bindtap="goToDetail" data-id="{{item.id}}">
         <view class="match-header">
           <view class="match-title-wrap">
-            <text class="type-icon">🏃</text>
+            <t-icon name="usergroup" size="36rpx" color="#0052D9" />
             <view class="match-title">{{item.title}}</view>
           </view>
-          <view class="tag tag-finished">已结束</view>
+          <t-tag theme="default" variant="light" size="medium">已结束</t-tag>
         </view>
         <view class="match-creator">
           <image wx:if="{{item.coachAvatar}}" src="{{item.coachAvatar}}" class="creator-avatar" mode="aspectFill"></image>
@@ -73,20 +94,20 @@
           </view>
           <view class="creator-info">
             <text class="creator-name">{{item.coachName || item.creatorName || '未指定教练'}}</text>
-            <text wx:if="{{item.coachName}}" class="coach-info">👟 教练</text>
+            <text wx:if="{{item.coachName}}" class="coach-info"><t-icon name="certificate" size="24rpx" color="#0052D9" /> 教练</text>
           </view>
         </view>
         <view class="match-info">
-          <text class="info-item">📍 {{item.location || '未知地点'}}</text>
-          <text class="info-item">📅 {{item.startTime}}</text>
+          <view class="info-item"><t-icon name="location" size="28rpx" color="#8A94A6" /><text>{{item.location || '未知地点'}}</text></view>
+          <view class="info-item"><t-icon name="calendar" size="28rpx" color="#8A94A6" /><text>{{item.startTime}}</text></view>
         </view>
         <view class="training-meta">
           <view class="meta-item">
-            <text class="meta-icon">👥</text>
+            <t-icon name="usergroup" size="28rpx" color="#0052D9" />
             <text class="meta-text">{{item.attendeeCount || 0}} 人签到</text>
           </view>
           <view wx:if="{{item.scoreCompleted}}" class="meta-item">
-            <text class="meta-icon">✅</text>
+            <t-icon name="check" size="28rpx" color="#0052D9" />
             <text class="meta-text">已完成评分</text>
           </view>
         </view>
@@ -94,7 +115,10 @@
           <image wx:for="{{item.attendeeAvatars}}" wx:for-item="avatar" wx:key="*this" wx:for-index="aIdx" class="attendee-avatar-item {{aIdx >= 5 ? 'hidden' : ''}}" src="{{avatar || '/images/mine.png'}}" mode="aspectFill"></image>
           <view wx:if="{{item.attendeeAvatars.length > 5}}" class="attendee-avatar-more">+{{item.attendeeAvatars.length - 5}}</view>
         </view>
-        <view class="match-enter">查看详情</view>
+        <view class="match-enter">
+          <text>查看详情</text>
+          <t-icon name="chevron-right" size="32rpx" color="#8A94A6" />
+        </view>
       </view>
     </view>
   </view>

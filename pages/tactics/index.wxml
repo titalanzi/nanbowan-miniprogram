@@ -1,0 +1,213 @@
+<view class="editor-page" catchtouchmove="onPageTouchMove" bindtouchend="onPageTouchEnd">
+  <!-- 加载遮罩 -->
+  <view wx:if="{{loadingTactic}}" class="loading-overlay">
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 顶部紫色导航栏 -->
+  <view class="top-bar" style="padding-top: {{statusBarHeight + 5}}px;">
+    <view class="top-left" bindtap="onBack">
+      <t-icon name="chevron-left" size="40rpx" class="back-icon" color="#101828"></t-icon>
+    </view>
+    <view class="top-center">
+      <input class="title-input" value="{{tacticName}}" bindinput="onNameInput" placeholder="新战术" disabled="{{isViewMode}}" />
+      <view class="save-btn" bindtap="onSave"><t-icon name="save" size="32rpx" color="#0052D9"></t-icon>
+      </view>
+    </view>
+  </view>
+
+  <!-- 道具栏（横向，双行高度，不滚动） -->
+  <view class="inventory-bar">
+    <!-- 左侧工具按钮 -->
+    <view class="inv-tools">
+      <view class="tool-btn" bindtap="onUndo">
+        <t-icon name="rollback" size="30rpx" class="tool-icon" color="#6B7280"></t-icon>
+      </view>
+      <view class="tool-btn" bindtap="onRedo">
+        <t-icon name="rollfront" size="30rpx" class="tool-icon" color="#6B7280"></t-icon>
+      </view>
+      <view class="tool-btn" bindtap="onHelp">
+        <t-icon name="help-circle" size="30rpx" class="tool-icon" color="#6B7280"></t-icon>
+      </view>
+      <button
+        class="tool-btn tool-share-btn"
+        open-type="share"
+        bindtap="onShare"
+      >
+        <image class="tool-share-img" src="/images/转发.png" mode="aspectFit" />
+      </button>
+    </view>
+
+    <view class="inv-divider-v"></view>
+
+    <!-- 飞盘 -->
+    <view class="inv-item-disc" bindtouchstart="onInvItemTouchStart" data-type="disc">
+      <image class="inv-disc-img" src="/images/飞盘.png" mode="aspectFit" />
+    </view>
+
+    <view class="inv-divider-v"></view>
+
+    <!-- 蓝方队员 -->
+    <view class="inv-players-group">
+      <view class="inv-group-label">蓝方</view>
+      <view class="inv-players-wrap">
+        <view
+          wx:for="{{bluePlayers}}"
+          wx:key="id"
+          wx:for-item="player"
+          class="inv-player {{player.onField ? 'used' : ''}}"
+          bindtouchstart="onInvItemTouchStart"
+          data-id="{{player.id}}"
+          data-color="{{player.color}}"
+          data-label="{{player.label}}"
+          data-type="player"
+        >
+          <view class="inv-dot blue-dot">
+            <text>{{player.label}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="inv-divider-v"></view>
+
+    <!-- 红方队员 -->
+    <view class="inv-players-group">
+      <view class="inv-group-label">红方</view>
+      <view class="inv-players-wrap">
+        <view
+          wx:for="{{redPlayers}}"
+          wx:key="id"
+          wx:for-item="player"
+          class="inv-player {{player.onField ? 'used' : ''}}"
+          bindtouchstart="onInvItemTouchStart"
+          data-id="{{player.id}}"
+          data-color="{{player.color}}"
+          data-label="{{player.label}}"
+          data-type="player"
+        >
+          <view class="inv-dot red-dot">
+            <text>{{player.label}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="inv-divider-v"></view>
+
+    <!-- 删除区域 -->
+    <view id="deleteZone" class="delete-zone">
+      <t-icon name="delete" size="28rpx" class="delete-icon" color="#EF4444"></t-icon>
+      <text class="delete-text">删除</text>
+    </view>
+  </view>
+
+  <!-- 中央画布区 -->
+  <view class="canvas-wrapper">
+    <canvas
+      wx:if="{{!showDescModal}}"
+      type="2d"
+      id="tacticsCanvas"
+      class="tactics-canvas"
+      bindtouchstart="onCanvasTouchStart"
+      bindtouchmove="onCanvasTouchMove"
+      bindtouchend="onCanvasTouchEnd"
+      disable-scroll="{{true}}"
+    />
+    <!-- 拖拽预览层 -->
+    <view wx:if="{{draggingItem}}" class="drag-ghost" style="left:{{dragX}}px;top:{{dragY}}px;">
+      <view wx:if="{{draggingItem.type === 'disc'}}" class="ghost-disc">
+        <image class="ghost-disc-img" src="/images/飞盘.png" mode="aspectFit" />
+      </view>
+      <view wx:else class="ghost-player {{draggingItem.colorClass}}">
+        <text>{{draggingItem.label}}</text>
+      </view>
+    </view>
+    <view class="save-indicator">{{saveStatusText}}</view>
+
+    <!-- 当前页描述浮窗（播放时显示） -->
+    <view wx:if="{{isPlaying && currentStepDesc}}" class="desc-overlay">
+      <text class="desc-overlay-text">{{currentStepDesc}}</text>
+    </view>
+  </view>
+
+  <!-- 底部时间轴 + 播放控制 -->
+  <view class="bottom-area">
+    <!-- 步骤时间轴 -->
+    <view class="timeline-row">
+      <scroll-view class="timeline-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="timeline-track">
+          <view
+            wx:for="{{steps}}"
+            wx:key="id"
+            class="tl-node {{currentIndex === index ? 'active' : ''}}"
+            bindtap="onStepTap"
+            data-index="{{index}}"
+          >
+            <text class="tl-num">{{item.number}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="timeline-actions">
+        <view class="tl-btn" bindtap="onAddStep">
+          <text class="tl-icon">+</text>
+        </view>
+        <view class="tl-btn" bindtap="onRemoveStep">
+          <text class="tl-icon">−</text>
+        </view>
+        <view class="tl-btn desc-btn {{currentStepDesc ? 'has-desc' : ''}}" bindtap="onShowDescModal">
+          <t-icon name="edit" size="26rpx" class="tl-icon" color="#374151"></t-icon>
+        </view>
+      </view>
+    </view>
+
+    <!-- 播放控制 -->
+    <view class="play-row">
+      <view class="play-btn nav" bindtap="onPrevStep">
+        <t-icon name="chevron-left" size="40rpx" color="#101828"></t-icon>
+      </view>
+      <view class="play-btn primary" bindtap="onPlayToggle">
+        <text class="play-text">{{isPlaying ? '暂停' : '分段播放'}}</text>
+      </view>
+      <view class="play-btn all" bindtap="onPlayAll">
+        <text class="play-text">播放全部</text>
+      </view>
+      <view class="play-btn nav" bindtap="onNextStep">
+        <t-icon name="chevron-right" size="40rpx" color="#101828"></t-icon>
+      </view>
+      <view class="play-indicator">{{currentIndex + 1}} / {{steps.length}}</view>
+    </view>
+  </view>
+
+</view>
+
+<!-- 描述输入弹窗（移到页面最外层，避免被 canvas 遮挡） -->
+<view wx:if="{{showDescModal}}" class="desc-mask" catchtouchmove="onDescTouchMove" catchtap="onHideDescModal">
+  <view class="desc-modal" catchtap="onStopPropagation">
+    <view class="desc-modal-header">
+      <text class="desc-modal-title">第 {{currentIndex + 1}} 页描述</text>
+      <view class="desc-modal-close" bindtap="onHideDescModal">
+        <t-icon name="close" size="40rpx" color="#9CA3AF"></t-icon>
+      </view>
+    </view>
+    <view class="desc-modal-body">
+      <textarea
+        class="desc-textarea"
+        value="{{descEditing}}"
+        bindinput="onDescInput"
+        bindblur="onDescBlur"
+        placeholder="输入当前页的描述，播放时浮窗显示"
+        maxlength="200"
+        auto-height="{{false}}"
+        fixed="{{true}}"
+        adjust-position="{{true}}"
+        show-confirm-bar="{{false}}"
+      />
+      <text class="desc-counter">{{descEditing.length}} / 200</text>
+    </view>
+    <view class="desc-modal-footer">
+      <view class="desc-btn-cancel" bindtap="onCancelDesc">取消</view>
+      <view class="desc-btn-save" bindtap="onSaveDesc">保存</view>
+    </view>
+  </view>
+</view>

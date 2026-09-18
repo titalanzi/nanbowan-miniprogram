@@ -22,7 +22,7 @@
   align-items: center;
   gap: 6rpx;
   padding: 10rpx 16rpx;
-  background: #FF6B35;
+  background: #0052D9;
   border-radius: 12rpx;
   color: white;
   font-size: 24rpx;
@@ -85,8 +85,8 @@
 }
 
 .group-card.from-group {
-  border-color: #FCD34D;
-  box-shadow: 0 0 0 2rpx rgba(252, 211, 77, 0.4), 0 4rpx 16rpx rgba(252, 211, 77, 0.2);
+  border-color: #0052D9;
+  box-shadow: 0 0 0 2rpx rgba(0, 82, 217, 0.4), 0 4rpx 16rpx rgba(0, 82, 217, 0.2);
 }
 
 .group-header {
@@ -126,8 +126,8 @@
 }
 
 .action-btn.edit {
-  background: #EFF6FF;
-  color: #3B82F6;
+  background: #ECF2FE;
+  color: #0052D9;
 }
 
 .action-btn.delete {
@@ -171,13 +171,13 @@
 }
 
 .member-item.selected {
-  border-color: #FF6B35;
-  background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
+  border-color: #0052D9;
+  background: linear-gradient(135deg, #ECF2FE, #E1EBFD);
+  box-shadow: 0 4rpx 12rpx rgba(0, 82, 217, 0.25);
 }
 
 .member-item.selected .member-name {
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 700;
 }
 
@@ -202,8 +202,7 @@
   white-space: nowrap;
 }
 
-.member-name.orange-name {
-  color: #FF6B35;
+.member-name.orange-name {  color: #FF6B35;
 }
 
 .member-gender-icon {
@@ -232,12 +231,12 @@
 .add-member-btn {
   text-align: center;
   padding: 8rpx;
-  color: #FF6B35;
+  color: #0052D9;
   font-size: 22rpx;
   font-weight: 500;
-  background: #FFF6ED;
+  background: #ECF2FE;
   border-radius: 10rpx;
-  border: 1rpx dashed #FFCD99;
+  border: 1rpx dashed #9DB8F5;
 }
 
 .modal-overlay {
@@ -291,7 +290,7 @@
 }
 
 .form-input:focus {
-  border-color: #FF6B35;
+  border-color: #0052D9;
   background: white;
 }
 
@@ -332,8 +331,8 @@
 }
 
 .gender-option.selected {
-  border-color: #FF6B35;
-  background: #FFF6ED;
+  border-color: #0052D9;
+  background: #ECF2FE;
 }
 
 .gender-icon {
@@ -349,7 +348,7 @@
 }
 
 .gender-option.selected .gender-text {
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 600;
 }
 
@@ -374,7 +373,7 @@
 }
 
 .modal-btn.confirm {
-  background: #FF6B35;
+  background: #0052D9;
   color: white;
 }
 
@@ -385,7 +384,7 @@
   padding: 16rpx 20rpx;
   margin-bottom: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  border-left: 6rpx solid #FF6B35;
+  border-left: 6rpx solid #0052D9;
 }
 
 .tip-default {
@@ -401,8 +400,8 @@
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: #FF6B35;
-  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.2);
+  background: #0052D9;
+  box-shadow: 0 0 0 4rpx rgba(0, 82, 217, 0.2);
   flex-shrink: 0;
 }
 
@@ -425,18 +424,18 @@
 }
 
 .tip-selected-name {
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 700;
   font-size: 28rpx;
 }
 
 .tip-cancel-btn {
   font-size: 24rpx;
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 500;
   padding: 8rpx 18rpx;
-  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
-  border: 2rpx solid #FFD4B8;
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
+  border: 2rpx solid #BFD3FB;
   border-radius: 20rpx;
 }
 

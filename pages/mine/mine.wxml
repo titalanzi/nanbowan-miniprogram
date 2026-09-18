@@ -1,31 +1,63 @@
 <view class="container">
-  <!-- 未注册状态 -->
-  <view wx:if="{{!user.registered}}" class="register-section">
-    <view class="card">
-      <view class="register-header">
-        <text class="register-icon">👤</text>
-        <text class="register-title">欢迎来到南波万飞盘</text>
-        <text class="register-subtitle">完善信息，开始你的运动之旅</text>
-      </view>
-      <view class="form-item">
-        <text class="form-label">昵称</text>
-        <input class="form-input" type="nickname" placeholder="点击获取微信昵称或手动输入" value="{{inputName}}" bindinput="onNameInput" bindnickname="onNickname" data-source="input" />
-      </view>
-      <view class="form-item">
+  <!-- 未注册状态：新用户注册 -->
+  <view wx:if="{{!user.registered}}" class="register-page">
+    <!-- 品牌头部 -->
+    <view class="reg-hero">
+      <view class="reg-hero-deco reg-hero-deco-1"></view>
+      <view class="reg-hero-deco reg-hero-deco-2"></view>
+      <image class="reg-hero-badge" src="cloud://cloudbase-d1gy9zpsb97f7c289.636c-cloudbase-d1gy9zpsb97f7c289-1438962250/avatars/morentouxiang.jpg" mode="aspectFill"></image>
+      <text class="reg-hero-title">欢迎加入南波万飞盘</text>
+      <text class="reg-hero-sub">完善资料，开启你的飞盘运动之旅</text>
+    </view>
+
+    <!-- 信息卡片 -->
+    <view class="reg-card">
+      <!-- 头像 -->
+      <view class="reg-field reg-avatar-field">
         <text class="form-label">头像</text>
-        <view class="avatar-pick-area">
-          <view class="avatar-preview avatar-circle">
-            <image wx:if="{{inputAvatar}}" class="avatar-img" src="{{inputAvatar}}" mode="aspectFill"></image>
-            <text wx:else class="avatar-placeholder">👤</text>
+        <button class="reg-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <view class="reg-avatar">
+            <image wx:if="{{inputAvatar}}" class="reg-avatar-img" src="{{inputAvatar}}" mode="aspectFill"></image>
+            <image wx:else class="reg-avatar-ph" src="/images/用户.png" mode="aspectFill"></image>
           </view>
-          <view class="avatar-pick-actions">
-            <button class="wx-btn choose-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">选择微信头像</button>
-            <view class="album-link" bindtap="chooseFromAlbum" data-source="input">从相册上传</view>
+        </button>
+        <text class="reg-avatar-tip">点击头像选择或拍摄</text>
+      </view>
+
+      <!-- 昵称 -->
+      <view class="reg-field">
+        <text class="form-label">昵称</text>
+        <input class="form-input" type="nickname" placeholder="点击获取微信昵称或手动输入" placeholder-class="reg-ph" value="{{inputName}}" bindinput="onNameInput" bindnickname="onNickname" data-source="input" />
+      </view>
+
+      <!-- 性别 -->
+      <view class="reg-field">
+        <text class="form-label">性别</text>
+        <view class="gender-options">
+          <view class="gender-option {{inputGender === 'male' ? 'active' : ''}}" bindtap="onInputGenderSelect" data-gender="male">
+            <image class="gender-icon" src="/images/男.png" mode="aspectFit"></image>
+            <text>男</text>
           </view>
-          <text class="avatar-tip">默认使用微信头像，也可从相册上传</text>
+          <view class="gender-option {{inputGender === 'female' ? 'active' : ''}}" bindtap="onInputGenderSelect" data-gender="female">
+            <image class="gender-icon" src="/images/女.png" mode="aspectFit"></image>
+            <text>女</text>
+          </view>
         </view>
       </view>
-      <button class="btn-primary" bindtap="register">完成注册</button>
+
+      <view class="reg-agreement">
+        <view class="agree-checkbox {{agreed ? 'is-checked' : ''}}" catchtap="toggleAgreement">
+          <view class="agree-checkbox-mark"></view>
+        </view>
+        <view class="agree-text">
+          <text catchtap="toggleAgreement">我已阅读并同意</text>
+          <text class="reg-agreement-link" catchtap="goAgreement" data-type="service">《用户服务协议》</text>
+          <text catchtap="toggleAgreement">与</text>
+          <text class="reg-agreement-link" catchtap="goAgreement" data-type="privacy">《隐私政策》</text>
+        </view>
+      </view>
+
+      <button class="btn-primary reg-submit {{agreed ? '' : 'reg-submit-hint'}}" bindtap="register">完成注册</button>
     </view>
   </view>
 
@@ -35,7 +67,7 @@
       <view class="user-info">
         <view class="user-avatar">
           <image wx:if="{{user.avatar}}" class="user-avatar-img" src="{{user.avatar}}" mode="aspectFill"></image>
-          <text wx:else class="user-avatar-placeholder">👤</text>
+          <t-icon wx:else name="user-circle" size="60rpx" color="#98A2B3" />
         </view>
         <view class="user-detail">
           <text class="user-name">{{user.name}}</text>
@@ -45,45 +77,39 @@
           </view>
         </view>
         <view class="edit-btn" bindtap="showEditModal">
-          <text class="edit-icon">✏️</text>
+          <t-icon name="edit" size="32rpx" color="#475467" />
         </view>
       </view>
     </view>
 
     <view class="card action-card" bindtap="createMatch">
-      <view class="action-icon">➕</view>
+      <view class="action-icon"><t-icon name="flag" size="40rpx" color="#0052D9" /></view>
       <view class="action-text">创建新比赛</view>
-      <view class="action-arrow">></view>
+      <t-icon name="chevron-right" size="32rpx" color="#D0D5DD" />
     </view>
 
-    <view class="card action-card training-action" bindtap="createTraining">
-      <view class="action-icon">🏃</view>
+    <view class="card action-card" bindtap="createTraining">
+      <view class="action-icon"><t-icon name="calendar" size="40rpx" color="#0052D9" /></view>
       <view class="action-text">创建队训</view>
-      <view class="action-arrow">></view>
+      <t-icon name="chevron-right" size="32rpx" color="#D0D5DD" />
     </view>
 
     <view class="card action-card" bindtap="showMyMatches">
-      <view class="action-icon">📋</view>
+      <view class="action-icon"><t-icon name="root-list" size="40rpx" color="#0052D9" /></view>
       <view class="action-text">我创建的比赛</view>
-      <view class="action-arrow">></view>
+      <t-icon name="chevron-right" size="32rpx" color="#D0D5DD" />
     </view>
 
-    <view class="card action-card training-action" bindtap="goMyTrainings">
-      <view class="action-icon">📊</view>
+    <view class="card action-card" bindtap="goMyTrainings">
+      <view class="action-icon"><t-icon name="dashboard" size="40rpx" color="#0052D9" /></view>
       <view class="action-text">我的训练记录</view>
-      <view class="action-arrow">></view>
-    </view>
-
-    <view class="card action-card" bindtap="goFrisbeeVocab">
-      <view class="action-icon">🥏</view>
-      <view class="action-text">飞盘词汇</view>
-      <view class="action-arrow">></view>
+      <t-icon name="chevron-right" size="32rpx" color="#D0D5DD" />
     </view>
 
     <view wx:if="{{user.role !== 'assistant'}}" class="card action-card" bindtap="showRegisterModal">
-      <view class="action-icon">🎖️</view>
+      <view class="action-icon"><t-icon name="certificate" size="40rpx" color="#0052D9" /></view>
       <view class="action-text">成为主理人助理</view>
-      <view class="action-arrow">></view>
+      <t-icon name="chevron-right" size="32rpx" color="#D0D5DD" />
     </view>
   </view>
 
@@ -92,16 +118,16 @@
     <view class="modal-content register-modal" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">成为主理人助理</text>
-        <text class="modal-close" bindtap="closeRegisterModal">×</text>
+        <view class="modal-close" bindtap="closeRegisterModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
         <view class="register-hint">
-        <text class="hint-text">想要成为主理人助理请联系29获取注册码</text>
-      </view>
-      <view class="form-item">
-        <text class="form-label">注册码</text>
-        <input class="form-input" placeholder="请输入注册码" value="{{registerCode}}" bindinput="onCodeInput" />
-      </view>
+          <text class="hint-text">想要成为主理人助理请联系29获取注册码</text>
+        </view>
+        <view class="form-item">
+          <text class="form-label">注册码</text>
+          <input class="form-input" placeholder="请输入注册码" value="{{registerCode}}" bindinput="onCodeInput" />
+        </view>
       </view>
       <view class="modal-footer">
         <button class="btn-secondary" bindtap="closeRegisterModal">取消</button>
@@ -115,26 +141,38 @@
     <view class="modal-content" catchtap="stopPropagation">
       <view class="modal-header">
         <text class="modal-title">编辑个人信息</text>
-        <text class="modal-close" bindtap="closeEditModal">×</text>
+        <view class="modal-close" bindtap="closeEditModal"><t-icon name="close" size="40rpx" color="#667085" /></view>
       </view>
       <view class="modal-body">
-        <view class="form-item">
-          <text class="form-label">昵称</text>
-          <input class="form-input" type="nickname" placeholder="点击获取微信昵称或手动输入" value="{{editName}}" bindinput="onEditNameInput" bindnickname="onNickname" data-source="edit" />
-        </view>
         <view class="form-item">
           <text class="form-label">头像</text>
           <view class="avatar-pick-area">
             <view class="avatar-preview avatar-circle">
               <image wx:if="{{editAvatar}}" class="avatar-img" src="{{editAvatar}}" mode="aspectFill"></image>
               <image wx:elif="{{user.avatar}}" class="avatar-img" src="{{user.avatar}}" mode="aspectFill"></image>
-              <text wx:else class="avatar-placeholder">👤</text>
+              <t-icon wx:else name="user-circle" size="60rpx" color="#98A2B3" />
             </view>
             <view class="avatar-pick-actions">
-              <button class="wx-btn choose-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">选择微信头像</button>
-              <view class="album-link" bindtap="chooseFromAlbum" data-source="edit">从相册上传</view>
+              <button class="wx-btn choose-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">选择头像</button>
             </view>
-            <text class="avatar-tip">默认使用微信头像，也可从相册上传</text>
+            <text class="avatar-tip">点击按钮选择微信头像</text>
+          </view>
+        </view>
+        <view class="form-item">
+          <text class="form-label">昵称</text>
+          <input class="form-input" type="nickname" placeholder="点击获取微信昵称或手动输入" value="{{editName}}" bindinput="onEditNameInput" bindnickname="onNickname" data-source="edit" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">性别</text>
+          <view class="gender-options">
+            <view class="gender-option {{editGender === 'male' ? 'active' : ''}}" bindtap="onGenderSelect" data-gender="male">
+              <image class="gender-icon" src="/images/男.png" mode="aspectFit"></image>
+              <text>男</text>
+            </view>
+            <view class="gender-option {{editGender === 'female' ? 'active' : ''}}" bindtap="onGenderSelect" data-gender="female">
+              <image class="gender-icon" src="/images/女.png" mode="aspectFit"></image>
+              <text>女</text>
+            </view>
           </view>
         </view>
       </view>

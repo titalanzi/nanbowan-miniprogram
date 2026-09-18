@@ -1,7 +1,7 @@
-/* 雷达图卡片：紫色主题 */
+/* 雷达图卡片：蓝色主题 */
 .radar-card {
-  background: linear-gradient(135deg, #FAF5FF, #FFFFFF);
-  border: 2rpx solid #8B5CF6;
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
+  border: 2rpx solid #0052D9;
 }
 
 .card-title {
@@ -26,7 +26,7 @@
   align-items: center;
   margin-top: 20rpx;
   padding: 16rpx 40rpx;
-  background: rgba(139, 92, 246, 0.08);
+  background: rgba(0, 82, 217, 0.08);
   border-radius: 20rpx;
 }
 
@@ -39,7 +39,7 @@
 .score-value {
   font-size: 64rpx;
   font-weight: 800;
-  color: #8B5CF6;
+  color: #0052D9;
   line-height: 1.2;
 }
 
@@ -80,7 +80,7 @@
   padding: 24rpx 24rpx 24rpx 28rpx;
   border-radius: 16rpx;
   background: #F9FAFB;
-  border-left: 8rpx solid #8B5CF6;
+  border-left: 8rpx solid #0052D9;
   transition: all 0.2s ease;
 }
 
@@ -107,11 +107,11 @@
   margin-right: 16rpx;
 }
 
-/* 本次平均分：大号紫色字体 */
+/* 本次平均分：大号蓝色字体 */
 .training-score {
   font-size: 44rpx;
   font-weight: 800;
-  color: #8B5CF6;
+  color: #0052D9;
   line-height: 1;
 }
 
@@ -131,11 +131,14 @@
 .coach-comment {
   margin-top: 8rpx;
   padding: 16rpx 20rpx;
-  background: rgba(139, 92, 246, 0.06);
+  background: rgba(0, 82, 217, 0.06);
   border-radius: 12rpx;
   font-size: 26rpx;
   color: #4B5563;
   line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
 }
 
 .empty-tip {
@@ -143,4 +146,11 @@
   padding: 60rpx 0;
   color: #9CA3AF;
   font-size: 30rpx;
+}
+
+/* TDesign 蓝统一补充 */
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }

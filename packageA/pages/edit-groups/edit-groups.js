@@ -52,37 +52,19 @@ Page({
     var matchId = self.data.matchId;
     if (!matchId) return;
     
-    // 优先尝试从本地获取
-    var matches = await storage.get('matches') || [];
-    var match = matches.find(function(m) { return m.id === matchId; });
-    
-    // 如果本地没有，从云端获取
-    if (!match) {
-      console.log('Loading match from cloud...');
-      const cloudMatches = await storage.getMatchesFromCloudOnly();
-      match = cloudMatches.find(m => m.id === matchId);
-    }
+    console.log('Loading match from cloud...');
+    const match = await storage.getMatchByIdFromCloud(matchId);
     
     if (match) {
       if (!match.records) match.records = [];
       if (!match.groups) match.groups = [];
       self.setData({ match: match });
-      // 加载比赛后重新检查权限
       await self.checkPermission();
     }
   },
 
   saveMatch: function(match) {
     var self = this;
-    var matches = storage.get('matches') || [];
-    var index = matches.findIndex(function(m) { return m.id === match.id; });
-    if (index !== -1) {
-      matches[index] = match;
-    } else {
-      matches.push(match);
-    }
-    storage.set('matches', matches);
-    
     self.syncToCloud(match);
   },
 

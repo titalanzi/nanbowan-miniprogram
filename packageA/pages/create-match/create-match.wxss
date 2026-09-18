@@ -14,10 +14,10 @@
 
 .add-btn {
   font-size: 28rpx;
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 600;
   padding: 12rpx 20rpx;
-  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
   border-radius: 16rpx;
 }
 
@@ -40,9 +40,9 @@
 }
 
 .picker:focus {
-  border-color: #FF6B35;
+  border-color: #0052D9;
   background: white;
-  box-shadow: 0 0 0 6rpx rgba(255, 107, 53, 0.1);
+  box-shadow: 0 0 0 6rpx rgba(0, 82, 217, 0.1);
 }
 
 .group-list {
@@ -166,6 +166,34 @@
 
 .create-btn {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.create-btn.btn-loading {
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.btn-loading-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .member-modal {
@@ -211,15 +239,15 @@
 }
 
 .add-member-btn {
-  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
   border-radius: 20rpx;
   padding: 24rpx;
   text-align: center;
   font-size: 30rpx;
-  color: #FF6B35;
+  color: #0052D9;
   margin-bottom: 28rpx;
   font-weight: 600;
-  border: 2rpx dashed #FF6B35;
+  border: 2rpx dashed #0052D9;
 }
 
 .member-item {
@@ -311,8 +339,8 @@
 }
 
 .gender-option.selected {
-  border-color: #FF6B35;
-  background: #FFF7ED;
+  border-color: #0052D9;
+  background: #ECF2FE;
 }
 
 .gender-icon {
@@ -328,7 +356,7 @@
 }
 
 .gender-option.selected .gender-text {
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 700;
 }
 
@@ -356,10 +384,10 @@
 }
 
 .mode-tab.active {
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   color: white;
   font-weight: 600;
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.25);
+  box-shadow: 0 6rpx 16rpx rgba(0, 82, 217, 0.25);
 }
 
 .mode-section-header {
@@ -397,9 +425,9 @@
 }
 
 .step-item.active .step-num {
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   color: white;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(0, 82, 217, 0.3);
 }
 
 .step-label {
@@ -409,7 +437,7 @@
 }
 
 .step-item.active .step-label {
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 600;
 }
 
@@ -424,7 +452,7 @@
 }
 
 .step-line.active {
-  background: linear-gradient(90deg, #FF6B35, #F59E0B);
+  background: linear-gradient(90deg, #0052D9, #366EF4);
 }
 
 /* 步骤内容 */
@@ -446,19 +474,19 @@
   justify-content: center;
   gap: 8rpx;
   padding: 24rpx;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   color: white;
   border-radius: 20rpx;
   font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 24rpx;
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(0, 82, 217, 0.3);
   transition: all 0.2s ease;
 }
 
 .add-player-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(0, 82, 217, 0.2);
 }
 
 /* 队员列表 */
@@ -476,8 +504,23 @@
   padding: 20rpx 24rpx;
   background: white;
   border-radius: 16rpx;
+  box-sizing: border-box;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 等级标识：左侧色条（替代整圈彩边，减少视觉刺激） */
+.player-item::before,
+.import-player-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8rpx;
+  background: var(--level-color, #E5E7EB);
 }
 
 .player-item:active {
@@ -520,6 +563,12 @@
   background: #FEE2E2;
 }
 
+/* 等级输入框：靠在删除按钮左边（右侧对齐，紧贴删除按钮） */
+.player-level-slot {
+  margin-left: auto;
+  margin-right: 16rpx;
+}
+
 .player-stats {
   display: flex;
   justify-content: center;
@@ -536,6 +585,23 @@
 .step-btn-group.two-btn {
   display: flex;
   gap: 20rpx;
+}
+
+.team-hint {
+  margin: 16rpx 0 8rpx;
+  padding: 20rpx 24rpx;
+  background: #FFF7ED;
+  border: 2rpx solid #FED7AA;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: #9A3412;
+}
+
+.team-hint.success {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #065F46;
 }
 
 .step-btn {
@@ -687,13 +753,13 @@
   justify-content: center;
   gap: 8rpx;
   padding: 24rpx;
-  border: 3rpx dashed #FDBA74;
+  border: 3rpx dashed #9DB8F5;
   border-radius: 20rpx;
-  color: #FF6B35;
+  color: #0052D9;
   font-size: 28rpx;
   font-weight: 600;
   margin-bottom: 24rpx;
-  background: #FFF7ED;
+  background: #ECF2FE;
   transition: all 0.2s ease;
 }
 
@@ -714,8 +780,8 @@
 }
 
 .picker-btn:active {
-  border-color: #FF6B35;
-  background: #FFF7ED;
+  border-color: #0052D9;
+  background: #ECF2FE;
 }
 
 .picker-value {
@@ -848,9 +914,9 @@
   justify-content: center;
   gap: 8rpx;
   padding: 20rpx;
-  background: #FFF7ED;
-  border: 3rpx solid #FDBA74;
-  color: #FF6B35;
+  background: #ECF2FE;
+  border: 3rpx solid #9DB8F5;
+  color: #0052D9;
   border-radius: 20rpx;
   font-size: 28rpx;
   font-weight: 600;
@@ -966,14 +1032,14 @@
   background: #DBEAFE;
 }
 
-/* Step 4: 点击选择调整 */
+/* Step 4: 点击选择调整（队伍/成员样式对齐 Step3 分配结果） */
 .drag-step {
   position: relative;
 }
 
 .step-desc-selected {
   display: inline-block;
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 600;
 }
 
@@ -983,11 +1049,11 @@
   gap: 8rpx;
   padding: 10rpx 20rpx;
   margin: 8rpx 0 20rpx;
-  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
-  border: 2rpx solid #FFD4B8;
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
+  border: 2rpx solid #BFD3FB;
   border-radius: 24rpx;
   font-size: 24rpx;
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 500;
 }
 
@@ -995,15 +1061,15 @@
   transform: scale(0.96);
 }
 
+/* 与 Step3 .assign-result-list 一致：一行一队，竖向堆叠 */
 .drag-container {
   display: flex;
-  gap: 16rpx;
+  flex-direction: column;
+  gap: 20rpx;
   margin-bottom: 24rpx;
-  min-height: 500rpx;
 }
 
 .drag-group {
-  flex: 1;
   background: white;
   border-radius: 20rpx;
   overflow: hidden;
@@ -1021,59 +1087,69 @@
 }
 
 .drag-group.from-group {
-  border-color: #FCD34D;
-  box-shadow: 0 0 0 2rpx rgba(252, 211, 77, 0.4), 0 4rpx 16rpx rgba(252, 211, 77, 0.2);
+  border-color: #0052D9;
+  box-shadow: 0 0 0 2rpx rgba(0, 82, 217, 0.4), 0 4rpx 16rpx rgba(0, 82, 217, 0.2);
 }
 
+/* 队伍头部：与 Step3 ar-header 一致（浅灰渐变 + 左侧色条 + 右侧统计） */
 .dg-header {
-  padding: 16rpx 20rpx;
-  color: white;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6rpx;
+  padding: 20rpx 24rpx;
+  gap: 12rpx;
+  background: linear-gradient(135deg, #FAFAFA, #F9FAFB);
+  border-bottom: 2rpx solid #F3F4F6;
+}
+
+.dg-color-bar {
+  width: 8rpx;
+  height: 40rpx;
+  border-radius: 4rpx;
   flex-shrink: 0;
 }
 
 .dg-name {
-  font-size: 28rpx;
+  flex: 1;
+  font-size: 30rpx;
   font-weight: 700;
+  color: #1F2937;
 }
 
 .dg-stats {
   display: flex;
-  gap: 12rpx;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
 }
 
 .dg-count {
   font-size: 22rpx;
-  opacity: 0.95;
-  background: rgba(255, 255, 255, 0.25);
-  padding: 2rpx 12rpx;
-  border-radius: 10rpx;
+  color: #6B7280;
 }
 
 .dg-gender-count {
   font-size: 20rpx;
-  opacity: 0.9;
+  color: #6B7280;
 }
 
+/* 高度随成员数量自适应：去掉固定 min-height/flex，由内容撑开 */
 .dg-list {
-  flex: 1;
-  padding: 16rpx;
-  min-height: 300rpx;
+  padding: 20rpx 24rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  align-content: flex-start;
 }
 
+/* 成员：与 Step3 ar-member 一致（横向 chip 流式排列） */
 .dg-member {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  padding: 14rpx 16rpx;
+  gap: 6rpx;
+  padding: 10rpx 16rpx;
   background: #F9FAFB;
-  border-radius: 14rpx;
-  margin-bottom: 12rpx;
-  font-size: 24rpx;
+  border-radius: 16rpx;
+  font-size: 26rpx;
   border: 3rpx solid transparent;
   box-sizing: border-box;
   transition: all 0.18s ease;
@@ -1084,24 +1160,23 @@
 }
 
 .dg-member.selected {
-  border-color: #FF6B35;
-  background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.25);
+  border-color: #0052D9;
+  background: linear-gradient(135deg, #ECF2FE, #E1EBFD);
+  box-shadow: 0 4rpx 16rpx rgba(0, 82, 217, 0.25);
   transform: scale(1.02);
 }
 
 .dg-member.selected .dg-mname {
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 700;
 }
 
 .dg-gender-icon {
-  width: 24rpx;
-  height: 24rpx;
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .dg-mname {
-  flex: 1;
   color: #374151;
   font-weight: 500;
 }
@@ -1135,17 +1210,17 @@
   gap: 8rpx;
   padding: 24rpx;
   background: #FFFFFF;
-  color: #FF6B35;
+  color: #0052D9;
   border-radius: 20rpx;
   font-size: 30rpx;
   font-weight: 600;
   margin-bottom: 24rpx;
-  border: 2rpx dashed #FF6B35;
+  border: 2rpx dashed #0052D9;
   transition: all 0.2s ease;
 }
 
 .import-btn:active {
-  background: #FFF7ED;
+  background: #ECF2FE;
   border-style: solid;
 }
 
@@ -1156,11 +1231,11 @@
 
 /* 导入预览弹窗 */
 .import-modal {
-  max-height: 80vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  width: 86%;
+  width: 90%;
 }
 
 .import-modal .modal-header {
@@ -1180,6 +1255,18 @@
   flex-shrink: 0;
 }
 
+/* 导入弹窗底部按钮：高度减半 */
+.import-modal .modal-footer button {
+  padding: 12rpx 40rpx;
+  font-size: 28rpx;
+  line-height: 1.25;
+}
+
+/* 导入弹窗 body 作为 scroll-view 时确保可滚动且高度受约束 */
+.import-modal .modal-body {
+  display: block;
+}
+
 /* 导入队员列表 */
 .import-player-list {
   display: flex;
@@ -1195,7 +1282,10 @@
   padding: 20rpx;
   background: #F9FAFB;
   border-radius: 16rpx;
+  box-sizing: border-box;
   border: 2rpx solid #E5E7EB;
+  position: relative;
+  overflow: hidden;
 }
 
 .ip-gender {
@@ -1233,8 +1323,28 @@
 }
 
 .ip-name-input:focus {
-  border-color: #FF6B35;
-  background: #FFF7ED;
+  border-color: #0052D9;
+  background: #ECF2FE;
+}
+
+.ip-level-input {
+  width: 120rpx;
+  height: 64rpx;
+  padding: 0 12rpx;
+  background: white;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #1F2937;
+  text-align: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.ip-level-input:focus {
+  border-color: #0052D9;
+  background: #ECF2FE;
 }
 
 .ip-delete {

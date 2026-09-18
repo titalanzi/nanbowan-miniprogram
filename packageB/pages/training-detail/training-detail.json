@@ -1,6 +1,7 @@
 {
   "usingComponents": {
-    "radar-chart": "/components/radar-chart/radar-chart"
+    "radar-chart": "/components/radar-chart/radar-chart",
+    "t-icon": "tdesign-miniprogram/icon/icon"
   },
   "navigationBarTitleText": "队训详情"
 }

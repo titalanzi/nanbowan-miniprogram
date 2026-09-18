@@ -16,13 +16,35 @@ exports.main = async (event, context) => {
     const training = trainingRes.data[0]
 
     const isCreator = OPENID === training.creatorOpenId
-    const isCoach = OPENID === training.coachOpenId
 
-    // 查询用户角色，判断是否是助理
+    const coaches = Array.isArray(training.coaches) ? training.coaches : []
+    const isCoach = OPENID === training.coachOpenId || coaches.some(c => c.openid === OPENID)
+
     let isAssistant = false
     const userRes = await db.collection('users').where({ openid: OPENID }).get()
     if (userRes.data.length > 0) {
       isAssistant = userRes.data[0].role === 'assistant'
+    }
+
+    const captains = Array.isArray(training.captains) ? training.captains : []
+    let isCaptain = captains.some(c => c.openid === OPENID)
+    let captainGroupId = isCaptain ? captains.find(c => c.openid === OPENID)?.groupId : ''
+
+    // 双重验证：也从 training_attendees 表检查 isCaptain 字段
+    if (!isCaptain) {
+      try {
+        const attendeeRes = await db.collection('training_attendees').where({
+          trainingId: training.id,
+          userOpenId: OPENID,
+          isCaptain: true
+        }).get()
+        if (attendeeRes.data.length > 0) {
+          isCaptain = true
+          captainGroupId = attendeeRes.data[0].captainGroupId || attendeeRes.data[0].groupId || ''
+        }
+      } catch (e) {
+        console.log('从 training_attendees 检查队长身份失败:', e)
+      }
     }
 
     return {
@@ -30,6 +52,8 @@ exports.main = async (event, context) => {
       isCreator,
       isCoach,
       isAssistant,
+      isCaptain,
+      captainGroupId,
       canEdit: isCreator || isCoach || isAssistant
     }
   } catch (error) {

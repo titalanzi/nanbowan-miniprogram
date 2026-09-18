@@ -13,7 +13,7 @@
 
 .create-btn {
   font-size: 28rpx;
-  color: #FF6B35;
+  color: #0052D9;
   font-weight: 500;
 }
 
@@ -71,3 +71,5 @@
   font-size: 26rpx;
   color: #9CA3AF;
 }
+
+.meta-item{display:flex;align-items:center;gap:8rpx;}

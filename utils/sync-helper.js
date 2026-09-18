@@ -1,40 +1,33 @@
 const storage = require('./storage.js')
 const config = require('./config.js')
 
+const DEFAULT_AVATAR = 'cloud://cloudbase-d1gy9zpsb97f7c289.636c-cloudbase-d1gy9zpsb97f7c289-1438962250/avatars/morentouxiang.jpg'
+
 /**
  * 通用工具函数，供多个页面复用
  */
 
 // 从云端同步用户信息，返回合并后的用户对象
 async function syncUserFromCloud() {
-  const user = storage.get('user') || {}
-  if (!user.id) {
-    return user
-  }
-
   try {
     if (storage.isCloudAvailable()) {
       const cloudUser = await storage.getUserFromCloud()
-
-      if (cloudUser) {
-        const mergedUser = {
-          ...user,
-          name: cloudUser.name || user.name,
-          avatar: cloudUser.avatar || user.avatar,
-          role: cloudUser.role || user.role,
+      if (cloudUser && (cloudUser.id || cloudUser._id)) {
+        return {
+          id: cloudUser.id || cloudUser._id,
+          name: cloudUser.name || '',
+          avatar: cloudUser.avatar || DEFAULT_AVATAR,
+          gender: cloudUser.gender || '',
+          role: cloudUser.role || 'normal',
+          openid: cloudUser.openid || '',
           registered: true
-        }
-
-        if (JSON.stringify(mergedUser) !== JSON.stringify(user)) {
-          storage.setLocal('user', mergedUser)
-          return mergedUser
         }
       }
     }
   } catch (e) {
     console.log('Sync user from cloud failed:', e)
   }
-  return user
+  return {}
 }
 
 // 计算分组统计数据（O(n) 时间，避免嵌套循环）
@@ -75,24 +68,15 @@ function calculateGroupStats(match) {
 
 // 从云端检查用户是否有编辑该比赛的权限，返回 { isCreator, isAssistant, canEdit }
 async function checkPermissionFromCloud(matchId) {
-  const user = storage.get('user') || {}
+  const user = await storage.get('user') || {}
   const isAssistant = user.role === 'assistant'
 
   if (!matchId || !user.id) {
     return { isCreator: false, isAssistant, canEdit: isAssistant }
   }
 
-  // 优先从云端获取比赛数据进行权限检查
-  const cloudMatches = await storage.getMatchesFromCloudOnly()
-  let match = cloudMatches.find(m => m.id === matchId)
-
-  // 如果云端没有，再从本地获取
-  if (!match) {
-    const matches = storage.get('matches') || []
-    match = matches.find(m => m.id === matchId)
-  }
-
-  const isCreator = match && match.creatorId === user.id
+  const cloudMatch = await storage.getMatchByIdFromCloud(matchId)
+  const isCreator = cloudMatch && cloudMatch.creatorId === user.id
   return {
     isCreator,
     isAssistant,
@@ -129,10 +113,14 @@ async function checkTrainingPermission(trainingId) {
         const isCreator = result.isCreator || false
         const isCoach = result.isCoach || false
         const isAssistant = result.isAssistant || false
+        const isCaptain = result.isCaptain || false
+        const captainGroupId = result.captainGroupId || ''
         return {
           isCreator,
           isCoach,
           isAssistant,
+          isCaptain,
+          captainGroupId,
           canEdit: isCreator || isCoach || isAssistant
         }
       }
@@ -140,7 +128,7 @@ async function checkTrainingPermission(trainingId) {
   } catch (e) {
     console.error('Check training permission error:', e)
   }
-  return { isCreator: false, isCoach: false, isAssistant: false, canEdit: false }
+  return { isCreator: false, isCoach: false, isAssistant: false, isCaptain: false, captainGroupId: '', canEdit: false }
 }
 
 module.exports = {

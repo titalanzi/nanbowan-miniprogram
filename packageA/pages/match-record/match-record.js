@@ -1,5 +1,6 @@
 const storage = require('../../../utils/storage.js')
 const { checkPermissionFromCloud, calculateGroupStats } = require('../../../utils/sync-helper.js')
+const { calculateMatchBonds, getBondImageTempUrl } = require('../../utils/bond-helper.js')
 
 Page({
   data: {
@@ -15,19 +16,30 @@ Page({
     groupStats: [],
     showTeamStatsModal: false,
     currentTeamMembers: [],
-    currentTeamName: ''
+    currentTeamName: '',
+    triggeredBonds: [],
+    showBondModal: false,
+    currentBond: {}
   },
 
   onLoad: async function (options) {
     if (options.id) {
       this.setData({ matchId: options.id })
     }
-    await this.checkPermission()
-    await this.loadMatchFast()
+    this._firstLoad = true
+    // 并行执行权限校验和数据加载
+    await Promise.all([
+      this.checkPermission(),
+      this.loadMatchFast()
+    ])
   },
 
   onShow: async function () {
-    await this.checkPermission()
+    if (this._firstLoad) {
+      this._firstLoad = false
+      return
+    }
+    // 重新进入页面，只加载最新比赛数据
     await this.loadMatchFast()
   },
 
@@ -45,18 +57,11 @@ Page({
   async loadMatchFast() {
     const matchId = this.data.matchId
     if (!matchId) return
-    
-    // 优先尝试从本地获取
-    const matches = await storage.get('matches') || []
-    let match = matches.find(m => m.id === matchId)
-    
-    // 如果本地没有，从云端获取
-    if (!match) {
-      console.log('Loading match from cloud...')
-      const cloudMatches = await storage.getMatchesFromCloudOnly()
-      match = cloudMatches.find(m => m.id === matchId)
-    }
-    
+
+    // 直接从云端查询单场比赛数据
+    console.log('Loading match from cloud...')
+    const match = await storage.getMatchByIdFromCloud(matchId)
+
     if (match) {
       if (!match.records) match.records = []
       
@@ -84,7 +89,55 @@ Page({
       
       this.setData({ match })
       this.updateGroupStats()
+      await this.updateTriggeredBonds(match)
     }
+  },
+
+  // 计算并更新当前比赛触发的羁绊（确保缓存已加载）
+  async updateTriggeredBonds(match) {
+    let bonds = storage.getBonds()
+    if (!bonds || bonds.length === 0) {
+      console.log('Bonds cache is empty, syncing from cloud...')
+      bonds = await storage.syncBonds()
+    }
+    const triggeredBonds = calculateMatchBonds(match)
+    console.log('Triggered bonds:', triggeredBonds)
+    this.setData({ triggeredBonds })
+  },
+
+  // 点击羁绊标签，弹出详情弹窗并懒加载图片
+  showBondDetail: function (e) {
+    const index = e.currentTarget.dataset.index
+    const bond = this.data.triggeredBonds[index]
+    if (!bond) return
+
+    this.setData({
+      showBondModal: true,
+      currentBond: {
+        name: bond.name,
+        description: bond.description,
+        imageUrl: '',
+        loadingImage: !!bond.imageFileId
+      }
+    })
+
+    // 懒加载图片：点击标签后才获取云存储临时URL
+    if (bond.imageFileId) {
+      getBondImageTempUrl(bond.imageFileId).then(url => {
+        if (url) {
+          this.setData({ 'currentBond.imageUrl': url, 'currentBond.loadingImage': false })
+        } else {
+          this.setData({ 'currentBond.loadingImage': false })
+        }
+      })
+    }
+  },
+
+  hideBondDetail: function () {
+    this.setData({
+      showBondModal: false,
+      currentBond: {}
+    })
   },
 
   updateGroupStats: function () {
@@ -168,17 +221,8 @@ Page({
   },
 
   async saveMatch(match) {
-    const matches = await storage.get('matches') || []
-    const index = matches.findIndex(m => m.id === match.id)
-    if (index !== -1) {
-      matches[index] = match
-    } else {
-      matches.push(match)
-    }
-    
     console.log('Saving match:', match.id, 'status:', match.status)
     
-    // 先同步到云端
     try {
       if (wx.cloud && wx.cloud.callFunction) {
         const result = await wx.cloud.callFunction({
@@ -190,10 +234,18 @@ Page({
     } catch (e) {
       console.error('Failed to sync match to cloud:', e)
     }
-    
-    // 再保存到本地
-    await storage.set('matches', matches)
-    console.log('Match saved to local storage')
+
+    const app = getApp()
+    if (app.globalData.preloadedMatches) {
+      const preIndex = app.globalData.preloadedMatches.findIndex(m => m.id === match.id)
+      if (preIndex !== -1) {
+        app.globalData.preloadedMatches[preIndex] = match
+      } else {
+        app.globalData.preloadedMatches.push(match)
+      }
+    }
+    // 比赛列表已变更（含结束比赛），通知首页回前台时强制刷新
+    if (app.globalData) app.globalData.matchListDirty = true
   },
 
   syncToCloud(match) {
@@ -387,13 +439,34 @@ Page({
   },
 
   async finishMatch() {
-    const { match } = this.data
+    let { match, triggeredBonds } = this.data
+
+    const sijiBrotherBond = triggeredBonds.find(b => b.name === '四驱兄弟')
+    if (sijiBrotherBond) {
+      const bondMembers = sijiBrotherBond.members || []
+      const newRecords = match.records.filter(record => {
+        if (record.statType === 'stat_turnover' && bondMembers.includes(record.memberName)) {
+          return false
+        }
+        return true
+      })
+      match = { ...match, records: newRecords }
+    }
+
     const newMatch = { ...match, status: 'finished', updatedAt: new Date().toISOString() }
     
     console.log('Finishing match:', newMatch.id, 'status:', newMatch.status)
     
     this.setData({ match: newMatch })
     await this.saveMatch(newMatch)
+
+    const app = getApp()
+    if (app.globalData.preloadedMatches) {
+      const index = app.globalData.preloadedMatches.findIndex(m => m.id === newMatch.id)
+      if (index !== -1) {
+        app.globalData.preloadedMatches[index] = newMatch
+      }
+    }
     
     wx.showToast({
       title: '比赛已结束',
@@ -530,8 +603,8 @@ Page({
 
           // 顶部标题栏
           const gradient = ctx.createLinearGradient(0, 0, width, headerHeight)
-          gradient.addColorStop(0, '#FF6B35')
-          gradient.addColorStop(1, '#F59E0B')
+          gradient.addColorStop(0, '#0052D9')
+          gradient.addColorStop(1, '#366EF4')
           ctx.fillStyle = gradient
           ctx.fillRect(0, 0, width, headerHeight)
 
@@ -641,7 +714,7 @@ Page({
 
                 // 序号 badge
                 const badgeSize = 36
-                const badgeColor = group.color || '#FF6B35'
+                const badgeColor = group.color || '#0052D9'
                 ctx.fillStyle = badgeColor
                 ctx.beginPath()
                 ctx.arc(tagX + 20 + badgeSize / 2, tagY + tagHeight / 2, badgeSize / 2, 0, Math.PI * 2)

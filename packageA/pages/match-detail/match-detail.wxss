@@ -1,25 +1,39 @@
 .header-card {
+  position: relative;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
 }
 
 .match-name {
   font-size: 44rpx;
   font-weight: 700;
+  text-align: center;
   color: #111827;
-  margin-bottom: 16rpx;
+  flex-shrink: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0;
 }
 
 .match-meta {
   display: flex;
+  flex-direction: row;
   justify-content: center;
-  gap: 36rpx;
+  align-items: center;
+  gap: 40rpx;
   font-size: 26rpx;
   color: #6B7280;
+  flex-shrink: 0;
 }
 
 .score-card {
   padding: 36rpx 24rpx;
-  background: linear-gradient(135deg, #FFF7ED, #FFFFFF);
+  background: linear-gradient(135deg, #ECF2FE, #FFFFFF);
 }
 
 .score-wrapper {
@@ -66,7 +80,7 @@
   font-size: 80rpx;
   font-weight: 800;
   color: #111827;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -87,33 +101,40 @@
 
 .tabs {
   display: flex;
-  gap: 16rpx;
+  gap: 12rpx;
   margin-bottom: 28rpx;
-  overflow-x: auto;
-  padding-bottom: 8rpx;
 }
 
 .tab {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 24rpx;
+  padding: 14rpx 12rpx;
   background: #F3F4F6;
   border-radius: 20rpx;
-  min-width: 120rpx;
-  gap: 8rpx;
+  flex: 1;
+  min-width: 0;
+  gap: 6rpx;
   transition: all 0.3s ease;
 }
 
 .tab.active {
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
+  box-shadow: 0 6rpx 20rpx rgba(0, 82, 217, 0.3);
+}
+
+.tab.active .tab-name,
+.tab.active .tab-count {
+  color: #ffffff;
 }
 
 .tab-name {
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: #6B7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab.active .tab-name {
@@ -122,7 +143,7 @@
 }
 
 .tab-indicator {
-  width: 48rpx;
+  width: 40rpx;
   height: 8rpx;
   border-radius: 4rpx;
   background: white;
@@ -204,7 +225,7 @@
   font-size: 40rpx;
   font-weight: 800;
   color: #111827;
-  background: linear-gradient(135deg, #FF6B35, #F59E0B);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -440,7 +461,10 @@
   font-size: 36rpx;
   font-weight: 700;
   color: #065F46;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
 }
 
 .spirit-hint {
@@ -536,15 +560,16 @@
   color: #10B981;
 }
 
-/* Vant Weapp 队伍成员弹窗样式 */
+/* 队伍成员弹窗样式 */
 .team-modal-wrapper {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: 92%;
   max-height: 85vh;
   background: #F9FAFB;
   border-radius: 32rpx;
   overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 82, 217, 0.18);
   box-sizing: border-box;
 }
 
@@ -553,8 +578,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 32rpx;
-  background: linear-gradient(135deg, #4F46E5, #7C3AED);
-  box-shadow: 0 8rpx 24rpx rgba(79, 70, 229, 0.25);
+  background: linear-gradient(135deg, #0052D9, #366EF4);
+  box-shadow: 0 8rpx 24rpx rgba(0, 82, 217, 0.25);
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -699,4 +724,176 @@
 .vote-count.disliked-text {
   color: #EF4444;
   font-weight: 700;
+}
+
+/* ========== 羁绊功能样式 ========== */
+.bond-card {
+  padding: 24rpx 28rpx;
+}
+
+.bond-header {
+  margin-bottom: 16rpx;
+}
+
+.bond-title {
+  font-size: 26rpx;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.bond-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.bond-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 12rpx 28rpx;
+  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 12rpx rgba(139, 92, 246, 0.3);
+  transition: transform 0.15s;
+}
+
+.bond-tag:active {
+  transform: scale(0.95);
+}
+
+.bond-tag-name {
+  font-size: 26rpx;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* 羁绊详情弹窗 */
+.bond-modal-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 88%;
+  max-width: 640rpx;
+  max-height: 80vh;
+  background: #FFFFFF;
+  border-radius: 28rpx;
+  box-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 32rpx;
+}
+
+.bond-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #EDF0F5;
+  margin-bottom: 24rpx;
+}
+
+.bond-modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.bond-modal-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F3F4F6;
+  border-radius: 50%;
+  color: #6B7280;
+  flex-shrink: 0;
+}
+
+.bond-modal-body {
+  max-height: 60vh;
+}
+
+.bond-modal-image {
+  width: 100%;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.bond-image-loading {
+  height: 300rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F3F4F6;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+  color: #9CA3AF;
+  font-size: 26rpx;
+}
+
+.bond-modal-desc {
+  font-size: 28rpx;
+  color: #4B5563;
+  line-height: 1.6;
+}
+/* 地点/时间图标与文字同行 */
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+/* 分享榜单按钮（header 右上角） */
+.share-btn {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  margin: 0;
+  padding: 8rpx 20rpx;
+  background: #ECF2FE;
+  color: #0052D9;
+  font-size: 24rpx;
+  line-height: 1.2;
+  border-radius: 999rpx;
+}
+.share-btn::after { border: none; }
+.share-btn t-icon { display: block; }
+
+/* MVP 多维度 TAB */
+.mvp-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+.mvp-tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12rpx;
+}
+.mvp-tab-row-teams {
+  margin-top: 2rpx;
+}
+.mvp-tab {
+  padding: 8rpx 24rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+  background: #F3F4F6;
+  border-radius: 999rpx;
+}
+.mvp-tab.active {
+  color: #92400E;
+  background: #FEF3C7;
+  font-weight: 600;
+}
+.mvp-empty {
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 26rpx;
+  padding: 32rpx 0;
 }

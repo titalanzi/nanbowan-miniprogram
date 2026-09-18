@@ -16,8 +16,8 @@
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
-  border: 4rpx solid #FFEDD5;
-  border-top-color: #FF6B35;
+  border: 4rpx solid #ECF2FE;
+  border-top-color: #0052D9;
   animation: spin 0.8s linear infinite;
 }
 
